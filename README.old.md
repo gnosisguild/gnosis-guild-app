@@ -1,1 +1,0 @@
-# gnosis-guild-app
