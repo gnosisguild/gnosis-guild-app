@@ -3,7 +3,6 @@ import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
 import styled from "styled-components";
 import {
   Button,
-  Loader,
   Select,
   Text,
   TextField,
@@ -48,6 +47,8 @@ const CreateGuildForm: React.FC = () => {
     setActiveCurrency(id);
   };
 
+  // TODO: Modify to implement correct logic
+  // Curently placeholder logic
   const submitTx = useCallback(async () => {
     setSubmitting(true);
     try {
@@ -70,7 +71,7 @@ const CreateGuildForm: React.FC = () => {
   }, [safe, sdk]);
 
   return (
-    <GridForm>
+    <GridForm noValidate autoComplete="off" onSubmit={submitTx}>
       <FormItem>
         <Text size="xl" strong={true}>
           Guild Name
@@ -132,9 +133,7 @@ const CreateGuildForm: React.FC = () => {
         />
       </FormItem>
       {submitting ? (
-        <>
-          <Loader size="md" />
-          <br />
+        <ButtonContainer>
           <Button
             size="lg"
             color="secondary"
@@ -144,7 +143,7 @@ const CreateGuildForm: React.FC = () => {
           >
             Cancel
           </Button>
-        </>
+        </ButtonContainer>
       ) : (
         <ButtonContainer>
           <Button
