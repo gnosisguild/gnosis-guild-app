@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, MouseEvent } from "react";
 import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
 import styled from "styled-components";
 import {
@@ -36,6 +36,7 @@ const CreateGuildForm: React.FC = () => {
   const [guildDescription, setGuildDescription] = useState("");
   const [contentFormat, setContentFormat] = useState("");
   const [guildExternalLink, setGuildExternalLink] = useState("");
+  const hiddenImageInput = useRef<HTMLInputElement>(null);
 
   const [activeCurrency, setActiveCurrency] = useState("1");
   const selectItems = [
@@ -45,6 +46,16 @@ const CreateGuildForm: React.FC = () => {
 
   const changeCurrency = (id: string) => {
     setActiveCurrency(id);
+  };
+
+  // TODO: Implement acutal logic below
+  // The current logic is incomplete
+  const uploadImage = (e: MouseEvent<HTMLInputElement>) => {
+    console.log(e);
+  };
+
+  const clickImageInput = (e: MouseEvent<HTMLButtonElement>) => {
+    hiddenImageInput?.current?.click();
   };
 
   // TODO: Modify to implement correct logic
@@ -118,9 +129,16 @@ const CreateGuildForm: React.FC = () => {
           fullWidth={false}
           size="md"
           variant="contained"
+          onClick={clickImageInput}
         >
           Upload Image
         </Button>
+        <input
+          type="file"
+          ref={hiddenImageInput}
+          style={{ display: "none" }}
+          onClick={uploadImage}
+        />
       </ButtonContainer>
       <FormItem>
         <Text size="xl" strong={true}>

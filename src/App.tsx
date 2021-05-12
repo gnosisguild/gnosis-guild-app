@@ -17,6 +17,10 @@ const Grid = styled.div`
 
 const GridDisplay = styled.div`
   grid-area: display;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 600px;
 `;
 
 const App: React.FC = () => {

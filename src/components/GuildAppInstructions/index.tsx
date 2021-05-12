@@ -11,16 +11,9 @@ const LogoContainer = styled.div`
   align-items: center;
 `;
 
-const DescriptionContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 600px;
-`;
-
 const GuildAppInstructions: React.FC = () => {
   return (
-    <DescriptionContainer>
+    <div>
       <LogoContainer>Guild Gnosis Logo TBC</LogoContainer>
       <Title size="md" strong={true}>
         Guild App
@@ -50,7 +43,7 @@ const GuildAppInstructions: React.FC = () => {
       </Text>
       <br />
       <Text size="lg">Create your Guild in less than 60 seconds today.</Text>
-    </DescriptionContainer>
+    </div>
   );
 };
 
