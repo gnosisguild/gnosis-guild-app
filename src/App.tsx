@@ -4,6 +4,8 @@ import styled from "styled-components";
 import CreateGuildForm from "./components/CreateGuildForm";
 import GuildAppInstructions from "./components/GuildAppInstructions";
 
+import { GuildProvider } from "./context/GuildContext";
+
 const Grid = styled.div`
   margin-bottom: 2rem;
   width: 100%;
@@ -23,14 +25,17 @@ const GridDisplay = styled.div`
   max-width: 600px;
 `;
 
+// Wrap in Guild provider
 const App: React.FC = () => {
   return (
-    <Grid>
-      <CreateGuildForm />
-      <GridDisplay>
-        <GuildAppInstructions />
-      </GridDisplay>
-    </Grid>
+    <GuildProvider>
+      <Grid>
+        <CreateGuildForm />
+        <GridDisplay>
+          <GuildAppInstructions />
+        </GridDisplay>
+      </Grid>
+    </GuildProvider>
   );
 };
 
