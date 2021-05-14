@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useRef, MouseEvent } from "react";
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  MouseEvent,
+  useEffect,
+} from "react";
 import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
 import styled from "styled-components";
 import {
@@ -7,6 +13,8 @@ import {
   Text,
   TextField,
 } from "@gnosis.pm/safe-react-components";
+
+import { useGuildContext } from "../../context/GuildContext";
 
 const GridForm = styled.form`
   grid-area: form;
@@ -29,23 +37,52 @@ const ButtonContainer = styled.div`
 `;
 
 const CreateGuildForm: React.FC = () => {
+  // useContext
+  // If guild exists set the proper values
+  const { guildMetadata, setGuildMetadata } = useGuildContext();
+  console.log(guildMetadata);
+
   const { sdk, safe } = useSafeAppsSDK();
   const [submitting, setSubmitting] = useState(false);
   // Input values
-  const [guildName, setGuildName] = useState("");
-  const [guildDescription, setGuildDescription] = useState("");
-  const [contentFormat, setContentFormat] = useState("");
-  const [guildExternalLink, setGuildExternalLink] = useState("");
+  const [guildName, setGuildName] = useState(guildMetadata.name);
+  const [guildDescription, setGuildDescription] = useState(
+    guildMetadata.description
+  );
+  const [contentFormat, setContentFormat] = useState(
+    guildMetadata.contentFormat
+  );
+  const [guildExternalLink, setGuildExternalLink] = useState(
+    guildMetadata.externalLink
+  );
+
+  const [guildImage, setGuildImage] = useState(guildMetadata.image);
   const hiddenImageInput = useRef<HTMLInputElement>(null);
 
-  const [activeCurrency, setActiveCurrency] = useState("1");
+  const [activeCurrency, setActiveCurrency] = useState(
+    guildMetadata.contributions
+  );
+
+  useEffect(() => {
+    setGuildName(guildMetadata.name);
+    setGuildDescription(guildMetadata.description);
+    setContentFormat(guildMetadata.contentFormat);
+    setGuildExternalLink(guildMetadata.externalLink);
+    setGuildImage(guildMetadata.image);
+    setActiveCurrency(guildMetadata.contributions);
+  }, [guildMetadata]);
+
   const selectItems = [
-    { id: "1", label: "ETH", subLabel: "Minimum amount 0.1" },
-    { id: "2", label: "Dai", subLabel: "Minimum amount 20" },
+    { id: "ETH", label: "ETH", subLabel: "Minimum amount 0.1" },
+    { id: "DAI", label: "Dai", subLabel: "Minimum amount 20" },
   ];
 
   const changeCurrency = (id: string) => {
-    setActiveCurrency(id);
+    if (id === "ETH" || id === "DAI") {
+      setActiveCurrency(id);
+    } else {
+      console.error("Incorrect currency passed in");
+    }
   };
 
   // TODO: Implement acutal logic below
@@ -63,23 +100,38 @@ const CreateGuildForm: React.FC = () => {
   const submitTx = useCallback(async () => {
     setSubmitting(true);
     try {
-      const { safeTxHash } = await sdk.txs.send({
-        txs: [
-          {
-            to: safe.safeAddress,
-            value: "0",
-            data: "0x",
-          },
-        ],
-      });
-      console.log({ safeTxHash });
-      const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
-      console.log({ safeTx });
+      //const { safeTxHash } = await sdk.txs.send({
+      //  txs: [
+      //    {
+      //      to: safe.safeAddress,
+      //      value: "0",
+      //      data: "0x",
+      //    },
+      //  ],
+      //});
+      //console.log({ safeTxHash });
+      //const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
+      //console.log({ safeTx });
+      console.log("");
     } catch (e) {
       console.error(e);
     }
+    setGuildMetadata({
+      name: guildName,
+      description: guildDescription,
+      contentFormat: contentFormat,
+      externalLink: guildExternalLink,
+      image: guildImage,
+      contributions: activeCurrency,
+    });
     setSubmitting(false);
   }, [safe, sdk]);
+
+  // Upload text
+  const imageUploadText = guildMetadata.description
+    ? "Replace Image"
+    : "Upload Image";
+  const guildButtonText = guildMetadata.name ? "Update Guild" : "Create Guild";
 
   return (
     <GridForm noValidate autoComplete="off" onSubmit={submitTx}>
@@ -131,7 +183,7 @@ const CreateGuildForm: React.FC = () => {
           variant="contained"
           onClick={clickImageInput}
         >
-          Upload Image
+          {imageUploadText}
         </Button>
         <input
           type="file"
@@ -170,7 +222,7 @@ const CreateGuildForm: React.FC = () => {
             variant="contained"
             onClick={submitTx}
           >
-            Create Guild
+            {guildButtonText}
           </Button>
         </ButtonContainer>
       )}
