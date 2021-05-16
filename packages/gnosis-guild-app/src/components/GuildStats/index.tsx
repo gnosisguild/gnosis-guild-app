@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import profile from "../../assets/profile.png";
 import {
@@ -40,7 +40,6 @@ const CardContainer = styled.div`
 const ButtonContainer = styled.div`
   margin-top: 2rem;
   margin-bottom: 1rem;
-  margin-left: 0.4rem;
   margin-right: 0.4rem;
 `;
 
@@ -53,6 +52,15 @@ const ButtonContainer = styled.div`
 // sub text
 const GuildStats: React.FC = () => {
   const { guildMetadata } = useGuildContext();
+  const [copyTooltip, setCopyTooltip] = useState("Copy to clipboard");
+  const onClickCopy = () => {
+    // Clipboard copy needs permissions to write to the clipboard
+    // navigator.clipboard.writeText(guildMetadata.externalLink);
+    setCopyTooltip("Copied");
+  };
+  const onBlurCopy = () => {
+    setCopyTooltip("Copy to clipboard");
+  };
   return (
     <div style={{ width: "100%" }}>
       <ProfileImage src={profile} alt="Guild profile" />
@@ -63,8 +71,8 @@ const GuildStats: React.FC = () => {
         <Text size="xl" strong={true}>
           Other Internet Guild Page
         </Text>
-        <IconContainer>
-          <Icon size="sm" type="copy" tooltip="Copy to Clipboard" />
+        <IconContainer onMouseOut={onBlurCopy} onClick={onClickCopy}>
+          <Icon size="sm" type="copy" tooltip={copyTooltip} />
         </IconContainer>
       </CopyTitleContainer>
       <Text size="lg">{guildMetadata.externalLink}</Text>
@@ -72,8 +80,8 @@ const GuildStats: React.FC = () => {
         <Text size="xl" strong={true}>
           Embed Code
         </Text>
-        <IconContainer>
-          <Icon size="sm" type="copy" tooltip="Copy to Clipboard" />
+        <IconContainer onBlur={onBlurCopy} onClick={onClickCopy}>
+          <Icon size="sm" type="copy" tooltip={copyTooltip} />
         </IconContainer>
       </CopyTitleContainer>
       <Text size="lg">{'<ifram="https://ipfs"'}</Text>
@@ -102,6 +110,7 @@ const GuildStats: React.FC = () => {
           Download Contributors List
         </Button>
       </ButtonContainer>
+      <Text size="sm">Last updated 11 November at 10:46 UTC</Text>
     </div>
   );
 };
