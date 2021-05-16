@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import CreateGuildForm from "./components/CreateGuildForm";
 import GuildAppInstructions from "./components/GuildAppInstructions";
+import GuildStats from "./components/GuildStats";
 
-import { GuildProvider } from "./context/GuildContext";
+import { useGuildContext } from "./context/GuildContext";
 
 const Grid = styled.div`
   margin-bottom: 2rem;
   width: 100%;
   height: 100%;
 
+  gap: 0rem 4rem;
   display: grid;
   grid-template:
     "form display" 1fr
@@ -23,18 +25,26 @@ const GridDisplay = styled.div`
   flex-direction: column;
   justify-content: center;
   max-width: 600px;
+  align-items: center;
 `;
 
 const App: React.FC = () => {
+  const { guildMetadata } = useGuildContext();
+  const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
+
+  useEffect(() => {
+    console.log(guildMetadata.externalLink);
+    if (guildMetadata.externalLink) {
+      setDisplayPanel(<GuildStats />);
+    }
+  }, [guildMetadata]);
+
   return (
-    <GuildProvider>
-      <Grid>
-        <CreateGuildForm />
-        <GridDisplay>
-          <GuildAppInstructions />
-        </GridDisplay>
-      </Grid>
-    </GuildProvider>
+    <Grid>
+      <CreateGuildForm />
+
+      <GridDisplay>{displayPanel}</GridDisplay>
+    </Grid>
   );
 };
 
