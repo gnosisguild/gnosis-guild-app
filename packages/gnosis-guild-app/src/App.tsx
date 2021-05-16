@@ -33,7 +33,6 @@ const App: React.FC = () => {
   const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
 
   useEffect(() => {
-    console.log(guildMetadata.externalLink);
     if (guildMetadata.externalLink) {
       setDisplayPanel(<GuildStats />);
     }

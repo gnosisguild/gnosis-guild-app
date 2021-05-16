@@ -11,7 +11,7 @@ import {
 import { useGuildContext } from "../../context/GuildContext";
 
 const ProfileImage = styled.img`
-  height: 100px;
+  height: 6rem;
   object-fit: contain;
 `;
 
@@ -43,13 +43,6 @@ const ButtonContainer = styled.div`
   margin-right: 0.4rem;
 `;
 
-// Image, Probably next to the logo
-// title
-// header
-// header
-// Card
-// Button
-// sub text
 const GuildStats: React.FC = () => {
   const { guildMetadata } = useGuildContext();
   const [copyTooltip, setCopyTooltip] = useState("Copy to clipboard");
@@ -58,7 +51,7 @@ const GuildStats: React.FC = () => {
     // navigator.clipboard.writeText(guildMetadata.externalLink);
     setCopyTooltip("Copied");
   };
-  const onBlurCopy = () => {
+  const onMouseOutCopy = () => {
     setCopyTooltip("Copy to clipboard");
   };
   return (
@@ -71,7 +64,7 @@ const GuildStats: React.FC = () => {
         <Text size="xl" strong={true}>
           Other Internet Guild Page
         </Text>
-        <IconContainer onMouseOut={onBlurCopy} onClick={onClickCopy}>
+        <IconContainer onMouseOut={onMouseOutCopy} onClick={onClickCopy}>
           <Icon size="sm" type="copy" tooltip={copyTooltip} />
         </IconContainer>
       </CopyTitleContainer>
@@ -80,11 +73,11 @@ const GuildStats: React.FC = () => {
         <Text size="xl" strong={true}>
           Embed Code
         </Text>
-        <IconContainer onBlur={onBlurCopy} onClick={onClickCopy}>
+        <IconContainer onMouseOut={onMouseOutCopy} onClick={onClickCopy}>
           <Icon size="sm" type="copy" tooltip={copyTooltip} />
         </IconContainer>
       </CopyTitleContainer>
-      <Text size="lg">{'<ifram="https://ipfs"'}</Text>
+      <Text size="lg">{'<ifram="https://ipfs.io/ipfs/Al..."'}</Text>
       <CopyTitleContainer>
         <Card style={{ width: "100%", maxWidth: "16rem" }}>
           <TitleCardContainer>

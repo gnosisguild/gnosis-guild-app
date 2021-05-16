@@ -37,10 +37,7 @@ const ButtonContainer = styled.div`
 `;
 
 const CreateGuildForm: React.FC = () => {
-  // useContext
-  // If guild exists set the proper values
   const { guildMetadata, setGuildMetadata } = useGuildContext();
-  console.log(guildMetadata);
 
   const { sdk, safe } = useSafeAppsSDK();
   const [submitting, setSubmitting] = useState(false);
@@ -100,6 +97,7 @@ const CreateGuildForm: React.FC = () => {
   const submitTx = useCallback(async () => {
     setSubmitting(true);
     try {
+			// Safe app example
       //const { safeTxHash } = await sdk.txs.send({
       //  txs: [
       //    {
@@ -112,7 +110,7 @@ const CreateGuildForm: React.FC = () => {
       //console.log({ safeTxHash });
       //const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
       //console.log({ safeTx });
-      console.log("");
+      console.log("Submitting");
     } catch (e) {
       console.error(e);
     }
