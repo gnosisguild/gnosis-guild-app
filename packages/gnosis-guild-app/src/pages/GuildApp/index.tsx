@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
-import CreateGuildForm from "./components/CreateGuildForm";
-import GuildAppInstructions from "./components/GuildAppInstructions";
-import GuildStats from "./components/GuildStats";
+import CreateGuildForm from "../../components/CreateGuildForm";
+import GuildAppInstructions from "../../components/GuildAppInstructions";
+import GuildStats from "../../components/GuildStats";
 
-import { useGuildContext } from "./context/GuildContext";
+import { useGuildContext } from "../../context/GuildContext";
 
 const Grid = styled.div`
   margin-bottom: 2rem;
@@ -28,7 +28,7 @@ const GridDisplay = styled.div`
   align-items: center;
 `;
 
-const App: React.FC = () => {
+const GuildApp: React.FC = () => {
   const { guildMetadata } = useGuildContext();
   const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
 
@@ -41,10 +41,9 @@ const App: React.FC = () => {
   return (
     <Grid>
       <CreateGuildForm />
-
       <GridDisplay>{displayPanel}</GridDisplay>
     </Grid>
   );
 };
 
-export default App;
+export default GuildApp;
