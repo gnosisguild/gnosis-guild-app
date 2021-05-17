@@ -5,7 +5,9 @@ import CreateGuildForm from "../../components/CreateGuildForm";
 import GuildAppInstructions from "../../components/GuildAppInstructions";
 import GuildStats from "../../components/GuildStats";
 
-import { useGuildContext } from "../../context/GuildContext";
+import { useGuildContext, GuildProvider } from "../../context/GuildContext";
+import { Loader, Title } from "@gnosis.pm/safe-react-components";
+import SafeProvider from "@gnosis.pm/safe-apps-react-sdk";
 
 const Grid = styled.div`
   margin-bottom: 2rem;
@@ -39,10 +41,21 @@ const GuildApp: React.FC = () => {
   }, [guildMetadata]);
 
   return (
-    <Grid>
-      <CreateGuildForm />
-      <GridDisplay>{displayPanel}</GridDisplay>
-    </Grid>
+    <SafeProvider
+      loader={
+        <>
+          <Title size="md">Waiting for Safe...</Title>
+          <Loader size="md" />
+        </>
+      }
+    >
+      <GuildProvider>
+        <Grid>
+          <CreateGuildForm />
+          <GridDisplay>{displayPanel}</GridDisplay>
+        </Grid>
+      </GuildProvider>
+    </SafeProvider>
   );
 };
 
