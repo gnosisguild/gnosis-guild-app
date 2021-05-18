@@ -54,6 +54,7 @@ const InfoCard = styled.div`
   max-height: 4rem;
   height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   border-radius: 0.25rem 0.25rem 0rem 0rem;
