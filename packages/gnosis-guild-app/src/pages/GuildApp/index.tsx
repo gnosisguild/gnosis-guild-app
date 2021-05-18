@@ -5,7 +5,7 @@ import CreateGuildForm from "../../components/CreateGuildForm";
 import GuildAppInstructions from "../../components/GuildAppInstructions";
 import GuildStats from "../../components/GuildStats";
 
-import { useGuildContext, GuildProvider } from "../../context/GuildContext";
+import { useGuildContext } from "../../context/GuildContext";
 import { Loader, Title } from "@gnosis.pm/safe-react-components";
 import SafeProvider from "@gnosis.pm/safe-apps-react-sdk";
 
@@ -49,12 +49,10 @@ const GuildApp: React.FC = () => {
         </>
       }
     >
-      <GuildProvider>
-        <Grid>
-          <CreateGuildForm />
-          <GridDisplay>{displayPanel}</GridDisplay>
-        </Grid>
-      </GuildProvider>
+      <Grid>
+        <CreateGuildForm />
+        <GridDisplay>{displayPanel}</GridDisplay>
+      </Grid>
     </SafeProvider>
   );
 };
