@@ -4,6 +4,7 @@ import profile from "../../assets/profile.png";
 import {
   Button,
   Card,
+  CopyToClipboardBtn,
   Icon,
   Text,
   Title,
@@ -15,13 +16,9 @@ const ProfileImage = styled.img`
   object-fit: contain;
 `;
 
-const CopyTitleContainer = styled.div`
+const StatItemContainer = styled.div`
   display: flex;
   margin-top: 1rem;
-`;
-
-const IconContainer = styled.div`
-  margin-left: 0.3rem;
 `;
 
 const TitleCardContainer = styled.div`
@@ -43,42 +40,36 @@ const ButtonContainer = styled.div`
   margin-right: 0.4rem;
 `;
 
+const StatsText = styled(Text)`
+  margin-right: 0.5rem;
+`;
+
 const GuildStats: React.FC = () => {
   const { guildMetadata } = useGuildContext();
-  const [copyTooltip, setCopyTooltip] = useState("Copy to clipboard");
-  const onClickCopy = () => {
-    // Clipboard copy needs permissions to write to the clipboard
-    // navigator.clipboard.writeText(guildMetadata.externalLink);
-    setCopyTooltip("Copied");
-  };
-  const onMouseOutCopy = () => {
-    setCopyTooltip("Copy to clipboard");
-  };
+
   return (
     <div style={{ width: "100%" }}>
       <ProfileImage src={profile} alt="Guild profile" />
       <Title size="md" strong={true}>
         Guild Stats
       </Title>
-      <CopyTitleContainer>
-        <Text size="xl" strong={true}>
+      <StatItemContainer>
+        <StatsText size="xl" strong={true}>
           Other Internet Guild Page
-        </Text>
-        <IconContainer onMouseOut={onMouseOutCopy} onClick={onClickCopy}>
-          <Icon size="sm" type="copy" tooltip={copyTooltip} />
-        </IconContainer>
-      </CopyTitleContainer>
+        </StatsText>
+        <CopyToClipboardBtn textToCopy={guildMetadata.externalLink} />
+      </StatItemContainer>
       <Text size="lg">{guildMetadata.externalLink}</Text>
-      <CopyTitleContainer>
-        <Text size="xl" strong={true}>
+      <StatItemContainer>
+        <StatsText size="xl" strong={true}>
           Embed Code
-        </Text>
-        <IconContainer onMouseOut={onMouseOutCopy} onClick={onClickCopy}>
-          <Icon size="sm" type="copy" tooltip={copyTooltip} />
-        </IconContainer>
-      </CopyTitleContainer>
+        </StatsText>
+        <CopyToClipboardBtn
+          textToCopy={'<ifram="https://ipfs.io/ipfs/Al..."'}
+        />
+      </StatItemContainer>
       <Text size="lg">{'<ifram="https://ipfs.io/ipfs/Al..."'}</Text>
-      <CopyTitleContainer>
+      <StatItemContainer>
         <Card style={{ width: "100%", maxWidth: "16rem" }}>
           <TitleCardContainer>
             <Text size="lg" color="primary" strong={true}>
@@ -97,7 +88,7 @@ const GuildStats: React.FC = () => {
             </Text>
           </CardContainer>
         </Card>
-      </CopyTitleContainer>
+      </StatItemContainer>
       <ButtonContainer>
         <Button size="lg" color="primary" variant="contained">
           Download Contributors List
