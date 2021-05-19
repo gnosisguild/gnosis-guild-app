@@ -5,7 +5,7 @@ import profile from "../../assets/profile.png";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
-import { Text, Title } from "@gnosis.pm/safe-react-components";
+import { Button, Text, Title } from "@gnosis.pm/safe-react-components";
 
 const Grid = styled.div`
   width: 100%;
@@ -62,14 +62,11 @@ const InfoCard = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border-radius: 0.25rem 0.25rem 0rem 0rem;
+  border-radius: 0.5rem 0.5rem 0rem 0rem;
   margin-top: 2rem;
 `;
 
-// TODO: Possibly add more pop to this button
-const ContributeButton = styled.button`
-  border-radius: 0rem 0rem 0.25rem 0.25rem;
-  background: black;
+const ContributeButton = styled(Button)`
   width: 100%;
   max-width: 28rem;
   max-height: 3rem;
@@ -77,10 +74,10 @@ const ContributeButton = styled.button`
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
+
+  &&& {
+    border-radius: 0rem 0rem 0.5rem 0.5rem;
+  }
 `;
 
 // Need a div with a background
@@ -118,7 +115,7 @@ const GuiildLanding: React.FC = () => {
           >{`${guildMetadata.name} Contributors Receive`}</Text>
           <Text size="md">{guildMetadata.contentFormat}</Text>
         </InfoCard>
-        <ContributeButton>
+        <ContributeButton size="lg" color="secondary">
           <Text size="lg" strong={true} color="white">
             Contibute
           </Text>

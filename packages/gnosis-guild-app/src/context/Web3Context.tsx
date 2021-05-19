@@ -4,6 +4,8 @@ import Web3 from "web3";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ethers } from "ethers";
 
+import { networks } from "../constants";
+
 export type Web3ContextValue = {
   connectToWeb3: () => void;
   disconnect: () => void;
@@ -24,17 +26,14 @@ export const Web3Context =
   React.createContext<Web3ContextValue>(initialWeb3Context);
 export const useWeb3Context = () => useContext(Web3Context);
 
-// Just follow the omnibridge example
-// keep it simple for now
-
-// Start with only supporting mainnet and Rinkeby
-/* const provider = ethers.getDefaultProvider(); */
-console.log("Network");
 const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider,
     options: {
-      infuraId: "e8de7c0731d140159e5a1a2c74c59c65",
+      rpc: {
+        1: networks[1].rpc_url,
+        4: networks[4].rpc_url,
+      },
     },
   },
 };
@@ -56,11 +55,8 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     useState(initialWeb3State);
   const setWeb3Provider = useCallback(
     async (initialProvider: any): Promise<void> => {
-      console.log("Here");
       try {
-        /* const web3Provider = new Web3(initialProvider); */
         const provider = new ethers.providers.Web3Provider(initialProvider);
-        console.log(await provider.getSigner());
         const chainId = initialProvider.chainId;
 
         const signer = provider.getSigner();
@@ -71,18 +67,13 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
           providerChainId: chainId,
         });
       } catch (error) {
-        console.log("Here 2");
         console.error(error);
       }
     },
     []
   );
-  // Add event handlers
-  // Add disconnect function
-  // Possibly autoload stuff, but maybe that is a todo
+
   const connectToWeb3 = useCallback(async () => {
-    console.log("Before connect");
-    console.log(web3Modal);
     web3Modal.clearCachedProvider();
     const modalProvider = await web3Modal.connect();
     await setWeb3Provider(modalProvider);
@@ -95,17 +86,13 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     modalProvider.on("chainChanged", () => {
       setWeb3Provider(modalProvider);
     });
-  }, [web3Modal]);
+  }, [setWeb3Provider]);
 
   const disconnect = useCallback(async () => {
     web3Modal.clearCachedProvider();
     setWeb3State(initialWeb3State);
   }, []);
 
-  console.log(ethersProvider);
-  console.log(account);
-  console.log(providerChainId);
-  console.log("web3Context");
   return (
     <Web3Context.Provider
       value={{
