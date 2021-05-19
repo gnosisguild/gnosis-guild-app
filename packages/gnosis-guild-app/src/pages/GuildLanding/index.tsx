@@ -103,10 +103,6 @@ const ContributeButton = styled(Button)`
   }
 `;
 
-// Need a div with a background
-// Need some text fields
-// Need a button that will redirect to the contribute page
-
 const GuiildLanding: React.FC = () => {
   const { guildMetadata } = useGuildContext();
   const { account } = useWeb3Context();
