@@ -3,8 +3,9 @@ import styled from "styled-components";
 import guildLogo from "../../assets/guildlogo.png";
 import profile from "../../assets/profile.png";
 import { useGuildContext } from "../../context/GuildContext";
+import { useWeb3Context } from "../../context/Web3Context";
+import ConnectWeb3Button from "../../components/ConnectWeb3Button";
 import { Text, Title } from "@gnosis.pm/safe-react-components";
-import Web3Modal from "web3modal";
 
 const Grid = styled.div`
   width: 100%;
@@ -29,6 +30,10 @@ const GridProfile = styled.div`
 
 const GridWallet = styled.div`
   grid-area: wallet;
+  display: flexl;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  margin-right: 1rem;
 `;
 
 const Logo = styled.img`
@@ -84,6 +89,11 @@ const ContributeButton = styled.button`
 
 const GuiildLanding: React.FC = () => {
   const { guildMetadata } = useGuildContext();
+  const { account } = useWeb3Context();
+
+  const connectButtonText = account
+    ? `${account.substr(0, 5)}... Connected`
+    : "Connect";
 
   return (
     <Grid>
@@ -115,7 +125,7 @@ const GuiildLanding: React.FC = () => {
         </ContributeButton>
       </GridProfile>
       <GridWallet>
-        <p> Hi</p>
+        <ConnectWeb3Button>{connectButtonText}</ConnectWeb3Button>
       </GridWallet>
     </Grid>
   );
