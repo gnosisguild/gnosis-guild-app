@@ -13,6 +13,7 @@ const Grid = styled.div`
   display: grid;
   grid-template:
     "logo profile wallet" 1fr
+    "footer footer footer" 64px
     / 1fr 2fr 1fr;
 `;
 
@@ -30,10 +31,32 @@ const GridProfile = styled.div`
 
 const GridWallet = styled.div`
   grid-area: wallet;
-  display: flexl;
+  display: flex;
   justify-content: flex-end;
   margin-top: 1rem;
   margin-right: 1rem;
+`;
+
+const TermsFooter = styled.div`
+  grid-area: footer;
+  background: black;
+  padding-left: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const TermsButton = styled(Button)`
+  margin-right: 1rem;
+  opacity: 0.8;
+  background: gray;
+
+  &&& {
+    background: gray;
+    color: white;
+    border-radius: 0rem;
+    height: 100%;
+  }
 `;
 
 const Logo = styled.img`
@@ -124,6 +147,14 @@ const GuiildLanding: React.FC = () => {
       <GridWallet>
         <ConnectWeb3Button>{connectButtonText}</ConnectWeb3Button>
       </GridWallet>
+      <TermsFooter>
+        <Text size="lg" color="white">
+          Guild App is a permissionless crypto subscription tool. This means
+          anyone can impersonate creators. Please verify this is the correct
+          link provided by creators to which you'd like to contribute.
+        </Text>
+        <TermsButton size="md">I understand the risk</TermsButton>
+      </TermsFooter>
     </Grid>
   );
 };
