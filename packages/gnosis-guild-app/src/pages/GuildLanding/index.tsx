@@ -2,11 +2,17 @@ import React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
-import guildLogo from "../../assets/guildlogo.png";
 import profile from "../../assets/profile.png";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
+
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
+import GridAgreementFooter from "../../components/GridAgreementFooter";
+import GridLogo from "../../components/GridLogo";
+import GridWallet from "../../components/GridWallet";
+import GuildLogo from "../../components/GuildLogo";
+import RiskAgreement from "../../components/RiskAgreement";
+
 import { Button, Text, Title } from "@gnosis.pm/safe-react-components";
 
 const Grid = styled.div`
@@ -15,12 +21,8 @@ const Grid = styled.div`
   display: grid;
   grid-template:
     "logo profile wallet" 1fr
-    "footer footer footer" 64px
+    "footer footer footer" var(--grid-permission-footer-height)
     / 1fr 2fr 1fr;
-`;
-
-const GridLogo = styled.div`
-  grid-area: logo;
 `;
 
 const GridProfile = styled.div`
@@ -29,40 +31,6 @@ const GridProfile = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-`;
-
-const GridWallet = styled.div`
-  grid-area: wallet;
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
-  margin-right: 1rem;
-`;
-
-const TermsFooter = styled.div`
-  grid-area: footer;
-  background: black;
-  padding-left: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const TermsButton = styled(Button)`
-  margin-right: 1rem;
-  opacity: 0.8;
-  background: gray;
-
-  &&& {
-    background: gray;
-    color: white;
-    border-radius: 0rem;
-    height: 100%;
-  }
-`;
-
-const Logo = styled.img`
-  height: 6rem;
 `;
 
 const ProfileImage = styled.img`
@@ -113,16 +81,13 @@ const ContributeButton = styled(Button)`
 
 const GuiildLanding: React.FC = () => {
   const { guildMetadata } = useGuildContext();
-  const { account } = useWeb3Context();
-
-  const connectButtonText = account
-    ? `${account.substr(0, 5)}... Connected`
-    : "Connect";
+  const { getConnectText } = useWeb3Context();
+  const connectText = getConnectText();
 
   return (
     <Grid>
       <GridLogo>
-        <Logo src={guildLogo} alt="gnosis guild" />
+        <GuildLogo />
       </GridLogo>
       <GridProfile>
         <Title size="sm" strong={true}>
@@ -151,16 +116,11 @@ const GuiildLanding: React.FC = () => {
         </ContributeLink>
       </GridProfile>
       <GridWallet>
-        <ConnectWeb3Button>{connectButtonText}</ConnectWeb3Button>
+        <ConnectWeb3Button>{connectText}</ConnectWeb3Button>
       </GridWallet>
-      <TermsFooter>
-        <Text size="lg" color="white">
-          Guild App is a permissionless crypto subscription tool. This means
-          anyone can impersonate creators. Please verify this is the correct
-          link provided by creators to which you'd like to contribute.
-        </Text>
-        <TermsButton size="md">I understand the risk</TermsButton>
-      </TermsFooter>
+      <GridAgreementFooter>
+        <RiskAgreement />
+      </GridAgreementFooter>
     </Grid>
   );
 };
