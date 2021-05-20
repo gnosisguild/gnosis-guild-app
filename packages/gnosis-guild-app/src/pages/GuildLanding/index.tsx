@@ -1,5 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
+
 import guildLogo from "../../assets/guildlogo.png";
 import profile from "../../assets/profile.png";
 import { useGuildContext } from "../../context/GuildContext";
@@ -89,10 +91,16 @@ const InfoCard = styled.div`
   margin-top: 2rem;
 `;
 
-const ContributeButton = styled(Button)`
+const ContributeLink = styled(Link)`
   width: 100%;
   max-width: 28rem;
   max-height: 3rem;
+  height: 100%;
+  text-decoration: none;
+`;
+
+const ContributeButton = styled(Button)`
+  width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
@@ -134,11 +142,13 @@ const GuiildLanding: React.FC = () => {
           >{`${guildMetadata.name} Contributors Receive`}</Text>
           <Text size="md">{guildMetadata.contentFormat}</Text>
         </InfoCard>
-        <ContributeButton size="lg" color="secondary">
-          <Text size="lg" strong={true} color="white">
-            Contibute
-          </Text>
-        </ContributeButton>
+        <ContributeLink to={{ pathname: "/guild/1/contribute" }}>
+          <ContributeButton size="lg" color="secondary">
+            <Text size="lg" strong={true} color="white">
+              Contibute
+            </Text>
+          </ContributeButton>
+        </ContributeLink>
       </GridProfile>
       <GridWallet>
         <ConnectWeb3Button>{connectButtonText}</ConnectWeb3Button>
