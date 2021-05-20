@@ -1,6 +1,6 @@
-import { createGlobalStyle } from 'styled-components';
-import avertaFont from '@gnosis.pm/safe-react-components/dist/fonts/averta-normal.woff2';
-import avertaBoldFont from '@gnosis.pm/safe-react-components/dist/fonts/averta-bold.woff2';
+import { createGlobalStyle } from "styled-components";
+import avertaFont from "@gnosis.pm/safe-react-components/dist/fonts/averta-normal.woff2";
+import avertaBoldFont from "@gnosis.pm/safe-react-components/dist/fonts/averta-bold.woff2";
 
 const GlobalStyle = createGlobalStyle`
     html {
@@ -15,7 +15,6 @@ const GlobalStyle = createGlobalStyle`
 
     #root {
         height: 100%;
-        padding-right: 0.5rem;
     }
 
     .MuiFormControl-root,

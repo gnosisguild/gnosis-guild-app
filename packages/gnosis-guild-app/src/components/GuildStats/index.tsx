@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import profile from "../../assets/profile.png";
 import {
   Button,
   Card,
   CopyToClipboardBtn,
-  Icon,
   Text,
   Title,
 } from "@gnosis.pm/safe-react-components";
