@@ -9,6 +9,7 @@ import { networks } from "../constants";
 export type Web3ContextValue = {
   connectToWeb3: () => void;
   disconnect: () => void;
+  getConnectText: () => string;
   ethersProvider: ethers.providers.Provider;
   account: string;
   providerChainId: number;
@@ -17,6 +18,7 @@ export type Web3ContextValue = {
 const initialWeb3Context = {
   connectToWeb3: () => {},
   disconnect: () => {},
+  getConnectText: () => "",
   ethersProvider: ethers.getDefaultProvider(),
   account: "",
   providerChainId: 0,
@@ -93,6 +95,10 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     setWeb3State(initialWeb3State);
   }, []);
 
+  const getConnectText = useCallback(() => {
+    return account ? `${account.substr(0, 5)}... Connected` : "Connect";
+  }, [account]);
+
   return (
     <Web3Context.Provider
       value={{
@@ -101,6 +107,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         ethersProvider,
         account,
         providerChainId,
+        getConnectText,
       }}
     >
       {children}

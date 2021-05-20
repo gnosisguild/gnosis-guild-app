@@ -7,13 +7,9 @@ import React, {
 } from "react";
 import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
 import styled from "styled-components";
-import {
-  Button,
-  Select,
-  Text,
-  TextField,
-} from "@gnosis.pm/safe-react-components";
+import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
 
+import CurrencySelect from "../CurrencySelect";
 import { useGuildContext } from "../../context/GuildContext";
 
 const GridForm = styled.form`
@@ -69,19 +65,6 @@ const CreateGuildForm: React.FC = () => {
     setActiveCurrency(guildMetadata.contributions);
   }, [guildMetadata]);
 
-  const selectItems = [
-    { id: "ETH", label: "ETH", subLabel: "Minimum amount 0.1" },
-    { id: "DAI", label: "Dai", subLabel: "Minimum amount 20" },
-  ];
-
-  const changeCurrency = (id: string) => {
-    if (id === "ETH" || id === "DAI") {
-      setActiveCurrency(id);
-    } else {
-      console.error("Incorrect currency passed in");
-    }
-  };
-
   // TODO: Implement acutal logic below
   // The current logic is incomplete
   const uploadImage = (e: MouseEvent<HTMLInputElement>) => {
@@ -97,7 +80,7 @@ const CreateGuildForm: React.FC = () => {
   const submitTx = useCallback(async () => {
     setSubmitting(true);
     try {
-			// Safe app example
+      // Safe app example
       //const { safeTxHash } = await sdk.txs.send({
       //  txs: [
       //    {
@@ -194,10 +177,9 @@ const CreateGuildForm: React.FC = () => {
         <Text size="xl" strong={true}>
           Monthly Contributors
         </Text>
-        <Select
-          activeItemId={activeCurrency}
-          items={selectItems}
-          onItemClick={changeCurrency}
+        <CurrencySelect
+          activeId={activeCurrency}
+          setActiveCurrency={setActiveCurrency}
         />
       </FormItem>
       {submitting ? (

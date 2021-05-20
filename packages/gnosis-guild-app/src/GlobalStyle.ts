@@ -28,6 +28,11 @@ const GlobalStyle = createGlobalStyle`
         url(${avertaFont}) format('woff2'),
         url(${avertaBoldFont}) format('woff');
     }
+
+		// CSS Variables
+		:root {
+		  --grid-permission-footer-height: 64px;
+		}
 `;
 
 export default GlobalStyle;
