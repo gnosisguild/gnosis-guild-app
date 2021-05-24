@@ -47,7 +47,6 @@ const GuildContribute: React.FC = () => {
   const [contributorEmail, setContributorEmail] = useState("");
 
   const connectText = getConnectText();
-
   return (
     <Grid>
       <GridLogo>
