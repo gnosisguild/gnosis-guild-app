@@ -15,6 +15,11 @@ const Routes: React.FC = () => {
         path="/guild/:guildId/contribute"
         component={GuildContribute}
       />
+      <Route
+        exact
+        path="/guild/:guildId/contribute/link"
+        component={GuildContribute}
+      />
       <Redirect to="/" />
     </Switch>
   );
