@@ -1,5 +1,6 @@
 const { expect } = require("chai");
-const { ethers, network } = require("hardhat"); // explicit, however already available in the global scope
+const { ethers, network, waffle } = require("hardhat"); // explicit, however already available in the global scope
+// const { deployContract, provider } = waffle;
 
 const GuildAppABI = require("../artifacts/contracts/guild/GuildApp.sol/GuildApp.json").abi;
 
