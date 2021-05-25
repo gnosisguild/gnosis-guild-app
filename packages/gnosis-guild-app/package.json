@@ -17,6 +17,7 @@
     "@types/styled-components": "^5.1.2",
     "@walletconnect/web3-provider": "^1.4.1",
     "ethers": "^5.1.4",
+    "express": "^4.17.1",
     "react": "^17.0.1",
     "react-app-rewired": "^2.1.6",
     "react-dom": "^17.0.1",
@@ -30,7 +31,8 @@
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "serve": "yarn build && node server.js"
   },
   "eslintConfig": {
     "extends": [
@@ -52,6 +54,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "homepage": "./"
+  }
 }
