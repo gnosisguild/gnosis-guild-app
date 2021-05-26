@@ -7,8 +7,12 @@ const Logo = styled.img`
   height: 6rem;
 `;
 
-const GuildLogo: React.FC = () => {
-  return <Logo src={guildLogo} alt="gnosis guild" />;
+type Props = {
+  className?: string;
+};
+
+const GuildLogo: React.FC<Props> = ({ className }) => {
+  return <Logo className={className} src={guildLogo} alt="gnosis guild" />;
 };
 
 export default GuildLogo;
