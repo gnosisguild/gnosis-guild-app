@@ -3,6 +3,7 @@ import { Redirect, Route, Switch } from "react-router-dom";
 
 import GuildApp from "./pages/GuildApp";
 import GuildContribute from "./pages/GuildContribute";
+import GuildContributeLink from "./pages/GuildContributeLink";
 import GuildLanding from "./pages/GuildLanding";
 
 const Routes: React.FC = () => {
@@ -18,7 +19,7 @@ const Routes: React.FC = () => {
       <Route
         exact
         path="/guild/:guildId/contribute/link"
-        component={GuildContribute}
+        component={GuildContributeLink}
       />
       <Redirect to="/" />
     </Switch>
