@@ -91,7 +91,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         IERC20Upgradeable(tokenAddress).safeTransfer(beneficiary, _amount);
     }
 
-    function updateSubscriptionPrice(address _tokenAddress, uint256 _newSubPrice) public override onlyGuildAdmin {
+    function updateSubscriptionPrice(address _tokenAddress, uint256 _newSubPrice) public override onlyGuildAdmin onlyIfActive {
         require(_tokenAddress != address(0), "GuildApp: Invalid token address");
         tokenAddress = _tokenAddress;
         subPrice = _newSubPrice;
@@ -153,7 +153,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         return string(abi.encodePacked(base, metadataCID));
     }
 
-    function setMetadata(string memory _metadataCID) external override onlyGuildAdmin {
+    function setMetadata(string memory _metadataCID) external override onlyGuildAdmin onlyIfActive {
         metadataCID = _metadataCID;
         emit UpdatedMetadata(getMetadata());
     }
