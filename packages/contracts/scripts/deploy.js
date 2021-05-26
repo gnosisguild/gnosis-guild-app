@@ -29,7 +29,7 @@ const main = async () => {
     if (network.name !== 'hardhat') {
         console.log('Finishing deployment...');
         const json = fs.readFileSync(ADDRESSES_FILE);
-        const addresses = JSON.parse(json);
+        const addresses = JSON.parse(json.length > 0 ? json : "{}");
         addresses[network.name] = {
             App: app.address,
             SuperfluidMinionTemplate: sfMinionTemplate.address,
