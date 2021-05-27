@@ -1,0 +1,33 @@
+kind: ethereum/contract
+name: GuildAppTemplate
+network:
+source:
+  abi: GuildApp
+mapping:
+  kind: ethereum/events
+  apiVersion: 0.0.3
+  language: wasm/assemblyscript
+  file: ./src/guild-app-mapping.ts
+  entities:
+    - Guild
+    - Subscription
+    - Payment
+  abis:
+    - name: GuildApp
+      file: ./abis/GuildApp.json
+  eventHandlers:
+    - event: "UpdatedMetadata(string)"
+      handler: handleUpdatedMetadata
+    - event: "PausedGuild(bool)"
+      handler: handlePausedGuild
+    - event: "SubscriptionPriceChanged(address,uint256)"
+      handler: handleUpdatedPaymentInfo
+    - event: "NewSubscription(uint256,uint256,uint256)"
+      handler: handleNewSubcription
+    - event: "RenewSubscription(uint256,uint256,uint256)"
+      handler: handleRenewSubcription
+    - event: "Withdraw(address,address,uint256)"
+      handler: handleWithdraw
+  callHandlers:
+    - function: "initialize(address,address,uint256,uint256,GuildMetadata)"
+      handler: handleCreateGuild

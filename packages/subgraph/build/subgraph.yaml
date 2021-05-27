@@ -1,0 +1,60 @@
+specVersion: 0.0.2
+description: Gnosis Guild App
+repository: https://github.com/raid-guild/gnosis-guild-app
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: GuildFactory
+    network: rinkeby
+    source:
+      address: "0x4372Bff493245729E484Ed858e0D6F2C4fe715C7"
+      abi: GuildFactory
+      startBlock: 8656340
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.3
+      language: wasm/assemblyscript
+      entities:
+        - Guild
+      abis:
+        - name: GuildFactory
+          file: GuildFactory/abis/GuildFactory.json
+      eventHandlers:
+        - event: NewGuild(indexed address,indexed address)
+          handler: handleNewGuild
+      file: GuildFactory/GuildFactory.wasm
+templates:
+  - kind: ethereum/contract
+    name: GuildAppTemplate
+    network: rinkeby
+    source:
+      abi: GuildApp
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.3
+      language: wasm/assemblyscript
+      file: templates/GuildAppTemplate/GuildAppTemplate.wasm
+      entities:
+        - Guild
+        - Subscription
+        - Payment
+      abis:
+        - name: GuildApp
+          file: GuildAppTemplate/abis/GuildApp.json
+      eventHandlers:
+        - event: UpdatedMetadata(string)
+          handler: handleUpdatedMetadata
+        - event: PausedGuild(bool)
+          handler: handlePausedGuild
+        - event: SubscriptionPriceChanged(address,uint256)
+          handler: handleUpdatedPaymentInfo
+        - event: NewSubscription(uint256,uint256,uint256)
+          handler: handleNewSubcription
+        - event: RenewSubscription(uint256,uint256,uint256)
+          handler: handleRenewSubcription
+        - event: Withdraw(address,address,uint256)
+          handler: handleWithdraw
+      callHandlers:
+        - function: initialize(address,address,uint256,uint256,GuildMetadata)
+          handler: handleCreateGuild

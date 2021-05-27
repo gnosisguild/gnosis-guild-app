@@ -1,0 +1,32 @@
+type Guild @entity {
+  id: ID!
+  createdAt: String!
+  owner: Bytes!
+  name: String!
+  symbol: String!
+  metadataURI: String!
+  active: Boolean!
+  tokenAddress: Bytes!
+  currentPrice: BigInt!
+  subsPeriod: BigInt!
+  currentBalance: BigInt!
+  totalSubscriptions: BigInt!
+  subscriptions: [Subscription!] @derivedFrom(field: "guild")
+}
+
+type Subscription @entity {
+  id: ID!
+  createdAt: String!
+  guild: Guild!
+  keyId: BigInt!
+  owner: Bytes!
+  expires: String!
+  paymentHistory: [Payment!] @derivedFrom(field: "subscription")
+}
+
+type Payment @entity {
+  id: ID!
+  purchasedAt: String!
+  subscription: Subscription!
+  value: BigInt!
+}
