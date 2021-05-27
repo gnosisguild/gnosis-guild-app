@@ -86,7 +86,7 @@ describe("GuildApp", () => {
     });
 
     it("Should allow new subscriptions", async () => {
-        const balanceBefore = await guildA.guildBalance();
+        const balanceBefore = await guildA.guildBalance(dai.address);
         const lastTokenId = await guildA.totalSupply();
         const tokenURI = '';
         await dai.connect(bob).approve(guildA.address, SUBSCRIPTION_PRICE); // This should be done by the SpendingLimit module on Safe accounts
@@ -104,7 +104,7 @@ describe("GuildApp", () => {
 
         expect(await guildA.tokenURI(tokenId)).to.equal(`${NFT_BASE_URI}${tokenURI}#${tokenId}`);
 
-        const balanceAfter = await guildA.guildBalance();
+        const balanceAfter = await guildA.guildBalance(dai.address);
 
         expect(balanceBefore.add(SUBSCRIPTION_PRICE)).to.equal(balanceAfter);
     });
@@ -118,6 +118,11 @@ describe("GuildApp", () => {
             .withArgs(`${NFT_BASE_URI}${newMetadataHash}`);
 
         await expect(guildA.connect(bob).setMetadata(newMetadataHash)).to.be.reverted;
+    });
+
+    it("Should fetch approved tokens", async () => {
+        console.log(await guildA.approvedTokens(), [dai.address]);
+        expect(await guildA.approvedTokens()).to.have.members([dai.address]);
     });
 
 });

@@ -7,11 +7,13 @@ import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 
 import "../interfaces/IGuild.sol";
 
 contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint256;
     using StringsUpgradeable for uint256;
@@ -24,9 +26,11 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
     bool public override initialized;
     bool public isActive;
     string public metadataCID;
-    address public tokenAddress;
+    address public tokenAddress; // currently active asset for payments
     uint256 public subPrice;
     uint256 public subscriptionPeriod;
+
+    mapping(address => EnumerableSetUpgradeable.AddressSet) private _approvedTokens;
 
     mapping(address => Subscription) public subscriptionByOwner;
 
@@ -59,6 +63,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         isActive = true;
         metadataCID = _metadataCID;
         tokenAddress = _tokenAddress;
+        _approvedTokens[address(this)].add(_tokenAddress);
         subPrice = _subPrice;
         subscriptionPeriod =_subscriptionPeriod;
         _setBaseURI(baseURI);
@@ -83,17 +88,19 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         isActive = pause;
     }
 
-    function withdraw(uint256 _amount, address _beneficiary) public override onlyGuildAdmin {
-        uint256 outstandingBalance = guildBalance();
-        require(_amount > 0 && outstandingBalance >= _amount, "GuildApp: Not enought balance to withdraw");
+    function withdraw(address _tokenAddress, uint256 _amount, address _beneficiary) public override onlyGuildAdmin {
+        require(_approvedTokens[address(this)].contains(_tokenAddress), "GuildApp: Token has not been approved");
+        uint256 outstandingBalance = guildBalance(_tokenAddress);
+        require(_amount > 0 && outstandingBalance >= _amount, "GuildApp: Not enough balance to withdraw");
         address beneficiary = _beneficiary != address(0) ? _beneficiary : _msgSender();
         emit Withdraw(tokenAddress, beneficiary, _amount);
         IERC20Upgradeable(tokenAddress).safeTransfer(beneficiary, _amount);
     }
 
     function updateSubscriptionPrice(address _tokenAddress, uint256 _newSubPrice) public override onlyGuildAdmin onlyIfActive {
-        require(_tokenAddress != address(0), "GuildApp: Invalid token address");
+        // require(_tokenAddress != address(0), "GuildApp: Invalid token address");
         tokenAddress = _tokenAddress;
+        _approvedTokens[address(this)].add(_tokenAddress);
         subPrice = _newSubPrice;
         emit SubscriptionPriceChanged(tokenAddress, subPrice);
     }
@@ -121,11 +128,14 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         }
     }
 
-    function guildBalance() public view override returns (uint256) {
-        if (tokenAddress != address(0)) {
-            return IERC20Upgradeable(tokenAddress).balanceOf(address(this));
+    function guildBalance(address _tokenAddress) public view override returns (uint256) {
+        if (_approvedTokens[address(this)].contains(_tokenAddress)) {
+            if (tokenAddress != address(0)) {
+                return IERC20Upgradeable(tokenAddress).balanceOf(address(this));
+            }
+            return address(this).balance;
         }
-        return address(this).balance;
+        return 0;
     }
 
     function isSubscriptionOwner(uint256 _tokenId, address _holder) public view override returns (bool) {
@@ -142,6 +152,14 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
 
     function getSubscriptionExpiryFor(address _account) external view override returns (uint256) {
         return subscriptionByOwner[_account].expirationTimestamp;
+    }
+
+    function approvedTokens() public view override returns (address[] memory) {
+        address[] memory tokens = new address[](_approvedTokens[address(this)].length());
+        for (uint256 i = 0; i < _approvedTokens[address(this)].length(); i++) {
+            tokens[i] = _approvedTokens[address(this)].at(i);
+        }
+        return tokens;
     }
 
     function getMetadata() public view override returns (string memory) {
