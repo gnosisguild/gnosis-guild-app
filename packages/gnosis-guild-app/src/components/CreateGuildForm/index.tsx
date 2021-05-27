@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useRef,
   MouseEvent,
+  ChangeEvent,
   useEffect,
 } from "react";
 import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
@@ -35,7 +36,7 @@ const ButtonContainer = styled.div`
 const CreateGuildForm: React.FC = () => {
   const { guildMetadata, setGuildMetadata } = useGuildContext();
 
-  const { sdk, safe } = useSafeAppsSDK();
+  /* const { sdk, safe } = useSafeAppsSDK(); */
   const [submitting, setSubmitting] = useState(false);
   // Input values
   const [guildName, setGuildName] = useState(guildMetadata.name);
@@ -55,6 +56,10 @@ const CreateGuildForm: React.FC = () => {
   const [activeCurrency, setActiveCurrency] = useState(
     guildMetadata.contributions
   );
+
+  // Input error states
+  const [guildNameMeta, setGuildNameMeta] = useState({});
+  const [guildDescriptionMeta, setGuildDescriptionMeta] = useState({});
 
   useEffect(() => {
     setGuildName(guildMetadata.name);
@@ -106,13 +111,33 @@ const CreateGuildForm: React.FC = () => {
       contributions: activeCurrency,
     });
     setSubmitting(false);
-  }, [safe, sdk]);
+  }, []);
 
   // Upload text
   const imageUploadText = guildMetadata.description
     ? "Replace Image"
     : "Upload Image";
   const guildButtonText = guildMetadata.name ? "Update Guild" : "Create Guild";
+
+  const updateGuildName = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setGuildNameMeta({});
+    setGuildName(val);
+    if (val && val.length > 50) {
+      setGuildNameMeta({ error: "Name must be less than 50 characters" });
+    }
+  };
+
+  const updateGuildDescription = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setGuildDescriptionMeta({});
+    setGuildDescription(val);
+    if (val && val.length > 200) {
+      setGuildDescriptionMeta({
+        error: "Description must be less than 200 characters",
+      });
+    }
+  };
 
   return (
     <GridForm noValidate autoComplete="off" onSubmit={submitTx}>
@@ -122,8 +147,9 @@ const CreateGuildForm: React.FC = () => {
         </Text>
         <TextField
           label="50 characters"
+          meta={guildNameMeta}
           value={guildName}
-          onChange={(e) => setGuildName(e.target.value)}
+          onChange={updateGuildName}
         />
       </FormItem>
       <FormItem>
@@ -132,8 +158,9 @@ const CreateGuildForm: React.FC = () => {
         </Text>
         <TextField
           label="200 characters"
+          meta={guildDescriptionMeta}
           value={guildDescription}
-          onChange={(e) => setGuildDescription(e.target.value)}
+          onChange={updateGuildDescription}
         />
       </FormItem>
       <FormItem>
