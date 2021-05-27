@@ -58,7 +58,10 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
                                        uint256 _subPrice,
                                        uint256 _subscriptionPeriod
                                        ) internal initializer {
-        require(_tokenAddress != address(0) && IERC20Upgradeable(_tokenAddress).totalSupply() > 0, "GuildApp: Invalid token");
+        require(
+            _tokenAddress == address(0) ||
+            (_tokenAddress != address(0) && IERC20Upgradeable(_tokenAddress).totalSupply() > 0),
+            "GuildApp: Invalid token");
 
         isActive = true;
         metadataCID = _metadataCID;
