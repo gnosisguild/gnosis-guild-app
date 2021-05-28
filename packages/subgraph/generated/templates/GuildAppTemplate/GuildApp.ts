@@ -62,6 +62,58 @@ export class ApprovalForAll__Params {
   }
 }
 
+export class InitializedGuild extends ethereum.Event {
+  get params(): InitializedGuild__Params {
+    return new InitializedGuild__Params(this);
+  }
+}
+
+export class InitializedGuild__Params {
+  _event: InitializedGuild;
+
+  constructor(event: InitializedGuild) {
+    this._event = event;
+  }
+
+  get _creator(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get _tokenAddress(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get _subPrice(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get _subscriptionPeriod(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+
+  get _metadata(): InitializedGuild_metadataStruct {
+    return this._event.parameters[4].value.toTuple() as InitializedGuild_metadataStruct;
+  }
+}
+
+export class InitializedGuild_metadataStruct extends ethereum.Tuple {
+  get name(): string {
+    return this[0].toString();
+  }
+
+  get symbol(): string {
+    return this[1].toString();
+  }
+
+  get baseURI(): string {
+    return this[2].toString();
+  }
+
+  get metadataCID(): string {
+    return this[3].toString();
+  }
+}
+
 export class NewSubscription extends ethereum.Event {
   get params(): NewSubscription__Params {
     return new NewSubscription__Params(this);

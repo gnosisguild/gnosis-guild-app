@@ -20,8 +20,8 @@ module.exports.config = {
             {
                 name: "GuildFactory",
                 template: "GuildFactory-ds.yaml",
-                address: "0x4372Bff493245729E484Ed858e0D6F2C4fe715C7",
-                startBlock: 8656340,
+                address: "0x869Fd2aC48965469a2a76f84095b4310377fb4Cb",
+                startBlock: 8662863,
             },
         ],
         templates: [

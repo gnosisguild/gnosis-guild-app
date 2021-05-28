@@ -11,10 +11,10 @@ type Guild @entity {
   subsPeriod: BigInt!
   currentBalance: BigInt!
   totalSubscriptions: BigInt!
-  subscriptions: [Subscription!] @derivedFrom(field: "guild")
+  subscriptions: [GuildSubscription!] @derivedFrom(field: "guild")
 }
 
-type Subscription @entity {
+type GuildSubscription @entity {
   id: ID!
   createdAt: String!
   guild: Guild!
@@ -27,6 +27,6 @@ type Subscription @entity {
 type Payment @entity {
   id: ID!
   purchasedAt: String!
-  subscription: Subscription!
+  subscription: GuildSubscription!
   value: BigInt!
 }

@@ -159,7 +159,7 @@ export class Guild extends Entity {
   }
 }
 
-export class Subscription extends Entity {
+export class GuildSubscription extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -167,17 +167,17 @@ export class Subscription extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id !== null, "Cannot save Subscription entity without an ID");
+    assert(id !== null, "Cannot save GuildSubscription entity without an ID");
     assert(
       id.kind == ValueKind.STRING,
-      "Cannot save Subscription entity with non-string ID. " +
+      "Cannot save GuildSubscription entity with non-string ID. " +
         'Considering using .toHex() to convert the "id" to a string.'
     );
-    store.set("Subscription", id.toString(), this);
+    store.set("GuildSubscription", id.toString(), this);
   }
 
-  static load(id: string): Subscription | null {
-    return store.get("Subscription", id) as Subscription | null;
+  static load(id: string): GuildSubscription | null {
+    return store.get("GuildSubscription", id) as GuildSubscription | null;
   }
 
   get id(): string {

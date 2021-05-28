@@ -1,7 +1,7 @@
 import { BigInt, Address, log } from "@graphprotocol/graph-ts";
-import { Guild, Subscription, Payment } from "../generated/schema";
+import { Guild, GuildSubscription, Payment } from "../generated/schema";
 import {
-    InitializeCall,
+    InitializedGuild,
     NewSubscription,
     PausedGuild,
     RenewSubscription,
@@ -9,20 +9,21 @@ import {
     UpdatedMetadata,
     Withdraw } from "../generated/templates/GuildAppTemplate/GuildApp";
 
-export function handleCreateGuild(call: InitializeCall): void {
-    let guildId = call.to.toHexString();
+export function handleCreatedGuild(event: InitializedGuild): void {
+    let guildId = event.address.toHex();
+    log.info("**** Initializing Guild: {}", [guildId]);
     let guild = new Guild(guildId);
-    guild.createdAt = call.block.timestamp.toString();
-    guild.owner = call.inputs._creator;
-    guild.name = call.inputs._metadata.name;
-    guild.symbol = call.inputs._metadata.symbol;
-    guild.metadataURI = call.inputs._metadata.baseURI.concat(call.inputs._metadata.metadataCID);
+    guild.createdAt = event.block.timestamp.toString();
+    guild.owner = event.params._creator;
+    guild.name = event.params._metadata.name;
+    guild.symbol = event.params._metadata.symbol;
+    guild.metadataURI = event.params._metadata.baseURI.concat(event.params._metadata.metadataCID);
     guild.active = true;
-    guild.tokenAddress = call.inputs._tokenAddress;
+    guild.tokenAddress = event.params._tokenAddress;
     guild.currentBalance = BigInt.fromI32(0);
     guild.totalSubscriptions = BigInt.fromI32(0);
-    guild.subsPeriod = call.inputs._subscriptionPeriod;
-    guild.currentPrice = call.inputs._subPrice;
+    guild.subsPeriod = event.params._subscriptionPeriod;
+    guild.currentPrice = event.params._subPrice;
     
     guild.save();
 
@@ -64,7 +65,7 @@ export function handleNewSubcription(event: NewSubscription): void {
 
         let keyId = event.params._tokenId;
         let subId = guild.id.concat("-").concat(keyId.toHexString());
-        let subscription = new Subscription(subId);
+        let subscription = new GuildSubscription(subId);
         subscription.createdAt = event.block.timestamp.toString();
         subscription.guild = guild.id;
         subscription.keyId = keyId;
@@ -92,7 +93,7 @@ export function handleRenewSubcription(event: RenewSubscription): void {
     if (guild != null) {
         let keyId = event.params._tokenId;
         let subId = event.address.toHexString().concat("-").concat(keyId.toHexString());
-        let subscription = Subscription.load(subId);
+        let subscription = GuildSubscription.load(subId);
         // TODO: update Guild balances
         if (subscription != null) {
             let value = event.params._value;

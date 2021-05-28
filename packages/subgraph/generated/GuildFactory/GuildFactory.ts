@@ -37,6 +37,25 @@ export class GuildFactory extends ethereum.SmartContract {
     return new GuildFactory("GuildFactory", address);
   }
 
+  guilds(param0: BigInt): Address {
+    let result = super.call("guilds", "guilds(uint256):(address)", [
+      ethereum.Value.fromUnsignedBigInt(param0)
+    ]);
+
+    return result[0].toAddress();
+  }
+
+  try_guilds(param0: BigInt): ethereum.CallResult<Address> {
+    let result = super.tryCall("guilds", "guilds(uint256):(address)", [
+      ethereum.Value.fromUnsignedBigInt(param0)
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
   predictDeterministicAddress(_salt: Bytes): Address {
     let result = super.call(
       "predictDeterministicAddress",

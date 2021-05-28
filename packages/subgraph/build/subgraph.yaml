@@ -8,9 +8,9 @@ dataSources:
     name: GuildFactory
     network: rinkeby
     source:
-      address: "0x4372Bff493245729E484Ed858e0D6F2C4fe715C7"
+      address: "0x869Fd2aC48965469a2a76f84095b4310377fb4Cb"
       abi: GuildFactory
-      startBlock: 8656340
+      startBlock: 8662863
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3
@@ -37,12 +37,14 @@ templates:
       file: templates/GuildAppTemplate/GuildAppTemplate.wasm
       entities:
         - Guild
-        - Subscription
+        - GuildSubscription
         - Payment
       abis:
         - name: GuildApp
           file: GuildAppTemplate/abis/GuildApp.json
       eventHandlers:
+        - event: InitializedGuild(address,address,uint256,uint256,(string,string,string,string))
+          handler: handleCreatedGuild
         - event: UpdatedMetadata(string)
           handler: handleUpdatedMetadata
         - event: PausedGuild(bool)
@@ -55,6 +57,3 @@ templates:
           handler: handleRenewSubcription
         - event: Withdraw(address,address,uint256)
           handler: handleWithdraw
-      callHandlers:
-        - function: initialize(address,address,uint256,uint256,GuildMetadata)
-          handler: handleCreateGuild

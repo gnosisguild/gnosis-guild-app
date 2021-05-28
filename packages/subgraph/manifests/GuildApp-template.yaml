@@ -10,12 +10,14 @@ mapping:
   file: ./src/guild-app-mapping.ts
   entities:
     - Guild
-    - Subscription
+    - GuildSubscription
     - Payment
   abis:
     - name: GuildApp
       file: ./abis/GuildApp.json
   eventHandlers:
+    - event: "InitializedGuild(address,address,uint256,uint256,(string,string,string,string))"
+      handler: handleCreatedGuild
     - event: "UpdatedMetadata(string)"
       handler: handleUpdatedMetadata
     - event: "PausedGuild(bool)"
@@ -28,6 +30,3 @@ mapping:
       handler: handleRenewSubcription
     - event: "Withdraw(address,address,uint256)"
       handler: handleWithdraw
-  callHandlers:
-    - function: "initialize(address,address,uint256,uint256,GuildMetadata)"
-      handler: handleCreateGuild
