@@ -1,0 +1,20 @@
+kind: ethereum/contract
+name: GuildFactory
+network:
+source:
+  address: ""
+  abi: GuildFactory
+  startBlock:
+mapping:
+  kind: ethereum/events
+  apiVersion: 0.0.3
+  language: wasm/assemblyscript
+  entities:
+    - Guild
+  abis:
+    - name: GuildFactory
+      file: ./abis/GuildFactory.json
+  eventHandlers:
+    - event: "NewGuild(indexed address,indexed address)"
+      handler: handleNewGuild
+  file: ./src/guild-factory-mapping.ts

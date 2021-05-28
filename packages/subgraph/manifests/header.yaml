@@ -1,0 +1,7 @@
+specVersion: 0.0.2
+description: Gnosis Guild App
+repository: https://github.com/raid-guild/gnosis-guild-app
+schema:
+  file: ./schema.graphql
+dataSources: []
+templates: []

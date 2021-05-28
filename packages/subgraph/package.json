@@ -1,0 +1,26 @@
+{
+  "name": "@gnosis-guild-app/subgraph",
+  "version": "0.1.0",
+  "scripts": {
+    "create": "graph create raid-guild/gnosis-guild-app --node https://api.thegraph.com/deploy/",
+    "create-local": "graph create raid-guild/gnosis-guild-app --node http://127.0.0.1:8020",
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "prepare-local": "node manifests/deploy-prep.js local",
+    "deploy-local": "graph deploy raid-guild/gnosis-guild-app --ipfs http://localhost:5001 --node http://127.0.0.1:8020",
+    "deploy-main": "node manifests/deploy-prep.js mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ raid-guild/gnosis-guild-app",
+    "deploy-rinkeby": "node manifests/deploy-prep.js rinkeby && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ santteegt/gnosis-guild-app-rinkeby",
+    "deploy-xdai": "node manifests/deploy-prep.js xdai && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ raid-guild/gnosis-guild-app-xdai",
+    "deploy-matic": "node manifests/deploy-prep.js matic && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ raid-guild/gnosis-guild-app-matic",
+    "mega-deploy": "yarn deploy-main && yarn deploy-xdai && yarn deploy-rinkeby && yarn deploy-matic"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.20.0",
+    "@graphprotocol/graph-ts": "^0.20.0"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "babel-register": "^6.26.0",
+    "js-yaml": "^4.1.0"
+  }
+}
