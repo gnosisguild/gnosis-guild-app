@@ -44,6 +44,11 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         _;
     }
 
+    event InitializedGuild(address _creator,
+                           address _tokenAddress,
+                           uint256 _subPrice,
+                           uint256 _subscriptionPeriod,
+                           GuildMetadata _metadata);
     event UpdatedMetadata(string _metadataURI);
     event PausedGuild(bool _isPaused);
     event Withdraw(address _tokenAddress, address beneficiary, uint256 _amount);
@@ -83,6 +88,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         __AccessControl_init();
         __ERC721_init(_metadata.name, _metadata.symbol);
         __GuildApp_init_unchained(_creator, _metadata.baseURI, _metadata.metadataCID, _tokenAddress, _subPrice, _subscriptionPeriod);
+        emit InitializedGuild(_creator, _tokenAddress, _subPrice, _subscriptionPeriod, _metadata);
     }
 
     function pauseGuild(bool pause) external override onlyGuildAdmin {

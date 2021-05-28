@@ -1,19 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
+pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 
 import "../interfaces/IGuild.sol";
 
 contract GuildFactory is Initializable {
     using AddressUpgradeable for address;
     using ClonesUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     address public template; // fixed template for minion using eip-1167 proxy pattern
 
-    mapping (address => IGuild) guilds;
+    mapping(address => EnumerableSetUpgradeable.AddressSet) private _guilds;
 
     event NewGuild(address indexed guildOwner, address indexed guild);
 
@@ -29,25 +32,32 @@ contract GuildFactory is Initializable {
         __GuildFactory_init(_template);
     }
 
-    function _initAndEmit(address _sender, address _instance, bytes calldata _initData) private {
+    function guildsOf(address _owner) public view returns (address[] memory) {
+        address[] memory tokens = new address[](_guilds[_owner].length());
+        for (uint256 i = 0; i < _guilds[_owner].length(); i++) {
+            tokens[i] = _guilds[_owner].at(i);
+        }
+        return tokens;
+    }
+
+    function _initAndEmit(address _instance, address _sender, bytes calldata _initData) private {
+        emit NewGuild(_sender, _instance);
         if (_initData.length > 0) {
             _instance.functionCall(_initData);
         }
         IGuild guild = IGuild(_instance);
         require(guild.initialized(), "GuildFactory: GuildApp not initialized");
-        guilds[_instance] = guild;
-        emit NewGuild(_sender, _instance);
+        _guilds[_sender].add(_instance);
     }
 
     function clone(bytes calldata _initData) internal {
         address sender = msg.sender;
-        _initAndEmit(sender, template.clone(), _initData);
-        
+        _initAndEmit(template.clone(), sender, _initData);
     }
 
     function cloneDeterministic(bytes calldata _initData, bytes32 _salt) internal {
         address sender = msg.sender;
-        _initAndEmit(sender, template.cloneDeterministic(_salt), _initData);
+        _initAndEmit(template.cloneDeterministic(_salt), sender, _initData);
     }
 
     function predictDeterministicAddress(bytes32 _salt) public view returns (address predicted) {
