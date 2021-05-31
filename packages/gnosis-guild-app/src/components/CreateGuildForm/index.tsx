@@ -1,16 +1,21 @@
 import React, {
   useState,
   useCallback,
+  useMemo,
   useRef,
   MouseEvent,
-  useEffect,
+  useEffect
 } from "react";
 import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
+import { SafeAppProvider } from "@gnosis.pm/safe-apps-provider";
+import { ethers } from "ethers";
 import styled from "styled-components";
 import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
 
 import CurrencySelect from "../CurrencySelect";
 import { useGuildContext } from "../../context/GuildContext";
+import { useWeb3Context } from "../../context/Web3Context";
+import { createGuild } from "../../lib/graphql";
 
 const GridForm = styled.form`
   grid-area: form;
@@ -36,6 +41,10 @@ const CreateGuildForm: React.FC = () => {
   const { guildMetadata, setGuildMetadata } = useGuildContext();
 
   const { sdk, safe } = useSafeAppsSDK();
+  const ethersProvider = useMemo(
+    () => new ethers.providers.Web3Provider(new SafeAppProvider(safe, sdk)),
+    [sdk, safe]
+  );
   const [submitting, setSubmitting] = useState(false);
   // Input values
   const [guildName, setGuildName] = useState(guildMetadata.name);
@@ -52,9 +61,7 @@ const CreateGuildForm: React.FC = () => {
   const [guildImage, setGuildImage] = useState(guildMetadata.image);
   const hiddenImageInput = useRef<HTMLInputElement>(null);
 
-  const [activeCurrency, setActiveCurrency] = useState(
-    guildMetadata.contributions
-  );
+  const [activeCurrency, setActiveCurrency] = useState(guildMetadata.currency);
 
   useEffect(() => {
     setGuildName(guildMetadata.name);
@@ -62,7 +69,7 @@ const CreateGuildForm: React.FC = () => {
     setContentFormat(guildMetadata.contentFormat);
     setGuildExternalLink(guildMetadata.externalLink);
     setGuildImage(guildMetadata.image);
-    setActiveCurrency(guildMetadata.contributions);
+    setActiveCurrency(guildMetadata.currency);
   }, [guildMetadata]);
 
   // TODO: Implement acutal logic below
@@ -93,6 +100,21 @@ const CreateGuildForm: React.FC = () => {
       //console.log({ safeTxHash });
       //const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
       //console.log({ safeTx });
+
+      // Cerate guild
+      const guildInfo = {
+        name: guildName,
+        description: guildDescription,
+        contentFormat: contentFormat,
+        externalLink: guildExternalLink,
+        image: guildImage,
+        currency: activeCurrency,
+        amount: 0
+      };
+      console.log(safe);
+      console.log(ethersProvider);
+      createGuild(safe.chainId, ethersProvider, guildInfo, safe.safeAddress);
+
       console.log("Submitting");
     } catch (e) {
       console.error(e);
@@ -103,7 +125,8 @@ const CreateGuildForm: React.FC = () => {
       contentFormat: contentFormat,
       externalLink: guildExternalLink,
       image: guildImage,
-      contributions: activeCurrency,
+      currency: activeCurrency,
+      amount: 0
     });
     setSubmitting(false);
   }, [safe, sdk]);
@@ -123,7 +146,7 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="50 characters"
           value={guildName}
-          onChange={(e) => setGuildName(e.target.value)}
+          onChange={e => setGuildName(e.target.value)}
         />
       </FormItem>
       <FormItem>
@@ -133,7 +156,7 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="200 characters"
           value={guildDescription}
-          onChange={(e) => setGuildDescription(e.target.value)}
+          onChange={e => setGuildDescription(e.target.value)}
         />
       </FormItem>
       <FormItem>
@@ -143,7 +166,7 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="E.g. Algorithm-free curation, Design Weekly	Newsletter, Discord"
           value={contentFormat}
-          onChange={(e) => setContentFormat(e.target.value)}
+          onChange={e => setContentFormat(e.target.value)}
         />
       </FormItem>
       <FormItem>
@@ -153,7 +176,7 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="https://guild.is/"
           value={guildExternalLink}
-          onChange={(e) => setGuildExternalLink(e.target.value)}
+          onChange={e => setGuildExternalLink(e.target.value)}
         />
       </FormItem>
       <ButtonContainer>

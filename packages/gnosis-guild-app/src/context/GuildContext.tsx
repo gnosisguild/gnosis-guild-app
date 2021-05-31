@@ -10,7 +10,8 @@ export type GuildMetadata = {
   contentFormat: string;
   externalLink: string;
   image: string;
-  contributions: string;
+  currency: string;
+  amount: number;
 };
 
 const initialGuildMetadata = {
@@ -19,7 +20,8 @@ const initialGuildMetadata = {
   contentFormat: "",
   externalLink: "",
   image: "",
-  contributions: "ETH"
+  currency: "ETH",
+  amount: 0,
 };
 
 export type GuildContextValue = {
@@ -28,7 +30,7 @@ export type GuildContextValue = {
 };
 export const GuildContext = React.createContext<GuildContextValue>({
   guildMetadata: initialGuildMetadata,
-  setGuildMetadata: guildMeta => {}
+  setGuildMetadata: (guildMeta) => {},
 });
 
 export const useGuildContext = () => useContext(GuildContext);

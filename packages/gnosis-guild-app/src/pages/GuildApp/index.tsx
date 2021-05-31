@@ -41,9 +41,12 @@ const GuildApp: React.FC = () => {
       console.log("Safe");
       console.log(safe);
       const resp = await fetchGuildByAddress(safe.safeAddress, safe.chainId);
-      // if (guildMetadata.externalLink) {
-      //   setDisplayPanel(<GuildStats />);
-      // }
+      console.log(resp);
+      const guild = resp.guilds ? resp.guilds[0] : null;
+      if (guild) {
+        setDisplayPanel(<GuildStats />);
+      }
+      console.log(resp);
     };
     fetchGuild();
   }, []);
