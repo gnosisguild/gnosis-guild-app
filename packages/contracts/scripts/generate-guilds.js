@@ -1,9 +1,11 @@
 require("dotenv").config();
+const fs = require('fs');
 const { ethers, network } = require("hardhat");
 
 const GuildAppABI = require("../artifacts/contracts/guild/GuildApp.sol/GuildApp.json").abi;
 const GuildFactoryABI = require("../artifacts/contracts/factory/GuildFactory.sol/GuildFactory.json").abi;
 
+const ADDRESSES_FILE = './addresses.json';
 const SUBSCRIPTION_PRICE = ethers.utils.parseEther("5");
 const SUBSCRIPTION_PERIOD_DEFAULT = 3600 * 24 * 30;
 const NFT_BASE_URI = 'ipfs://';
@@ -25,11 +27,11 @@ const createGuild = async (wallet, guildFactory, tokenAddress, guildName, guildS
             ]
         )
     ).data;
-    const rs = await guildFactory.connect(alice).functions['createGuild(bytes)'](initData);
+    const rs = await guildFactory.connect(wallet).functions['createGuild(bytes)'](initData);
     const receipt = await rs.wait();
     const [ guildOwner, guild ] = receipt.events.find(e => e.event === 'NewGuild').args;
 
-    return new ethers.Contract(guild, GuildAppABI, alice);
+    return new ethers.Contract(guild, GuildAppABI, wallet);
 };
 
 const main = async () => {
@@ -48,7 +50,20 @@ const main = async () => {
         console.log("Created Guilds", [guildA.address, guildB.address]);
 
     } else {
-        console.error("This script is meant to be used for local development purposes");
+        const json = fs.readFileSync(ADDRESSES_FILE);
+        const addresses = JSON.parse(json.length > 0 ? json : "{}");
+        if (addresses[network.name]) {
+            [wallet] = await ethers.getSigners();
+
+            const guildFactory = new ethers.Contract(addresses[network.name]['GuildFactory'], GuildFactoryABI, wallet);
+
+            const guildA = await createGuild(wallet, guildFactory, "0x15f0ca26781c3852f8166ed2ebce5d18265cceb7", "Alice Guild", "GUILD0", "dummyMetadataHashForAlice");
+
+            console.log(`Created Guild on ${network.name}`, [guildA.address]);
+        } else {
+            console.error(`Contract addresses not found for ${network.name} network`);
+        }
+        // console.error("This script is meant to be used for local development purposes");
     }
 };
 
