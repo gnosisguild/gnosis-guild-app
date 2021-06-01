@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { request, gql } from "graphql-request";
 import { getNetworkByChainId } from "../lib/networks";
 import { Contract, ethers } from "ethers";
@@ -13,7 +13,6 @@ export type GraphGuild = {
   name: string;
   owner: string;
   subsPeriod: number;
-  // TODO: change type to subscription
   subscriptions: Array<any>;
   symbol: string;
   tokenAddress: string;
