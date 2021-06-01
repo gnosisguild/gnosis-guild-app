@@ -5,9 +5,10 @@ import CreateGuildForm from "../../components/CreateGuildForm";
 import GuildAppInstructions from "../../components/GuildAppInstructions";
 import GuildStats from "../../components/GuildStats";
 
+import { useGuild } from "../../hooks/useGuild";
 import { useGuildContext } from "../../context/GuildContext";
 import { Loader, Title } from "@gnosis.pm/safe-react-components";
-import SafeProvider from "@gnosis.pm/safe-apps-react-sdk";
+import { SafeProvider, useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
 
 const Grid = styled.div`
   margin-bottom: 2rem;
@@ -31,29 +32,26 @@ const GridDisplay = styled.div`
 `;
 
 const GuildApp: React.FC = () => {
-  const { guildMetadata } = useGuildContext();
+  const { safe } = useSafeAppsSDK();
   const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
+  const { fetchGuildByAddress } = useGuild();
 
   useEffect(() => {
-    if (guildMetadata.externalLink) {
-      setDisplayPanel(<GuildStats />);
-    }
-  }, [guildMetadata]);
+    const fetchGuild = async () => {
+      const resp = await fetchGuildByAddress(safe.safeAddress, safe.chainId);
+      const guild = resp.length > 0 ? resp[0] : null;
+      if (guild) {
+        setDisplayPanel(<GuildStats />);
+      }
+    };
+    fetchGuild();
+  }, []);
 
   return (
-    <SafeProvider
-      loader={
-        <>
-          <Title size="md">Waiting for Safe...</Title>
-          <Loader size="md" />
-        </>
-      }
-    >
-      <Grid>
-        <CreateGuildForm />
-        <GridDisplay>{displayPanel}</GridDisplay>
-      </Grid>
-    </SafeProvider>
+    <Grid>
+      <CreateGuildForm />
+      <GridDisplay>{displayPanel}</GridDisplay>
+    </Grid>
   );
 };
 

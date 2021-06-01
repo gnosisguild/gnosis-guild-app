@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useContext } from "react";
 
+import { useWeb3Context } from "./Web3Context";
+
 export type GuildMetadata = {
   name: string;
   description: string;
   contentFormat: string;
   externalLink: string;
   image: string;
-  contributions: string;
+  currency: string;
+  amount: number;
 };
 
 const initialGuildMetadata = {
@@ -15,7 +18,8 @@ const initialGuildMetadata = {
   contentFormat: "",
   externalLink: "",
   image: "",
-  contributions: "ETH",
+  currency: "ETH",
+  amount: 0
 };
 
 export type GuildContextValue = {
@@ -24,7 +28,7 @@ export type GuildContextValue = {
 };
 export const GuildContext = React.createContext<GuildContextValue>({
   guildMetadata: initialGuildMetadata,
-  setGuildMetadata: (guildMeta) => {},
+  setGuildMetadata: guildMeta => {}
 });
 
 export const useGuildContext = () => useContext(GuildContext);
@@ -41,7 +45,8 @@ export const GuildProvider: React.FC = ({ children }) => {
       contentFormat: "Early access to research essays and Discord community.",
       externalLink: "https://otherinter.net",
       image: "",
-      contributions: "ETH",
+      currency: "ETH",
+      amount: 0
     });
   }, []);
   return (

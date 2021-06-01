@@ -1,16 +1,11 @@
-import React, {
-  useState,
-  useCallback,
-  useRef,
-  MouseEvent,
-  useEffect,
-} from "react";
-import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
+import React, { useState, useRef, MouseEvent, useEffect } from "react";
 import styled from "styled-components";
 import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
 
 import CurrencySelect from "../CurrencySelect";
 import { useGuildContext } from "../../context/GuildContext";
+import { useWeb3Context } from "../../context/Web3Context";
+import { useGuild } from "../../hooks/useGuild";
 
 const GridForm = styled.form`
   grid-area: form;
@@ -35,7 +30,9 @@ const ButtonContainer = styled.div`
 const CreateGuildForm: React.FC = () => {
   const { guildMetadata, setGuildMetadata } = useGuildContext();
 
-  const { sdk, safe } = useSafeAppsSDK();
+  const { ethersProvider, account, providerChainId } = useWeb3Context();
+  const { createGuild } = useGuild();
+  console.log("Provider");
   const [submitting, setSubmitting] = useState(false);
   // Input values
   const [guildName, setGuildName] = useState(guildMetadata.name);
@@ -52,9 +49,7 @@ const CreateGuildForm: React.FC = () => {
   const [guildImage, setGuildImage] = useState(guildMetadata.image);
   const hiddenImageInput = useRef<HTMLInputElement>(null);
 
-  const [activeCurrency, setActiveCurrency] = useState(
-    guildMetadata.contributions
-  );
+  const [activeCurrency, setActiveCurrency] = useState(guildMetadata.currency);
 
   useEffect(() => {
     setGuildName(guildMetadata.name);
@@ -62,7 +57,7 @@ const CreateGuildForm: React.FC = () => {
     setContentFormat(guildMetadata.contentFormat);
     setGuildExternalLink(guildMetadata.externalLink);
     setGuildImage(guildMetadata.image);
-    setActiveCurrency(guildMetadata.contributions);
+    setActiveCurrency(guildMetadata.currency);
   }, [guildMetadata]);
 
   // TODO: Implement acutal logic below
@@ -77,23 +72,20 @@ const CreateGuildForm: React.FC = () => {
 
   // TODO: Modify to implement correct logic
   // Curently placeholder logic
-  const submitTx = useCallback(async () => {
+  const submitTx = async (): Promise<void> => {
     setSubmitting(true);
     try {
-      // Safe app example
-      //const { safeTxHash } = await sdk.txs.send({
-      //  txs: [
-      //    {
-      //      to: safe.safeAddress,
-      //      value: "0",
-      //      data: "0x",
-      //    },
-      //  ],
-      //});
-      //console.log({ safeTxHash });
-      //const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
-      //console.log({ safeTx });
-      console.log("Submitting");
+      // Create guild
+      const guildInfo = {
+        name: guildName,
+        description: guildDescription,
+        contentFormat: contentFormat,
+        externalLink: guildExternalLink,
+        image: guildImage,
+        currency: activeCurrency,
+        amount: 0
+      };
+      createGuild(providerChainId, ethersProvider, guildInfo, account);
     } catch (e) {
       console.error(e);
     }
@@ -103,10 +95,11 @@ const CreateGuildForm: React.FC = () => {
       contentFormat: contentFormat,
       externalLink: guildExternalLink,
       image: guildImage,
-      contributions: activeCurrency,
+      currency: activeCurrency,
+      amount: 0
     });
     setSubmitting(false);
-  }, [safe, sdk]);
+  };
 
   // Upload text
   const imageUploadText = guildMetadata.description
@@ -115,7 +108,7 @@ const CreateGuildForm: React.FC = () => {
   const guildButtonText = guildMetadata.name ? "Update Guild" : "Create Guild";
 
   return (
-    <GridForm noValidate autoComplete="off" onSubmit={submitTx}>
+    <GridForm noValidate>
       <FormItem>
         <Text size="xl" strong={true}>
           Guild Name
@@ -123,7 +116,7 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="50 characters"
           value={guildName}
-          onChange={(e) => setGuildName(e.target.value)}
+          onChange={e => setGuildName(e.target.value)}
         />
       </FormItem>
       <FormItem>
@@ -133,7 +126,7 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="200 characters"
           value={guildDescription}
-          onChange={(e) => setGuildDescription(e.target.value)}
+          onChange={e => setGuildDescription(e.target.value)}
         />
       </FormItem>
       <FormItem>
@@ -143,7 +136,7 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="E.g. Algorithm-free curation, Design Weekly	Newsletter, Discord"
           value={contentFormat}
-          onChange={(e) => setContentFormat(e.target.value)}
+          onChange={e => setContentFormat(e.target.value)}
         />
       </FormItem>
       <FormItem>
@@ -153,7 +146,7 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="https://guild.is/"
           value={guildExternalLink}
-          onChange={(e) => setGuildExternalLink(e.target.value)}
+          onChange={e => setGuildExternalLink(e.target.value)}
         />
       </FormItem>
       <ButtonContainer>
