@@ -1,8 +1,15 @@
-import React, { useState, useRef, MouseEvent, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  MouseEvent,
+  ChangeEvent,
+  useEffect
+} from "react";
 import styled from "styled-components";
+import isURL from "validator/lib/isURL";
 import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
 
-import CurrencySelect from "../CurrencySelect";
+import AmountInput from "../AmountInput";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
 import { useGuild } from "../../hooks/useGuild";
@@ -32,7 +39,6 @@ const CreateGuildForm: React.FC = () => {
 
   const { ethersProvider, account, providerChainId } = useWeb3Context();
   const { createGuild } = useGuild();
-  console.log("Provider");
   const [submitting, setSubmitting] = useState(false);
   // Input values
   const [guildName, setGuildName] = useState(guildMetadata.name);
@@ -45,6 +51,17 @@ const CreateGuildForm: React.FC = () => {
   const [guildExternalLink, setGuildExternalLink] = useState(
     guildMetadata.externalLink
   );
+
+  const [guildMinimumAmount, setGuildMinimumAmount] = useState(
+    guildMetadata.amount.toString()
+  );
+
+  //
+  // Input error states
+  const [guildNameMeta, setGuildNameMeta] = useState({});
+  const [guildDescriptionMeta, setGuildDescriptionMeta] = useState({});
+  const [guildExternalLinkMeta, setGuildExternalLinkMeta] = useState({});
+  const [guildContentFormatMeta, setGuildContentFormatMeta] = useState({});
 
   const [guildImage, setGuildImage] = useState(guildMetadata.image);
   const hiddenImageInput = useRef<HTMLInputElement>(null);
@@ -107,6 +124,48 @@ const CreateGuildForm: React.FC = () => {
     : "Upload Image";
   const guildButtonText = guildMetadata.name ? "Update Guild" : "Create Guild";
 
+  const updateGuildName = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setGuildNameMeta({});
+    setGuildName(val);
+    if (val && val.length > 50) {
+      setGuildNameMeta({ error: "Name must be less than 50 characters" });
+    }
+  };
+
+  const updateGuildDescription = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setGuildDescriptionMeta({});
+    setGuildDescription(val);
+    if (val && val.length > 200) {
+      setGuildDescriptionMeta({
+        error: "Description must be less than 200 characters"
+      });
+    }
+  };
+
+  const updateGuildExternalLink = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setGuildExternalLinkMeta({});
+    setGuildExternalLink(val);
+    if (val && !isURL(val)) {
+      setGuildExternalLinkMeta({
+        error: "Guild external link must be a valid Url"
+      });
+    }
+  };
+
+  const updateGuildContentFormat = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setGuildContentFormatMeta({});
+    setContentFormat(val);
+    if (val && val.length > 200) {
+      setGuildContentFormatMeta({
+        error: "Must be less than 200 characters"
+      });
+    }
+  };
+
   return (
     <GridForm noValidate>
       <FormItem>
@@ -116,7 +175,8 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="50 characters"
           value={guildName}
-          onChange={e => setGuildName(e.target.value)}
+          meta={guildNameMeta}
+          onChange={updateGuildName}
         />
       </FormItem>
       <FormItem>
@@ -126,7 +186,8 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="200 characters"
           value={guildDescription}
-          onChange={e => setGuildDescription(e.target.value)}
+          meta={guildDescriptionMeta}
+          onChange={updateGuildDescription}
         />
       </FormItem>
       <FormItem>
@@ -135,8 +196,9 @@ const CreateGuildForm: React.FC = () => {
         </Text>
         <TextField
           label="E.g. Algorithm-free curation, Design Weekly	Newsletter, Discord"
+          meta={guildContentFormatMeta}
           value={contentFormat}
-          onChange={e => setContentFormat(e.target.value)}
+          onChange={updateGuildContentFormat}
         />
       </FormItem>
       <FormItem>
@@ -146,7 +208,8 @@ const CreateGuildForm: React.FC = () => {
         <TextField
           label="https://guild.is/"
           value={guildExternalLink}
-          onChange={e => setGuildExternalLink(e.target.value)}
+          meta={guildExternalLinkMeta}
+          onChange={updateGuildExternalLink}
         />
       </FormItem>
       <ButtonContainer>
@@ -167,12 +230,12 @@ const CreateGuildForm: React.FC = () => {
         />
       </ButtonContainer>
       <FormItem>
-        <Text size="xl" strong={true}>
-          Monthly Contributors
-        </Text>
-        <CurrencySelect
-          activeId={activeCurrency}
-          setActiveCurrency={setActiveCurrency}
+        <AmountInput
+          title="Monthly Contributors"
+          currency={activeCurrency}
+          setCurrency={setActiveCurrency}
+          amount={guildMinimumAmount}
+          setAmount={setGuildMinimumAmount}
         />
       </FormItem>
       {submitting ? (
