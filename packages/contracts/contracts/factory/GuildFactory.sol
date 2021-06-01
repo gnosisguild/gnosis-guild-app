@@ -5,6 +5,7 @@ pragma abicoder v2;
 import "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 
 import "../interfaces/IGuild.sol";
@@ -12,9 +13,12 @@ import "../interfaces/IGuild.sol";
 contract GuildFactory is Initializable {
     using AddressUpgradeable for address;
     using ClonesUpgradeable for address;
+    using CountersUpgradeable for CountersUpgradeable.Counter;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     address public template; // fixed template for minion using eip-1167 proxy pattern
+
+    CountersUpgradeable.Counter private _totalGuilds;
 
     mapping(address => EnumerableSetUpgradeable.AddressSet) private _guilds;
 
@@ -40,7 +44,12 @@ contract GuildFactory is Initializable {
         return tokens;
     }
 
+    function totalGuilds() public view returns (uint256) {
+        return _totalGuilds.current();
+    }
+
     function _initAndEmit(address _instance, address _sender, bytes calldata _initData) private {
+        _totalGuilds.increment();
         emit NewGuild(_sender, _instance);
         if (_initData.length > 0) {
             _instance.functionCall(_initData);

@@ -1,6 +1,6 @@
 {
-  "rinkeby": {
-    "GuildAppTemplate": "0x07bf9bAAfAAa37E99F0af80c3Ebc15d7bD7dfA33",
-    "GuildFactory": "0x869Fd2aC48965469a2a76f84095b4310377fb4Cb"
-  }
+    "rinkeby": {
+        "GuildAppTemplate": "0x14f103b4eaD58431f8B148aaAb4A896B3B16E21b",
+        "GuildFactory": "0x032001772d52fa4a88b43AAC8dc8B73F28aEF6A4"
+    }
 }
