@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
+import { Button, Text } from "@gnosis.pm/safe-react-components";
 
+import AmountInput from "../../components/AmountInput";
 import ContributorNameInput from "../../components/ContributorNameInput";
 import ContributorEmailInput from "../../components/ContributorEmailInput";
-import CurrencySelect from "../../components/CurrencySelect";
 import GridLogo from "../../components/GridLogo";
 import GuildLogo from "../../components/GuildLogo";
 
@@ -77,6 +77,7 @@ const GuildContributeLink: React.FC = () => {
 
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
+  const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
 
   const contribute = () => {
     console.log("dummy");
@@ -112,13 +113,12 @@ const GuildContributeLink: React.FC = () => {
           />
         </FormItem>
         <FormItem>
-          <Text size="xl" strong={true}>
-            Monthly Contribution
-          </Text>
-
-          <CurrencySelect
-            activeId={activeCurrency}
-            setActiveCurrency={setActiveCurrency}
+          <AmountInput
+            title="Monthly Contribution"
+            currency={activeCurrency}
+            setCurrency={setActiveCurrency}
+            amount={guildMinimumAmount}
+            setAmount={setGuildMinimumAmount}
           />
         </FormItem>
       </GridForm>

@@ -9,7 +9,7 @@ import styled from "styled-components";
 import isURL from "validator/lib/isURL";
 import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
 
-import CurrencySelect from "../CurrencySelect";
+import AmountInput from "../AmountInput";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
 import { useGuild } from "../../hooks/useGuild";
@@ -51,6 +51,11 @@ const CreateGuildForm: React.FC = () => {
   const [guildExternalLink, setGuildExternalLink] = useState(
     guildMetadata.externalLink
   );
+
+  const [guildMinimumAmount, setGuildMinimumAmount] = useState(
+    guildMetadata.amount.toString()
+  );
+
   //
   // Input error states
   const [guildNameMeta, setGuildNameMeta] = useState({});
@@ -225,12 +230,12 @@ const CreateGuildForm: React.FC = () => {
         />
       </ButtonContainer>
       <FormItem>
-        <Text size="xl" strong={true}>
-          Monthly Contributors
-        </Text>
-        <CurrencySelect
-          activeId={activeCurrency}
-          setActiveCurrency={setActiveCurrency}
+        <AmountInput
+          title="Monthly Contributors"
+          currency={activeCurrency}
+          setCurrency={setActiveCurrency}
+          amount={guildMinimumAmount}
+          setAmount={setGuildMinimumAmount}
         />
       </FormItem>
       {submitting ? (
