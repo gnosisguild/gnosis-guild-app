@@ -1959,7 +1959,7 @@
     "@ethersproject/properties" "^5.1.0"
     "@ethersproject/strings" "^5.1.0"
 
-"@gnosis.pm/safe-apps-provider@^0.5.0":
+"@gnosis.pm/safe-apps-provider@0.5.0", "@gnosis.pm/safe-apps-provider@^0.5.0":
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-provider/-/safe-apps-provider-0.5.0.tgz#e0121553ef22c1458eb95cf0afed14e8c2570ae3"
   integrity sha512-c4OuKV+cIW2aDmv0DZfLOelmyNNZz5Dr3OG5TvnCfmYhZtHyOd1x6bd2xnROCuiZU+QAUGJsm65mBe6iy8NAVQ==
@@ -1978,6 +1978,13 @@
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-sdk/-/safe-apps-sdk-3.0.0.tgz#0f90185c3693f2683322d275e796e61ff99ce87d"
   integrity sha512-dLCSlniYnxEqCglx4XdhByvi7KKuSYRWJKm1lVXAc4oJqwwVkoCwp0bFIejLZ/dnf7cQSBUUVsTGWhvSda511w==
+
+"@gnosis.pm/safe-apps-web3modal@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-web3modal/-/safe-apps-web3modal-0.5.0.tgz#c00d6d941e9b42303aebf203a51ed8801568f1cf"
+  integrity sha512-fauF+BHWP77oGWCSe44de7TH2z6OmJHaHcgbrau5bayXqH52E4yDcX5k5lla2bTV07QU/9UwLiQUvS3OWPNaaQ==
+  dependencies:
+    "@gnosis.pm/safe-apps-provider" "0.5.0"
 
 "@gnosis.pm/safe-react-components@^0.6.0":
   version "0.6.0"

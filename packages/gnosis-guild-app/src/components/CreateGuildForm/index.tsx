@@ -15,7 +15,7 @@ import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
 import CurrencySelect from "../CurrencySelect";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
-import { createGuild } from "../../lib/graphql";
+import { useGuild } from "../../hooks/useGuild";
 
 const GridForm = styled.form`
   grid-area: form;
@@ -40,11 +40,9 @@ const ButtonContainer = styled.div`
 const CreateGuildForm: React.FC = () => {
   const { guildMetadata, setGuildMetadata } = useGuildContext();
 
-  const { sdk, safe } = useSafeAppsSDK();
-  const ethersProvider = useMemo(
-    () => new ethers.providers.Web3Provider(new SafeAppProvider(safe, sdk)),
-    [sdk, safe]
-  );
+  const { ethersProvider, account, providerChainId } = useWeb3Context();
+  const { createGuild } = useGuild();
+  console.log("Provider");
   const [submitting, setSubmitting] = useState(false);
   // Input values
   const [guildName, setGuildName] = useState(guildMetadata.name);
@@ -111,9 +109,8 @@ const CreateGuildForm: React.FC = () => {
         currency: activeCurrency,
         amount: 0
       };
-      console.log(safe);
       console.log(ethersProvider);
-      createGuild(safe.chainId, ethersProvider, guildInfo, safe.safeAddress);
+      createGuild(providerChainId, ethersProvider, guildInfo, account);
 
       console.log("Submitting");
     } catch (e) {
@@ -129,7 +126,7 @@ const CreateGuildForm: React.FC = () => {
       amount: 0
     });
     setSubmitting(false);
-  }, [safe, sdk]);
+  }, [ethersProvider, providerChainId, account]);
 
   // Upload text
   const imageUploadText = guildMetadata.description

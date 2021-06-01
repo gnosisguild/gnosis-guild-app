@@ -5,7 +5,7 @@ import CreateGuildForm from "../../components/CreateGuildForm";
 import GuildAppInstructions from "../../components/GuildAppInstructions";
 import GuildStats from "../../components/GuildStats";
 
-import { fetchGuildByAddress } from "../../lib/graphql";
+import { useGuild } from "../../hooks/useGuild";
 import { useGuildContext } from "../../context/GuildContext";
 import { Loader, Title } from "@gnosis.pm/safe-react-components";
 import { SafeProvider, useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
@@ -35,18 +35,15 @@ const GuildApp: React.FC = () => {
   // const { guildMetadata } = useGuildContext();
   const { safe } = useSafeAppsSDK();
   const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
+  const { fetchGuildByAddress } = useGuild();
 
   useEffect(() => {
     const fetchGuild = async () => {
-      console.log("Safe");
-      console.log(safe);
       const resp = await fetchGuildByAddress(safe.safeAddress, safe.chainId);
-      console.log(resp);
-      const guild = resp.guilds ? resp.guilds[0] : null;
+      const guild = resp.length > 0 ? resp[0] : null;
       if (guild) {
         setDisplayPanel(<GuildStats />);
       }
-      console.log(resp);
     };
     fetchGuild();
   }, []);

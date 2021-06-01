@@ -2,8 +2,6 @@ import React, { useEffect, useState, useContext } from "react";
 
 import { useWeb3Context } from "./Web3Context";
 
-import { fetchGuildByAddress } from "../lib/graphql";
-
 export type GuildMetadata = {
   name: string;
   description: string;
@@ -21,7 +19,7 @@ const initialGuildMetadata = {
   externalLink: "",
   image: "",
   currency: "ETH",
-  amount: 0,
+  amount: 0
 };
 
 export type GuildContextValue = {
@@ -30,7 +28,7 @@ export type GuildContextValue = {
 };
 export const GuildContext = React.createContext<GuildContextValue>({
   guildMetadata: initialGuildMetadata,
-  setGuildMetadata: (guildMeta) => {},
+  setGuildMetadata: guildMeta => {}
 });
 
 export const useGuildContext = () => useContext(GuildContext);
@@ -57,11 +55,11 @@ export const GuildProvider: React.FC = ({ children }) => {
     // });
     console.log("");
     console.log(ethersProvider);
-    const fetchGuild: any = async () => {
-      const resp = await fetchGuildByAddress("", "");
-      return resp;
-    };
-    fetchGuild();
+    /* const fetchGuild: any = async () => { */
+    /*   const resp = await fetchGuildByAddress("", ""); */
+    /*   return resp; */
+    /* }; */
+    /* fetchGuild(); */
   }, []);
   return (
     <GuildContext.Provider value={{ guildMetadata, setGuildMetadata }}>
