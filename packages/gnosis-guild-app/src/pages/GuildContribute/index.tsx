@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { Title, Text, TextField } from "@gnosis.pm/safe-react-components";
 
+import ContributorNameInput from "../../components/ContributorNameInput";
+import ContributorEmailInput from "../../components/ContributorEmailInput";
 import ContributeButton from "../../components/ContributeButton";
 import ContributeCard from "../../components/ContributeCard";
 import CurrencySelect from "../../components/CurrencySelect";
@@ -57,23 +59,15 @@ const GuildContribute: React.FC = () => {
           {guildMetadata.name}
         </Title>
         <FormItem>
-          <Text size="xl" strong={true}>
-            Name
-          </Text>
-          <TextField
-            label="50 characters"
-            value={contributorName}
-            onChange={(e) => setContributorName(e.target.value)}
+          <ContributorNameInput
+            name={contributorName}
+            setContributorName={setContributorName}
           />
         </FormItem>
         <FormItem>
-          <Text size="xl" strong={true}>
-            Email
-          </Text>
-          <TextField
-            label="200 characters"
-            value={contributorEmail}
-            onChange={(e) => setContributorEmail(e.target.value)}
+          <ContributorEmailInput
+            email={contributorEmail}
+            setContributorEmail={setContributorEmail}
           />
         </FormItem>
         <FormItem>
