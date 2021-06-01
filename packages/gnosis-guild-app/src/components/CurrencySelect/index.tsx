@@ -7,8 +7,8 @@ type Props = {
 
 const CurrencySelect: React.FC<Props> = ({ activeId, setActiveCurrency }) => {
   const selectItems = [
-    { id: "ETH", label: "ETH", subLabel: "Minimum amount 0.1" },
-    { id: "DAI", label: "Dai", subLabel: "Minimum amount 20" },
+    { id: "ETH", label: "ETH" },
+    { id: "DAI", label: "Dai" }
   ];
 
   const changeCurrency = (id: string) => {

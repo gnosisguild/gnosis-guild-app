@@ -6,9 +6,7 @@ import GuildAppInstructions from "../../components/GuildAppInstructions";
 import GuildStats from "../../components/GuildStats";
 
 import { useGuild } from "../../hooks/useGuild";
-import { useGuildContext } from "../../context/GuildContext";
-import { Loader, Title } from "@gnosis.pm/safe-react-components";
-import { SafeProvider, useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
+import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
 
 const Grid = styled.div`
   margin-bottom: 2rem;

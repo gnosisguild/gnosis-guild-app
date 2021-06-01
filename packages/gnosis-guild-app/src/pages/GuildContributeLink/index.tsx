@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
+import { Button, Text } from "@gnosis.pm/safe-react-components";
 
-import CurrencySelect from "../../components/CurrencySelect";
+import AmountInput from "../../components/AmountInput";
+import ContributorNameInput from "../../components/ContributorNameInput";
+import ContributorEmailInput from "../../components/ContributorEmailInput";
 import GridLogo from "../../components/GridLogo";
 import GuildLogo from "../../components/GuildLogo";
 
@@ -75,6 +77,7 @@ const GuildContributeLink: React.FC = () => {
 
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
+  const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
 
   const contribute = () => {
     console.log("dummy");
@@ -98,33 +101,24 @@ const GuildContributeLink: React.FC = () => {
       </GridHeader>
       <GridForm>
         <FormItem>
-          <Text size="xl" strong={true}>
-            Name
-          </Text>
-          <TextField
-            label="50 characters"
-            value={contributorName}
-            onChange={(e) => setContributorName(e.target.value)}
+          <ContributorNameInput
+            name={contributorName}
+            setContributorName={setContributorName}
           />
         </FormItem>
         <FormItem>
-          <Text size="xl" strong={true}>
-            Email
-          </Text>
-          <TextField
-            label="200 characters"
-            value={contributorEmail}
-            onChange={(e) => setContributorEmail(e.target.value)}
+          <ContributorEmailInput
+            email={contributorEmail}
+            setContributorEmail={setContributorEmail}
           />
         </FormItem>
         <FormItem>
-          <Text size="xl" strong={true}>
-            Monthly Contribution
-          </Text>
-
-          <CurrencySelect
-            activeId={activeCurrency}
-            setActiveCurrency={setActiveCurrency}
+          <AmountInput
+            title="Monthly Contribution"
+            currency={activeCurrency}
+            setCurrency={setActiveCurrency}
+            amount={guildMinimumAmount}
+            setAmount={setGuildMinimumAmount}
           />
         </FormItem>
       </GridForm>
