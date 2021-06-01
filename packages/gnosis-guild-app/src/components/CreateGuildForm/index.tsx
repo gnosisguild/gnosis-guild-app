@@ -82,24 +82,10 @@ const CreateGuildForm: React.FC = () => {
 
   // TODO: Modify to implement correct logic
   // Curently placeholder logic
-  const submitTx = useCallback(async () => {
+  const submitTx = async (): Promise<void> => {
     setSubmitting(true);
     try {
-      // Safe app example
-      //const { safeTxHash } = await sdk.txs.send({
-      //  txs: [
-      //    {
-      //      to: safe.safeAddress,
-      //      value: "0",
-      //      data: "0x",
-      //    },
-      //  ],
-      //});
-      //console.log({ safeTxHash });
-      //const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
-      //console.log({ safeTx });
-
-      // Cerate guild
+      // Create guild
       const guildInfo = {
         name: guildName,
         description: guildDescription,
@@ -109,10 +95,7 @@ const CreateGuildForm: React.FC = () => {
         currency: activeCurrency,
         amount: 0
       };
-      console.log(ethersProvider);
       createGuild(providerChainId, ethersProvider, guildInfo, account);
-
-      console.log("Submitting");
     } catch (e) {
       console.error(e);
     }
@@ -126,7 +109,7 @@ const CreateGuildForm: React.FC = () => {
       amount: 0
     });
     setSubmitting(false);
-  }, [ethersProvider, providerChainId, account]);
+  };
 
   // Upload text
   const imageUploadText = guildMetadata.description
@@ -135,7 +118,7 @@ const CreateGuildForm: React.FC = () => {
   const guildButtonText = guildMetadata.name ? "Update Guild" : "Create Guild";
 
   return (
-    <GridForm noValidate autoComplete="off" onSubmit={submitTx}>
+    <GridForm noValidate>
       <FormItem>
         <Text size="xl" strong={true}>
           Guild Name

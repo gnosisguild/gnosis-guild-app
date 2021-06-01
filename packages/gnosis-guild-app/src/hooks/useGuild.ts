@@ -96,6 +96,7 @@ export const useGuild = () => {
         subscriptionTime,
         [guildInfo.name, guildInfo.currency, "", ""]
       ];
+      console.log(functionArgs);
       const iface = new ethers.utils.Interface(guildAppAbi);
       const calldata = iface.encodeFunctionData("initialize", functionArgs);
       console.log(network);
