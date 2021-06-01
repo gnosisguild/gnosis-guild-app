@@ -32,7 +32,7 @@ const ContributorEmailInput: React.FC<Props> = ({
     const val = e.target.value;
     setMeta({});
     setAmount(val);
-    if (val && !isInt(val) && !isDecimal(val)) {
+    if (!isInt(val) || !isDecimal(val) || parseFloat(val) < 0) {
       setMeta({ error: "Must be a valid number" });
     }
   };
