@@ -19,20 +19,6 @@ export type GraphGuild = {
   tokenAddress: string;
   totalSubscriptions: number;
 };
-// active: true
-// currentBalance: "0"
-// currentPrice: "0"
-// id: "0x3cdd87550b95c01adfe1fc7ec9b0f1c34435cf2b"
-// metadataURI: ""
-// name: ""
-// owner: "0x4393efe7c3fdb3af425d81099eade299c05967b4"
-// subsPeriod: "2592000"
-// subscriptions: Array(0)
-// length: 0
-// __proto__: Array(0)
-// symbol: "ETH"
-// tokenAddress: "0x0000000000000000000000000000000000000000"
-// totalSubscriptions: "0"
 
 export const useGuild = () => {
   const fetchGuildByAddress = useCallback(
@@ -62,8 +48,6 @@ export const useGuild = () => {
         console.error(e);
         console.error("Failed call");
       });
-      console.log("Fetched guilds");
-      console.log(resp);
       if (resp && resp.guilds && resp.guilds.length > 0) {
         return resp.guilds;
       }
@@ -88,7 +72,7 @@ export const useGuild = () => {
       if (guildInfo.currency === "Dai") {
         tokenAddress = network.daiToken;
       }
-      const subscriptionTime = 30 * 24 * 60 * 60;
+      const subscriptionTime = 30 * 24 * 60 * 60; // 30 days
       const functionArgs = [
         creatorAddress,
         tokenAddress,
@@ -96,10 +80,8 @@ export const useGuild = () => {
         subscriptionTime,
         [guildInfo.name, guildInfo.currency, "", ""]
       ];
-      console.log(functionArgs);
       const iface = new ethers.utils.Interface(guildAppAbi);
       const calldata = iface.encodeFunctionData("initialize", functionArgs);
-      console.log(network);
 
       const factoryAbi = [
         "function createGuild(bytes calldata _initData) public "

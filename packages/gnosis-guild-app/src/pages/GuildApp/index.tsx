@@ -32,7 +32,6 @@ const GridDisplay = styled.div`
 `;
 
 const GuildApp: React.FC = () => {
-  // const { guildMetadata } = useGuildContext();
   const { safe } = useSafeAppsSDK();
   const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
   const { fetchGuildByAddress } = useGuild();

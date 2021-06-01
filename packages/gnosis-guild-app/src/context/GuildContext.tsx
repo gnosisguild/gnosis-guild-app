@@ -35,31 +35,19 @@ export const useGuildContext = () => useContext(GuildContext);
 
 export const GuildProvider: React.FC = ({ children }) => {
   const [guildMetadata, setGuildMetadata] = useState(initialGuildMetadata);
-  // Check if guild exists
-  // If guild exists then display
-  // if guild does not exist nothing to display
-
-  // TODO: Might be better to    store provider as a item in local storage
-  const { ethersProvider } = useWeb3Context();
 
   // TODO: Placeholder values
   useEffect(() => {
-    // setGuildMetadata({
-    //   name: "Other internet",
-    //   description:
-    //     "Other internet is an independent strategy and research group. Our process is different. We research, prototype, and execute new models for thinking about culture and technology. In doing so we've become responsible for the narrative ducts driving software, money, knowledge, media and culture.",
-    //   contentFormat: "Early access to research essays and Discord community.",
-    //   externalLink: "https://otherinter.net",
-    //   image: "",
-    //   contributions: "ETH",
-    // });
-    console.log("");
-    console.log(ethersProvider);
-    /* const fetchGuild: any = async () => { */
-    /*   const resp = await fetchGuildByAddress("", ""); */
-    /*   return resp; */
-    /* }; */
-    /* fetchGuild(); */
+    setGuildMetadata({
+      name: "Other internet",
+      description:
+        "Other internet is an independent strategy and research group. Our process is different. We research, prototype, and execute new models for thinking about culture and technology. In doing so we've become responsible for the narrative ducts driving software, money, knowledge, media and culture.",
+      contentFormat: "Early access to research essays and Discord community.",
+      externalLink: "https://otherinter.net",
+      image: "",
+      currency: "ETH",
+      amount: 0
+    });
   }, []);
   return (
     <GuildContext.Provider value={{ guildMetadata, setGuildMetadata }}>

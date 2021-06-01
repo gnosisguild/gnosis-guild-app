@@ -1,14 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-  MouseEvent,
-  useEffect
-} from "react";
-import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
-import { SafeAppProvider } from "@gnosis.pm/safe-apps-provider";
-import { ethers } from "ethers";
+import React, { useState, useRef, MouseEvent, useEffect } from "react";
 import styled from "styled-components";
 import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
 
