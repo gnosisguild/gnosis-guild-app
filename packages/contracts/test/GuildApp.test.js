@@ -56,8 +56,10 @@ describe("GuildApp", () => {
     });
 
     it("Should deploy a new Guild Subscriptions using fDAI", async () => {
+        const factory = guildFactory.connect(alice);
+        const nextGuildId = await factory.totalGuilds();
         const guildName = "Alice Guild";
-        const guildSymbol = "GUILD0";
+        const guildSymbol = `GUILD${nextGuildId})`;
         const metadataCID = "dummyMetadataHash"; // IPFS Content Hash from JSON metadata following Opensea standard
         const initData = (
             await guildAppTemplate.connect(alice).populateTransaction.initialize(
@@ -73,11 +75,12 @@ describe("GuildApp", () => {
                 ]
             )
         ).data;
-        const rs = await guildFactory.connect(alice).functions['createGuild(bytes)'](initData);
+        const rs = await factory.functions['createGuild(bytes)'](initData);
         const receipt = await rs.wait();
         const [ guildOwner, guild ] = receipt.events.find(e => e.event === 'NewGuild').args;
         expect(guildOwner).to.equal(alice.address);
         guildA = new ethers.Contract(guild, GuildAppABI, alice);
+        expect(await factory.totalGuilds()).to.equal(ethers.BigNumber.from(1));
         expect(await guildA.initialized()).to.equal(true);
         expect(await guildA.name()).to.equal(guildName);
         expect(await guildA.symbol()).to.equal(guildSymbol);

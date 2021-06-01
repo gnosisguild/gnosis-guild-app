@@ -37,23 +37,23 @@ export class GuildFactory extends ethereum.SmartContract {
     return new GuildFactory("GuildFactory", address);
   }
 
-  guilds(param0: BigInt): Address {
-    let result = super.call("guilds", "guilds(uint256):(address)", [
-      ethereum.Value.fromUnsignedBigInt(param0)
+  guildsOf(_owner: Address): Array<Address> {
+    let result = super.call("guildsOf", "guildsOf(address):(address[])", [
+      ethereum.Value.fromAddress(_owner)
     ]);
 
-    return result[0].toAddress();
+    return result[0].toAddressArray();
   }
 
-  try_guilds(param0: BigInt): ethereum.CallResult<Address> {
-    let result = super.tryCall("guilds", "guilds(uint256):(address)", [
-      ethereum.Value.fromUnsignedBigInt(param0)
+  try_guildsOf(_owner: Address): ethereum.CallResult<Array<Address>> {
+    let result = super.tryCall("guildsOf", "guildsOf(address):(address[])", [
+      ethereum.Value.fromAddress(_owner)
     ]);
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toAddress());
+    return ethereum.CallResult.fromValue(value[0].toAddressArray());
   }
 
   predictDeterministicAddress(_salt: Bytes): Address {
@@ -92,6 +92,21 @@ export class GuildFactory extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  totalGuilds(): BigInt {
+    let result = super.call("totalGuilds", "totalGuilds():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_totalGuilds(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("totalGuilds", "totalGuilds():(uint256)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 }
 
