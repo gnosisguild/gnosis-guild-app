@@ -97,9 +97,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   }, []);
 
   const getConnectText = useCallback(() => {
-    return account
-      ? `${account.substr(0, 5)}... Connected`
-      : "Connect to a Wallet";
+    return account ? `${account.substr(0, 5)}... Connected` : "Connect";
   }, [account]);
 
   useEffect(() => {

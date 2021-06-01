@@ -1,27 +1,20 @@
-import React from "react";
+import React, { Fragment } from "react";
 import { Text, Title } from "@gnosis.pm/safe-react-components";
-
-import GuildLogo from "../../components/GuildLogo";
 
 import styled from "styled-components";
 const LogoContainer = styled.div`
-  height: 10rem;
+  background: lightseagreen;
+  height: 7rem;
   max-width: 15rem;
   display: flex;
-  justify-content: end;
+  justify-content: center;
   align-items: center;
-`;
-
-const GuildLogoStyled = styled(GuildLogo)`
-  height: 8rem;
 `;
 
 const GuildAppInstructions: React.FC = () => {
   return (
     <div>
-      <LogoContainer>
-        <GuildLogoStyled />
-      </LogoContainer>
+      <LogoContainer>Guild Gnosis Logo TBC</LogoContainer>
       <Title size="md" strong={true}>
         Guild App
       </Title>
