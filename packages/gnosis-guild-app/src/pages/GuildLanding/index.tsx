@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
 
 import profile from "../../assets/profile.png";
@@ -16,6 +16,8 @@ import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 
 import { Button, Text, Title } from "@gnosis.pm/safe-react-components";
+
+import { useGuild } from "../../hooks/useGuild";
 
 const Grid = styled.div`
   width: 100%;
@@ -56,10 +58,28 @@ const ContributeLink = styled(Link)`
 `;
 
 const GuiildLanding: React.FC = () => {
-  const { setGuildMetadata } = useGuildContext();
-  const { getConnectText } = useWeb3Context();
+  // const { setGuildMetadata } = useGuildContext();
+  const { getConnectText, providerChainId } = useWeb3Context();
   const connectText = getConnectText();
-  const guildMetadata = {
+  const { fetchGuild } = useGuild();
+  const [ loading, setLoading ] = useState(true);
+  const [ guildMetadata, setGuildMetadata ] = useState<any>();
+  const { guildId } = useParams<{ guildId: string }>();
+  console.log('GUILD ID ==>', guildId, providerChainId);
+
+  useEffect(() => {
+    const _fetchGuild = async () => {
+      const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
+      if (meta) {
+        setGuildMetadata(meta);
+        setLoading(false);
+      }
+    }
+    _fetchGuild();
+  }, []);
+
+  // TODO: this should be deleted
+  const defaultMeta = {
     name: "Other internet",
     description:
       "Other internet is an independent strategy and research group. Our process is different. We research, prototype, and execute new models for thinking about culture and technology. In doing so we've become responsible for the narrative ducts driving software, money, knowledge, media and culture.",
@@ -75,23 +95,30 @@ const GuiildLanding: React.FC = () => {
       <GridLogo>
         <GuildLogo />
       </GridLogo>
-      <GridProfile>
+      {guildMetadata ? (
+        <GridProfile>
+          <Title size="sm" strong={true}>
+            {guildMetadata.name}
+          </Title>
+          <ProfileImage src={profile} />
+          <TextWrapper>
+            <Text size="md">{guildMetadata.description || defaultMeta.description}</Text>
+          </TextWrapper>
+          <TextWrapper>
+            <Text size="md">{guildMetadata.externalLink || defaultMeta.externalLink}</Text>
+          </TextWrapper>
+          <ContributeCard>
+            <ContributeLink to={{ pathname: `/guild/${guildId}/contribute` }}>
+              <ContributeButton>Contibute</ContributeButton>
+            </ContributeLink>
+          </ContributeCard>
+        </GridProfile>
+      ) : (
         <Title size="sm" strong={true}>
-          {guildMetadata.name}
+          {loading ? "Loading...":"404: Guild not found"}
         </Title>
-        <ProfileImage src={profile} />
-        <TextWrapper>
-          <Text size="md">{guildMetadata.description}</Text>
-        </TextWrapper>
-        <TextWrapper>
-          <Text size="md">{guildMetadata.externalLink}</Text>
-        </TextWrapper>
-        <ContributeCard>
-          <ContributeLink to={{ pathname: "/guild/1/contribute" }}>
-            <ContributeButton>Contibute</ContributeButton>
-          </ContributeLink>
-        </ContributeCard>
-      </GridProfile>
+      )}
+      
       <GridWallet>
         <ConnectWeb3Button>{connectText}</ConnectWeb3Button>
       </GridWallet>

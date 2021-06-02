@@ -15,9 +15,14 @@ const StyledButton = styled(Button)`
   }
 `;
 
-const ContributeButton: React.FC = ({ children }) => {
+type Props = {
+  onClick?: (e: any) => void,
+  disabled?: boolean
+}
+
+const ContributeButton: React.FC<Props> = ({ onClick, disabled, children }) => {
   return (
-    <StyledButton size="lg" color="secondary">
+    <StyledButton size="lg" color="secondary" onClick={onClick} disabled={disabled}>
       <Text size="lg" strong={true} color="white">
         {children}
       </Text>

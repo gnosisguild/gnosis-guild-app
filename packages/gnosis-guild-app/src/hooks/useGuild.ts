@@ -57,6 +57,42 @@ export const useGuild = () => {
     []
   );
 
+  const fetchGuild = useCallback(
+    async (guildId: string, chainId: number): Promise<GraphGuild | null> => {
+      const fetchGuildQuery = gql`
+        query getGuild($id: String) {
+          guild(id: $id) {
+            id
+            owner
+            name
+            symbol
+            metadataURI
+            active
+            tokenAddress
+            currentPrice
+            subsPeriod
+            currentBalance
+            totalSubscriptions
+            subscriptions
+          }
+        }
+      `;
+      const network = getNetworkByChainId(chainId);
+      const resp = await request(network.subgraphUrl, fetchGuildQuery, {
+        id: guildId.toLowerCase()
+      }).catch(e => {
+        console.error(e);
+        console.error("Failed call");
+      });
+      console.log('GUIDL', resp);
+      if (resp && resp.guild) {
+        return resp.guild;
+      }
+      return null;
+    },
+    []
+  );
+
   const createGuild = async (
     chainId: number,
     ethersProvider: ethers.providers.Web3Provider,
@@ -93,7 +129,7 @@ export const useGuild = () => {
     const functionArgs = [
       creatorAddress,
       tokenAddress,
-      guildInfo.amount,
+      ethers.utils.parseEther(guildInfo.amount),
       subscriptionTime,
       [guildInfo.name, `GUILD${count}`, "", ""]
     ];
@@ -213,10 +249,45 @@ export const useGuild = () => {
     return guildAddress;
   };
 
+  const subscribe = async (
+    chainId: number,
+    ethersProvider: ethers.providers.Web3Provider,
+    guildAddress: string,
+    value: string,
+    metadata: {
+      name: string,
+      email: string,
+    }
+  ): Promise<void> => {
+    console.log("Subscribe", chainId, await ethersProvider.getSigner().getAddress(), guildAddress, value, metadata);
+    
+    const guildAppAbi = [
+      "function subscribe(string memory _tokenURI, uint256 _value, bytes calldata _data) public payable",
+    ];
+
+    const guildContract = new Contract(
+      guildAddress,
+      guildAppAbi,
+      ethersProvider.getSigner()
+    );
+
+    // TODO: save metadata on the GuildApp Space (e.g. 3box or 3ID?)
+    console.log('Metadata to be saved', metadata);
+    // TOOD:  generate tokenURI
+    const tokenURI = '';
+    const bnValue = ethers.utils.parseEther(value);
+
+    const args = [tokenURI, bnValue.toString(), "0x"];
+    console.log('Subscribe args', ...args);
+    await guildContract.subscribe(...args);
+  };
+
   return {
     fetchGuildByAddress,
+    fetchGuild,
     createGuild,
     deactivateGuild,
-    fetchGuildTokens
+    fetchGuildTokens,
+    subscribe,
   };
 };
