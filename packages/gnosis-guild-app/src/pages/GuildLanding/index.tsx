@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
@@ -56,9 +56,19 @@ const ContributeLink = styled(Link)`
 `;
 
 const GuiildLanding: React.FC = () => {
-  const { guildMetadata } = useGuildContext();
+  const { setGuildMetadata } = useGuildContext();
   const { getConnectText } = useWeb3Context();
   const connectText = getConnectText();
+  const guildMetadata = {
+    name: "Other internet",
+    description:
+      "Other internet is an independent strategy and research group. Our process is different. We research, prototype, and execute new models for thinking about culture and technology. In doing so we've become responsible for the narrative ducts driving software, money, knowledge, media and culture.",
+    contentFormat: "Early access to research essays and Discord community.",
+    externalLink: "https://otherinter.net",
+    image: "",
+    currency: "ETH",
+    amount: "1"
+  };
 
   return (
     <Grid>

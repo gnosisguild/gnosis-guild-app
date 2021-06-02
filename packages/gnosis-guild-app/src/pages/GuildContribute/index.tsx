@@ -42,12 +42,22 @@ const FormItem = styled.div`
 
 const GuildContribute: React.FC = () => {
   const { getConnectText } = useWeb3Context();
-  const { guildMetadata } = useGuildContext();
   const [activeCurrency, setActiveCurrency] = useState("ETH");
 
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
+
+  const guildMetadata = {
+    name: "Other internet",
+    description:
+      "Other internet is an independent strategy and research group. Our process is different. We research, prototype, and execute new models for thinking about culture and technology. In doing so we've become responsible for the narrative ducts driving software, money, knowledge, media and culture.",
+    contentFormat: "Early access to research essays and Discord community.",
+    externalLink: "https://otherinter.net",
+    image: "",
+    currency: "ETH",
+    amount: "1"
+  };
 
   const connectText = getConnectText();
   return (

@@ -28,17 +28,26 @@ const FormItem = styled.div`
 `;
 
 const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 1rem;
   margin-bottom: 1rem;
   margin-left: 0.4rem;
   margin-right: 0.4rem;
 `;
 
+const DeleteButton = styled(Button)`
+  &&& {
+    min-width: 0rem;
+  }
+`;
+
 const CreateGuildForm: React.FC = () => {
   const { guildMetadata, setGuildMetadata } = useGuildContext();
 
   const { ethersProvider, account, providerChainId } = useWeb3Context();
-  const { createGuild } = useGuild();
+  const { createGuild, deactivateGuild } = useGuild();
   const [submitting, setSubmitting] = useState(false);
   // Input values
   const [guildName, setGuildName] = useState(guildMetadata.name);
@@ -100,7 +109,7 @@ const CreateGuildForm: React.FC = () => {
         externalLink: guildExternalLink,
         image: guildImage,
         currency: activeCurrency,
-        amount: 0
+        amount: guildMinimumAmount
       };
       createGuild(providerChainId, ethersProvider, guildInfo, account);
     } catch (e) {
@@ -113,7 +122,7 @@ const CreateGuildForm: React.FC = () => {
       externalLink: guildExternalLink,
       image: guildImage,
       currency: activeCurrency,
-      amount: 0
+      amount: guildMinimumAmount
     });
     setSubmitting(false);
   };
@@ -165,6 +174,23 @@ const CreateGuildForm: React.FC = () => {
       });
     }
   };
+
+  const pauseGuild = (e: MouseEvent<HTMLButtonElement>) => {
+    deactivateGuild(providerChainId, ethersProvider, account);
+  };
+
+  const deleteButton = guildMetadata.name ? (
+    <DeleteButton
+      size="lg"
+      color="error"
+      variant="contained"
+      onClick={pauseGuild}
+    >
+      Delete Guild
+    </DeleteButton>
+  ) : (
+    <p />
+  );
 
   return (
     <GridForm noValidate>
@@ -260,6 +286,7 @@ const CreateGuildForm: React.FC = () => {
           >
             {guildButtonText}
           </Button>
+          {deleteButton}
         </ButtonContainer>
       )}
     </GridForm>
