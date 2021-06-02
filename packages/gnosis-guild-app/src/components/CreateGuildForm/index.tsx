@@ -109,7 +109,7 @@ const CreateGuildForm: React.FC = () => {
         externalLink: guildExternalLink,
         image: guildImage,
         currency: activeCurrency,
-        amount: 0
+        amount: guildMinimumAmount
       };
       createGuild(providerChainId, ethersProvider, guildInfo, account);
     } catch (e) {
@@ -122,7 +122,7 @@ const CreateGuildForm: React.FC = () => {
       externalLink: guildExternalLink,
       image: guildImage,
       currency: activeCurrency,
-      amount: 0
+      amount: guildMinimumAmount
     });
     setSubmitting(false);
   };

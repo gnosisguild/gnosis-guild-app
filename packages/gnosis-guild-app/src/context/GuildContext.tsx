@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 
+import { fetchGuildLocal } from "../lib/localStorage";
 import { useWeb3Context } from "./Web3Context";
 
 export type GuildMetadata = {
@@ -9,7 +10,7 @@ export type GuildMetadata = {
   externalLink: string;
   image: string;
   currency: string;
-  amount: number;
+  amount: string;
 };
 
 const initialGuildMetadata = {
@@ -19,7 +20,7 @@ const initialGuildMetadata = {
   externalLink: "",
   image: "",
   currency: "ETH",
-  amount: 0
+  amount: "0"
 };
 
 export type GuildContextValue = {
@@ -48,6 +49,10 @@ export const GuildProvider: React.FC = ({ children }) => {
     //   currency: "ETH",
     //   amount: 0
     // });
+    const guild = fetchGuildLocal();
+    console.log("Guild Meta");
+    console.log(guild);
+    setGuildMetadata(guild);
   }, []);
   return (
     <GuildContext.Provider value={{ guildMetadata, setGuildMetadata }}>
