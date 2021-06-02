@@ -55,46 +55,69 @@ export const useGuild = () => {
     []
   );
 
-  const createGuild = useCallback(
-    (
-      chainId: number,
-      ethersProvider: ethers.providers.Web3Provider,
-      guildInfo: GuildMetadata,
-      creatorAddress: string
-    ) => {
-      const network = getNetworkByChainId(chainId);
+  const createGuild = (
+    chainId: number,
+    ethersProvider: ethers.providers.Web3Provider,
+    guildInfo: GuildMetadata,
+    creatorAddress: string
+  ) => {
+    const network = getNetworkByChainId(chainId);
 
-      const guildAppAbi = [
-        "function initialize(address _creator, address _tokenAddress, uint256 _subPrice, uint256 _subscriptionPeriod, tuple(string, string, string, string) memory _metadata) public"
-      ];
-      let tokenAddress = "0x0000000000000000000000000000000000000000";
-      if (guildInfo.currency === "Dai") {
-        tokenAddress = network.daiToken;
-      }
-      const subscriptionTime = 30 * 24 * 60 * 60; // 30 days
-      const functionArgs = [
-        creatorAddress,
-        tokenAddress,
-        guildInfo.amount,
-        subscriptionTime,
-        [guildInfo.name, guildInfo.currency, "", ""]
-      ];
-      const iface = new ethers.utils.Interface(guildAppAbi);
-      const calldata = iface.encodeFunctionData("initialize", functionArgs);
+    const guildAppAbi = [
+      "function initialize(address _creator, address _tokenAddress, uint256 _subPrice, uint256 _subscriptionPeriod, tuple(string, string, string, string) memory _metadata) public"
+    ];
+    let tokenAddress = "0x0000000000000000000000000000000000000000";
+    if (guildInfo.currency === "Dai") {
+      tokenAddress = network.daiToken;
+    }
+    const subscriptionTime = 30 * 24 * 60 * 60; // 30 days
+    const functionArgs = [
+      creatorAddress,
+      tokenAddress,
+      guildInfo.amount,
+      subscriptionTime,
+      [guildInfo.name, guildInfo.currency, "", ""]
+    ];
+    const iface = new ethers.utils.Interface(guildAppAbi);
+    const calldata = iface.encodeFunctionData("initialize", functionArgs);
 
-      const factoryAbi = [
-        "function createGuild(bytes calldata _initData) public "
-      ];
-      const guildAppContract = new Contract(
-        network.guildFactory,
-        factoryAbi,
-        ethersProvider.getSigner()
-      );
-      guildAppContract
-        .createGuild(calldata)
-        .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
-    },
-    []
-  );
-  return { fetchGuildByAddress, createGuild };
+    const factoryAbi = [
+      "function createGuild(bytes calldata _initData) public "
+    ];
+    const guildAppContract = new Contract(
+      network.guildFactory,
+      factoryAbi,
+      ethersProvider.getSigner()
+    );
+    guildAppContract
+      .createGuild(calldata)
+      .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
+  };
+
+  const deactivateGuild = async (
+    chainId: number,
+    ethersProvider: ethers.providers.Web3Provider,
+    ownerAddress: string
+  ): Promise<void> => {
+    const network = getNetworkByChainId(chainId);
+    const abi = [
+      "function guildsOf(address _owner) public view returns (address[] memory)"
+    ];
+    // get guilds
+    const guildAppContract = new Contract(
+      network.guildFactory,
+      abi,
+      ethersProvider.getSigner()
+    );
+    const guilds = await guildAppContract
+      .guildsOf(ownerAddress)
+      .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
+
+    // Select the first
+    console.log("Guilds");
+    console.log(guilds);
+    // Call pause
+  };
+
+  return { fetchGuildByAddress, createGuild, deactivateGuild };
 };
