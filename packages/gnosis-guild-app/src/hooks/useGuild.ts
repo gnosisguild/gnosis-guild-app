@@ -3,7 +3,7 @@ import { request, gql } from "graphql-request";
 import { getNetworkByChainId } from "../lib/networks";
 import { storeGuildLocal, deleteGuildLocal } from "../lib/localStorage";
 import { Contract, ethers } from "ethers";
-import { GuildMetadata } from "../context/GuildContext";
+import { GuildMetadata, useGuildContext } from "../context/GuildContext";
 
 export type GraphGuild = {
   active: boolean;
@@ -21,6 +21,7 @@ export type GraphGuild = {
 };
 
 export const useGuild = () => {
+  const { setGuildMetadata } = useGuildContext();
   const fetchGuildByAddress = useCallback(
     async (address: string, chainId: number): Promise<Array<GraphGuild>> => {
       const fetchGuildQuery = gql`
@@ -136,6 +137,15 @@ export const useGuild = () => {
       ethersProvider.getSigner()
     );
     deleteGuildLocal();
+    setGuildMetadata({
+      name: "",
+      description: "",
+      contentFormat: "",
+      externalLink: "",
+      image: "",
+      currency: "ETH",
+      amount: "0"
+    });
     // guildContract
     //   .pauseGuild(true)
     //   .catch((err: Error) => console.error(`Failed to pause ${err}`));
