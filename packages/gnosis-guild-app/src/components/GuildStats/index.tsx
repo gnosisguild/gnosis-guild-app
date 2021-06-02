@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { ethers } from "ethers";
 import profile from "../../assets/profile.png";
 import {
   Button,
   Card,
   CopyToClipboardBtn,
   Text,
-  Title,
+  Title
 } from "@gnosis.pm/safe-react-components";
 import { useGuildContext } from "../../context/GuildContext";
+import { useWeb3Context } from "../../context/Web3Context";
+import { useGuild } from "../../hooks/useGuild";
 
 const ProfileImage = styled.img`
   height: 6rem;
@@ -44,7 +47,23 @@ const StatsText = styled(Text)`
 `;
 
 const GuildStats: React.FC = () => {
-  const { guildMetadata } = useGuildContext();
+  const [numTokens, setNumTokens] = useState("0");
+  const { guildMetadata, setGuildMetadata } = useGuildContext();
+  const { account, ethersProvider, providerChainId } = useWeb3Context();
+  const { fetchGuildTokens } = useGuild();
+
+  useEffect(() => {
+    const getTokens = async () => {
+      const tokens = await fetchGuildTokens(
+        providerChainId,
+        ethersProvider,
+        account,
+        guildMetadata.currency
+      );
+      setNumTokens(ethers.utils.formatEther(tokens));
+    };
+    getTokens();
+  }, [providerChainId, account, guildMetadata.currency]);
 
   return (
     <div style={{ width: "100%" }}>
@@ -56,23 +75,25 @@ const GuildStats: React.FC = () => {
         <StatsText size="xl" strong={true}>
           Other Internet Guild Page
         </StatsText>
-        <CopyToClipboardBtn textToCopy={guildMetadata.externalLink} />
+        <CopyToClipboardBtn
+          textToCopy={`https://gateway.ipfs.io/ipfs/guild/${account}`}
+        />
       </StatItemContainer>
-      <Text size="lg">{guildMetadata.externalLink}</Text>
+      <Text size="lg">{"https://gateway.ipfs.io/ipfs..."}</Text>
       <StatItemContainer>
         <StatsText size="xl" strong={true}>
           Embed Code
         </StatsText>
         <CopyToClipboardBtn
-          textToCopy={'<ifram="https://ipfs.io/ipfs/Al..."'}
+          textToCopy={`<iframe src="https://ipfs.io/guild/${account}/contribute/link" />`}
         />
       </StatItemContainer>
-      <Text size="lg">{'<ifram="https://ipfs.io/ipfs/Al..."'}</Text>
+      <Text size="lg">{`<iframe src="https://ipfs.io/guild...`}</Text>
       <StatItemContainer>
         <Card style={{ width: "100%", maxWidth: "16rem" }}>
           <TitleCardContainer>
             <Text size="lg" color="primary" strong={true}>
-              246
+              0
             </Text>
             <Text size="lg" strong={true}>
               Contributors
@@ -80,7 +101,7 @@ const GuildStats: React.FC = () => {
           </TitleCardContainer>
           <CardContainer>
             <Text size="lg" color="primary" strong={true}>
-              8.023
+              {numTokens}
             </Text>
             <Text size="lg" strong={true}>
               ETH
