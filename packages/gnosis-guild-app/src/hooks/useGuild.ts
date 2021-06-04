@@ -44,8 +44,8 @@ export const useGuild = () => {
       `;
       const network = getNetworkByChainId(chainId);
       const resp = await request(network.subgraphUrl, fetchGuildQuery, {
-        ownerAddress: address,
-      }).catch((e) => {
+        ownerAddress: address
+      }).catch(e => {
         console.error(e);
         console.error("Failed call");
       });
@@ -53,6 +53,42 @@ export const useGuild = () => {
         return resp.guilds;
       }
       return [];
+    },
+    []
+  );
+
+  const fetchGuild = useCallback(
+    async (guildId: string, chainId: number): Promise<GraphGuild | null> => {
+      const fetchGuildQuery = gql`
+        query getGuild($id: String) {
+          guild(id: $id) {
+            id
+            owner
+            name
+            symbol
+            metadataURI
+            active
+            tokenAddress
+            currentPrice
+            subsPeriod
+            currentBalance
+            totalSubscriptions
+            subscriptions
+          }
+        }
+      `;
+      const network = getNetworkByChainId(chainId);
+      const resp = await request(network.subgraphUrl, fetchGuildQuery, {
+        id: guildId.toLowerCase()
+      }).catch(e => {
+        console.error(e);
+        console.error("Failed call");
+      });
+      console.log("GUIDL", resp);
+      if (resp && resp.guild) {
+        return resp.guild;
+      }
+      return null;
     },
     []
   );
@@ -68,7 +104,7 @@ export const useGuild = () => {
     // Fetch count to get ID
     const factoryAbi = [
       "function createGuild(bytes calldata _initData) public ",
-      "function totalGuilds() public view returns (uint256)",
+      "function totalGuilds() public view returns (uint256)"
     ];
     const factoryContract = new Contract(
       network.guildFactory,
@@ -83,7 +119,7 @@ export const useGuild = () => {
       );
 
     const guildAppAbi = [
-      "function initialize(address _creator, address _tokenAddress, uint256 _subPrice, uint256 _subscriptionPeriod, tuple(string, string, string, string) memory _metadata) public",
+      "function initialize(address _creator, address _tokenAddress, uint256 _subPrice, uint256 _subscriptionPeriod, tuple(string, string, string, string) memory _metadata) public"
     ];
     let tokenAddress = "0x0000000000000000000000000000000000000000";
     if (guildInfo.currency === "Dai") {
@@ -93,9 +129,9 @@ export const useGuild = () => {
     const functionArgs = [
       creatorAddress,
       tokenAddress,
-      guildInfo.amount,
+      ethers.utils.parseEther(guildInfo.amount),
       subscriptionTime,
-      [guildInfo.name, `GUILD${count}`, "", ""],
+      [guildInfo.name, `GUILD${count}`, "", ""]
     ];
     const iface = new ethers.utils.Interface(guildAppAbi);
     const calldata = iface.encodeFunctionData("initialize", functionArgs);
@@ -113,7 +149,7 @@ export const useGuild = () => {
   ): Promise<void> => {
     const network = getNetworkByChainId(chainId);
     const abi = [
-      "function guildsOf(address _owner) public view returns (address[] memory)",
+      "function guildsOf(address _owner) public view returns (address[] memory)"
     ];
     // get guilds
     const guildAppContract = new Contract(
@@ -149,7 +185,7 @@ export const useGuild = () => {
       externalLink: "",
       image: "",
       currency: "ETH",
-      amount: "0",
+      amount: "0"
     });
     // guildContract
     //   .pauseGuild(true)
@@ -175,7 +211,7 @@ export const useGuild = () => {
       return 0;
     }
     const abiApp = [
-      "function guildBalance(address _tokenAddress) public view returns (uint256)",
+      "function guildBalance(address _tokenAddress) public view returns (uint256)"
     ];
     const guildContract = new Contract(
       guildAddress,
@@ -201,7 +237,7 @@ export const useGuild = () => {
   ): Promise<string> => {
     const network = getNetworkByChainId(chainId);
     const abi = [
-      "function guildsOf(address _owner) public view returns (address[] memory)",
+      "function guildsOf(address _owner) public view returns (address[] memory)"
     ];
     // get guilds
     const guildAppContract = new Contract(
@@ -221,10 +257,52 @@ export const useGuild = () => {
     return guildAddress;
   };
 
+  const subscribe = async (
+    chainId: number,
+    ethersProvider: ethers.providers.Web3Provider,
+    guildAddress: string,
+    value: string,
+    metadata: {
+      name: string;
+      email: string;
+    }
+  ): Promise<void> => {
+    console.log(
+      "Subscribe",
+      chainId,
+      await ethersProvider.getSigner().getAddress(),
+      guildAddress,
+      value,
+      metadata
+    );
+
+    const guildAppAbi = [
+      "function subscribe(string memory _tokenURI, uint256 _value, bytes calldata _data) public payable"
+    ];
+
+    const guildContract = new Contract(
+      guildAddress,
+      guildAppAbi,
+      ethersProvider.getSigner()
+    );
+
+    // TODO: save metadata on the GuildApp Space (e.g. 3box or 3ID?)
+    console.log("Metadata to be saved", metadata);
+    // TOOD:  generate tokenURI
+    const tokenURI = "";
+    const bnValue = ethers.utils.parseEther(value);
+
+    const args = [tokenURI, bnValue.toString(), "0x"];
+    console.log("Subscribe args", ...args);
+    await guildContract.subscribe(...args);
+  };
+
   return {
     fetchGuildByAddress,
+    fetchGuild,
     createGuild,
     deactivateGuild,
     fetchGuildTokens,
+    subscribe
   };
 };
