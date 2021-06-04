@@ -84,7 +84,7 @@ export const useGuild = () => {
         console.error(e);
         console.error("Failed call");
       });
-      console.log('GUIDL', resp);
+      console.log("GUIDL", resp);
       if (resp && resp.guild) {
         return resp.guild;
       }
@@ -166,6 +166,11 @@ export const useGuild = () => {
     console.log(guilds);
     // Call pause
     const guildAddress = guilds[0];
+
+    if (!guildAddress) {
+      deleteGuildLocal();
+      return;
+    }
     const abiApp = ["function pauseGuild(bool pause) external"];
     const guildContract = new Contract(
       guildAddress,
@@ -202,6 +207,9 @@ export const useGuild = () => {
       ethersProvider,
       ownerAddress
     );
+    if (!guildAddress) {
+      return 0;
+    }
     const abiApp = [
       "function guildBalance(address _tokenAddress) public view returns (uint256)"
     ];
@@ -255,14 +263,21 @@ export const useGuild = () => {
     guildAddress: string,
     value: string,
     metadata: {
-      name: string,
-      email: string,
+      name: string;
+      email: string;
     }
   ): Promise<void> => {
-    console.log("Subscribe", chainId, await ethersProvider.getSigner().getAddress(), guildAddress, value, metadata);
-    
+    console.log(
+      "Subscribe",
+      chainId,
+      await ethersProvider.getSigner().getAddress(),
+      guildAddress,
+      value,
+      metadata
+    );
+
     const guildAppAbi = [
-      "function subscribe(string memory _tokenURI, uint256 _value, bytes calldata _data) public payable",
+      "function subscribe(string memory _tokenURI, uint256 _value, bytes calldata _data) public payable"
     ];
 
     const guildContract = new Contract(
@@ -272,13 +287,13 @@ export const useGuild = () => {
     );
 
     // TODO: save metadata on the GuildApp Space (e.g. 3box or 3ID?)
-    console.log('Metadata to be saved', metadata);
+    console.log("Metadata to be saved", metadata);
     // TOOD:  generate tokenURI
-    const tokenURI = '';
+    const tokenURI = "";
     const bnValue = ethers.utils.parseEther(value);
 
     const args = [tokenURI, bnValue.toString(), "0x"];
-    console.log('Subscribe args', ...args);
+    console.log("Subscribe args", ...args);
     await guildContract.subscribe(...args);
   };
 
@@ -288,6 +303,6 @@ export const useGuild = () => {
     createGuild,
     deactivateGuild,
     fetchGuildTokens,
-    subscribe,
+    subscribe
   };
 };
