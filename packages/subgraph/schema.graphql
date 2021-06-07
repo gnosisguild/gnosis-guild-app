@@ -11,6 +11,7 @@ type Guild @entity {
   subsPeriod: BigInt!
   currentBalance: BigInt!
   totalSubscriptions: BigInt!
+  totalSubscribers: BigInt!
   subscriptions: [GuildSubscription!] @derivedFrom(field: "guild")
 }
 

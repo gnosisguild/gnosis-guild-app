@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
 
 import profile from "../../assets/profile.png";
-import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
 
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
@@ -15,9 +14,9 @@ import GridWallet from "../../components/GridWallet";
 import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 
-import { Button, Text, Title } from "@gnosis.pm/safe-react-components";
+import { Loader, Text, Title } from "@gnosis.pm/safe-react-components";
 
-import { useGuild } from "../../hooks/useGuild";
+import { GraphGuild, useGuild } from "../../hooks/useGuild";
 
 const Grid = styled.div`
   width: 100%;
@@ -27,6 +26,13 @@ const Grid = styled.div`
     "logo profile wallet" 1fr
     "footer footer footer" var(--grid-permission-footer-height)
     / 1fr 2fr 1fr;
+`;
+
+const Loading = styled.div`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
 `;
 
 const GridProfile = styled.div`
@@ -58,22 +64,20 @@ const ContributeLink = styled(Link)`
 `;
 
 const GuiildLanding: React.FC = () => {
-  // const { setGuildMetadata } = useGuildContext();
   const { getConnectText, providerChainId } = useWeb3Context();
   const connectText = getConnectText();
   const { fetchGuild } = useGuild();
   const [ loading, setLoading ] = useState(true);
-  const [ guildMetadata, setGuildMetadata ] = useState<any>();
+  const [ guildMetadata, setGuildMetadata ] = useState<GraphGuild>();
   const { guildId } = useParams<{ guildId: string }>();
-  console.log('GUILD ID ==>', guildId, providerChainId);
 
   useEffect(() => {
     const _fetchGuild = async () => {
       const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
       if (meta) {
         setGuildMetadata(meta);
-        setLoading(false);
       }
+      setLoading(false);
     }
     _fetchGuild();
   }, []);
@@ -102,23 +106,30 @@ const GuiildLanding: React.FC = () => {
           </Title>
           <ProfileImage src={profile} />
           <TextWrapper>
-            <Text size="md">{guildMetadata.description || defaultMeta.description}</Text>
+            <Text size="md">{defaultMeta.description}</Text>
           </TextWrapper>
           <TextWrapper>
-            <Text size="md">{guildMetadata.externalLink || defaultMeta.externalLink}</Text>
+            <Text size="md">{defaultMeta.externalLink}</Text>
           </TextWrapper>
           <ContributeCard>
-            <ContributeLink to={{ pathname: `/guild/${guildId}/contribute` }}>
-              <ContributeButton>Contibute</ContributeButton>
-            </ContributeLink>
+            {guildMetadata && guildMetadata.active && (
+              <ContributeLink to={{ pathname: `/guild/${guildId}/contribute` }}>
+                <ContributeButton>Contibute</ContributeButton>
+              </ContributeLink>
+            )}
           </ContributeCard>
         </GridProfile>
-      ) : (
-        <Title size="sm" strong={true}>
-          {loading ? "Loading...":"404: Guild not found"}
-        </Title>
+      ): (
+        <Loading>
+          {loading ? (
+            <Loader size="md" />
+          ): (
+            <Title size="sm" strong={true}>
+              404: Guild not found
+            </Title>
+          )}
+        </Loading>
       )}
-      
       <GridWallet>
         <ConnectWeb3Button>{connectText}</ConnectWeb3Button>
       </GridWallet>

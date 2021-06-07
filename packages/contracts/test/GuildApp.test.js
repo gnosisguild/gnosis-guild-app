@@ -18,9 +18,10 @@ describe("GuildApp", () => {
     let admin;
     let alice;
     let bob;
+    let carl;
 
     before(async () => {
-        [admin, alice, bob] = await ethers.getSigners();
+        [admin, alice, bob, carl] = await ethers.getSigners();
 
         const DAIMock = await ethers.getContractFactory("DAIMock");
         dai = await DAIMock.connect(admin).deploy();
@@ -29,6 +30,7 @@ describe("GuildApp", () => {
 
         await dai.connect(admin).mint(alice.address, ethers.utils.parseEther("100"));
         await dai.connect(admin).mint(bob.address, ethers.utils.parseEther("100"));
+        await dai.connect(admin).mint(carl.address, ethers.utils.parseEther("100"));
 
         const GuildAppTemplate = await ethers.getContractFactory("GuildApp");
         guildAppTemplate = await GuildAppTemplate.deploy();
@@ -86,6 +88,7 @@ describe("GuildApp", () => {
         expect(await guildA.symbol()).to.equal(guildSymbol);
         expect(await guildA.baseURI()).to.equal(NFT_BASE_URI);
         expect(await guildA.getMetadata()).to.equal(`${NFT_BASE_URI}${metadataCID}`);
+        expect(await guildA.hasRole(await guildA.DEFAULT_ADMIN_ROLE(), alice.address)).to.equal(true);
     });
 
     it("Should allow new subscriptions", async () => {
@@ -124,8 +127,29 @@ describe("GuildApp", () => {
     });
 
     it("Should fetch approved tokens", async () => {
-        console.log(await guildA.approvedTokens(), [dai.address]);
         expect(await guildA.approvedTokens()).to.have.members([dai.address]);
+    });
+
+    it("Should not be able to pause the guild by non admin", async () => {
+        await expect(guildA.connect(bob).pauseGuild(true)).to.be.reverted;
+    });
+
+    it("Should be able to pause the guild", async () => {
+        await expect(guildA.connect(alice).pauseGuild(true))
+            .to.emit(guildA, 'PausedGuild')
+            .withArgs(true);
+    });
+
+    it("Should not be able to do any action on a paused guild", async () => {
+
+        const newMetadataHash = 'dummyIPFSHashV2';
+
+        await expect(guildA.connect(alice).setMetadata(newMetadataHash))
+            .to.be.reverted;
+        
+        await dai.connect(carl).approve(guildA.address, SUBSCRIPTION_PRICE);
+        await expect(guildA.connect(carl).subscribe('', SUBSCRIPTION_PRICE, "0x"))
+            .to.be.reverted;
     });
 
 });

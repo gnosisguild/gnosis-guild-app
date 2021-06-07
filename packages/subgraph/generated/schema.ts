@@ -141,6 +141,15 @@ export class Guild extends Entity {
     this.set("totalSubscriptions", Value.fromBigInt(value));
   }
 
+  get totalSubscribers(): BigInt {
+    let value = this.get("totalSubscribers");
+    return value.toBigInt();
+  }
+
+  set totalSubscribers(value: BigInt) {
+    this.set("totalSubscribers", Value.fromBigInt(value));
+  }
+
   get subscriptions(): Array<string> | null {
     let value = this.get("subscriptions");
     if (value === null || value.kind == ValueKind.NULL) {

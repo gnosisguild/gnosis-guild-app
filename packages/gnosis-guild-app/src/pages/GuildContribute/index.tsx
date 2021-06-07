@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Title } from "@gnosis.pm/safe-react-components";
+import { Loader, Title } from "@gnosis.pm/safe-react-components";
 
 import AmountInput from "../../components/AmountInput";
 import ContributorNameInput from "../../components/ContributorNameInput";
@@ -15,7 +15,6 @@ import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
 import { useWeb3Context } from "../../context/Web3Context";
-import { useGuildContext } from "../../context/GuildContext";
 
 import { useGuild } from "../../hooks/useGuild";
 
@@ -27,6 +26,13 @@ const Grid = styled.div`
     "logo form wallet" 1fr
     "footer footer footer" var(--grid-permission-footer-height)
     / 1fr 2fr 1fr;
+`;
+
+const Loading = styled.div`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
 `;
 
 const GridForm = styled.div`
@@ -76,8 +82,8 @@ const GuildContribute: React.FC = () => {
       console.log('META', meta);
       if (meta) {
         setGuildMetadata(meta);
-        setLoading(false);
       }
+      setLoading(false);
     }
     _fetchGuild();
   }, []);
@@ -133,9 +139,15 @@ const GuildContribute: React.FC = () => {
           </ContributeCard>
         </GridForm>
       ) : (
-        <Title size="sm" strong={true}>
-          {loading ? "Loading...":"404: Guild not found"}
-        </Title>
+        <Loading>
+          {loading ? (
+            <Loader size="md" />
+          ): (
+            <Title size="sm" strong={true}>
+              404: Guild not found
+            </Title>
+          )}
+        </Loading>
       )}
       <GridWallet>
         <ConnectWeb3Button>{connectText}</ConnectWeb3Button>
