@@ -68,7 +68,5 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {
-    "nodeman": "^1.1.2"
-  }
+  "devDependencies": {}
 }

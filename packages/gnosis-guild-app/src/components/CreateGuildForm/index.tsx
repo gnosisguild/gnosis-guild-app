@@ -95,8 +95,6 @@ const CreateGuildForm: React.FC = () => {
     const target = e.target as HTMLInputElement;
     const input = hiddenImageInput.current as HTMLInputElement;
     if (target.files && input.files) {
-      console.log(target.files[0]);
-      console.log(input.files[0]);
       setGuildImage(input.files[0]);
     }
   };

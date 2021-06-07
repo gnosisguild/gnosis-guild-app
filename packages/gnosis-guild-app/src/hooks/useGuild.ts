@@ -4,7 +4,6 @@ import axios from "axios";
 import { request, gql } from "graphql-request";
 import { API, IPFS_GATEWAY } from "../constants";
 import { getNetworkByChainId } from "../lib/networks";
-import { deleteGuildLocal } from "../lib/localStorage";
 import { Contract, ethers } from "ethers";
 import { GuildMetadata, useGuildContext } from "../context/GuildContext";
 
@@ -87,7 +86,6 @@ export const useGuild = () => {
         console.error(e);
         console.error("Failed call");
       });
-      console.log("GUIDL", resp);
       if (resp && resp.guild) {
         return resp.guild;
       }
@@ -101,9 +99,6 @@ export const useGuild = () => {
     guildAddress: string
   ): Promise<GuildMetadata> => {
     const resp = await axios.get(metadataURI);
-    console.log("Data");
-    console.log(resp.data);
-    console.log(resp.data.imageCid);
 
     let imageResp = await fetch(
       `${IPFS_GATEWAY}/${resp.data.imageCid}`
@@ -168,8 +163,6 @@ export const useGuild = () => {
     await factoryContract
       .createGuild(calldata)
       .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
-    // store metadata
-    // storeGuildLocal(guildInfo);
   };
 
   const deactivateGuild = async (
@@ -204,9 +197,6 @@ export const useGuild = () => {
       .catch((err: Error) => console.error(`Failed to pause ${err}`));
   };
 
-  // Update MetadaCID
-  // set Metadata
-
   const updateMetadataCid = async (
     guildInfo: GuildMetadata,
     ethersProvider: ethers.providers.Web3Provider
@@ -228,8 +218,6 @@ export const useGuild = () => {
   };
 
   const saveMetadata = async (guildInfo: GuildMetadata): Promise<string> => {
-    console.log("Image");
-    console.log(guildInfo.image);
     const form = new FormData();
     form.append("name", guildInfo.name);
     form.append("description", guildInfo.description);
@@ -304,8 +292,6 @@ export const useGuild = () => {
       .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
 
     // Select the first
-    console.log("Guilds");
-    console.log(guilds);
     // Call pause
     const guildAddress = guilds[0];
     return guildAddress;

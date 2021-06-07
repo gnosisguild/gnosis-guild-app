@@ -1,10 +1,7 @@
 import { IChainData } from "./types";
 
 const API_KEY = process.env.REACT_APP_INFURA_ID;
-export const API = process.env.REACT_APP_INFURA_IDS;
-console.log("server host");
-console.log(API_KEY);
-console.log(API);
+export const API = process.env.REACT_APP_API_HOST;
 export const IPFS_GATEWAY = "https://ipfs.io/ipfs";
 
 type Networks = {

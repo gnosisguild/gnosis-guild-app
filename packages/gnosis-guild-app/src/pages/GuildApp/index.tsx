@@ -4,7 +4,6 @@ import styled from "styled-components";
 import CreateGuildForm from "../../components/CreateGuildForm";
 import GuildAppInstructions from "../../components/GuildAppInstructions";
 import GuildStats from "../../components/GuildStats";
-import { useGuildContext } from "../../context/GuildContext";
 
 import { useGuild } from "../../hooks/useGuild";
 import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
@@ -34,7 +33,6 @@ const GuildApp: React.FC = () => {
   const { safe } = useSafeAppsSDK();
   const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
   const { fetchGuildByAddress } = useGuild();
-  /* const { guildMetadata } = useGuildContext(); */
 
   useEffect(() => {
     const fetchGuild = async () => {

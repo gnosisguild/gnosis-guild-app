@@ -46,13 +46,8 @@ export const GuildProvider: React.FC = ({ children }) => {
 
   // TODO: Placeholder values
   useEffect(() => {
-    console.log("Guild Meta");
     const initialGuild = async () => {
       const guilds = await fetchGuildByAddress(account, providerChainId);
-      console.log("Guilds");
-      console.log(guilds);
-      console.log(account);
-      console.log(providerChainId);
       // Also fetch metadata
       if (guilds && guilds.length > 0) {
         const guild = guilds[0];
@@ -60,12 +55,8 @@ export const GuildProvider: React.FC = ({ children }) => {
           ...guildMetadata
         };
         if (guild.metadataURI) {
-          console.log("Metadata.URIL");
-          console.log(guild.metadataURI);
           metadata = await fetchMetadata(guild.metadataURI, guild.id);
         }
-        console.log("Context meta");
-        console.log(metadata);
         let blob = new Blob();
         if (metadata.imageCid) {
           let resp = await fetch(
@@ -88,8 +79,6 @@ export const GuildProvider: React.FC = ({ children }) => {
           guildAddress: metadata.guildAddress,
           imageCid: metadata.imageCid
         });
-        console.log("HHooo ha");
-        console.log(guild);
       }
     };
     initialGuild();
