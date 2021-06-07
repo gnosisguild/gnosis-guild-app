@@ -1,6 +1,11 @@
 import { IChainData } from "./types";
 
 const API_KEY = process.env.REACT_APP_INFURA_ID;
+export const API = process.env.REACT_APP_INFURA_IDS;
+console.log("server host");
+console.log(API_KEY);
+console.log(API);
+export const IPFS_GATEWAY = "https://ipfs.io/ipfs";
 
 type Networks = {
   [key: number]: IChainData;
@@ -20,8 +25,8 @@ export const networks: Networks = {
       name: "Ethereum",
       decimals: "18",
       contractAddress: "",
-      balance: "",
-    },
+      balance: ""
+    }
   },
   4: {
     name: "Ethereum Rinkeby",
@@ -36,7 +41,7 @@ export const networks: Networks = {
       name: "Ethereum",
       decimals: "18",
       contractAddress: "",
-      balance: "",
-    },
-  },
+      balance: ""
+    }
+  }
 };

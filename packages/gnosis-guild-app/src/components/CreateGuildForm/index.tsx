@@ -47,9 +47,10 @@ const CreateGuildForm: React.FC = () => {
   const { guildMetadata, setGuildMetadata } = useGuildContext();
 
   const { ethersProvider, account, providerChainId } = useWeb3Context();
-  const { createGuild, deactivateGuild } = useGuild();
+  const { createGuild, deactivateGuild, updateMetadataCid } = useGuild();
   const [submitting, setSubmitting] = useState(false);
   // Input values
+  const [guildAddress, setGuildAddress] = useState(guildMetadata.guildAddress);
   const [guildName, setGuildName] = useState(guildMetadata.name);
   const [guildDescription, setGuildDescription] = useState(
     guildMetadata.description
@@ -78,18 +79,26 @@ const CreateGuildForm: React.FC = () => {
   const [activeCurrency, setActiveCurrency] = useState(guildMetadata.currency);
 
   useEffect(() => {
+    setGuildAddress(guildMetadata.guildAddress);
     setGuildName(guildMetadata.name);
     setGuildDescription(guildMetadata.description);
     setContentFormat(guildMetadata.contentFormat);
     setGuildExternalLink(guildMetadata.externalLink);
     setGuildImage(guildMetadata.image);
     setActiveCurrency(guildMetadata.currency);
+    setGuildMinimumAmount(guildMetadata.amount);
   }, [guildMetadata]);
 
   // TODO: Implement acutal logic below
   // The current logic is incomplete
   const uploadImage = (e: MouseEvent<HTMLInputElement>) => {
-    console.log(e);
+    const target = e.target as HTMLInputElement;
+    const input = hiddenImageInput.current as HTMLInputElement;
+    if (target.files && input.files) {
+      console.log(target.files[0]);
+      console.log(input.files[0]);
+      setGuildImage(input.files[0]);
+    }
   };
 
   const clickImageInput = (e: MouseEvent<HTMLButtonElement>) => {
@@ -102,14 +111,21 @@ const CreateGuildForm: React.FC = () => {
     setSubmitting(true);
     try {
       // Create guild
+      let image = new File([""], "");
+      const input = hiddenImageInput.current as HTMLInputElement;
+      if (input.files && input.files.length > 0) {
+        image = input.files[0];
+      }
       const guildInfo = {
         name: guildName,
         description: guildDescription,
         contentFormat: contentFormat,
         externalLink: guildExternalLink,
-        image: guildImage,
+        image: image,
         currency: activeCurrency,
-        amount: guildMinimumAmount
+        amount: guildMinimumAmount,
+        guildAddress: guildAddress,
+        imageCid: ""
       };
       createGuild(providerChainId, ethersProvider, guildInfo, account);
     } catch (e) {
@@ -122,9 +138,28 @@ const CreateGuildForm: React.FC = () => {
       externalLink: guildExternalLink,
       image: guildImage,
       currency: activeCurrency,
-      amount: guildMinimumAmount
+      amount: guildMinimumAmount,
+      guildAddress: guildAddress,
+      imageCid: ""
     });
     setSubmitting(false);
+  };
+
+  const updateTx = async (): Promise<void> => {
+    updateMetadataCid(
+      {
+        name: guildName,
+        description: guildDescription,
+        contentFormat: contentFormat,
+        externalLink: guildExternalLink,
+        image: guildImage,
+        currency: activeCurrency,
+        amount: guildMinimumAmount,
+        guildAddress: guildAddress,
+        imageCid: ""
+      },
+      ethersProvider
+    );
   };
 
   // Upload text
@@ -132,6 +167,7 @@ const CreateGuildForm: React.FC = () => {
     ? "Replace Image"
     : "Upload Image";
   const guildButtonText = guildMetadata.name ? "Update Guild" : "Create Guild";
+  const guildTx = guildMetadata.name ? updateTx : submitTx;
 
   const updateGuildName = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -176,7 +212,7 @@ const CreateGuildForm: React.FC = () => {
   };
 
   const pauseGuild = (e: MouseEvent<HTMLButtonElement>) => {
-    deactivateGuild(providerChainId, ethersProvider, account);
+    deactivateGuild(providerChainId, ethersProvider, account, guildAddress);
   };
 
   const deleteButton = guildMetadata.name ? (
@@ -282,7 +318,7 @@ const CreateGuildForm: React.FC = () => {
             size="lg"
             color="primary"
             variant="contained"
-            onClick={submitTx}
+            onClick={guildTx}
           >
             {guildButtonText}
           </Button>

@@ -1,8 +1,12 @@
+const { NFTStorage, Blob } = require("nft.storage");
 const express = require("express");
+const multer = require("multer");
+const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+require("dotenv").config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.SERVER_PORT || 4000;
 
 const app = express();
 
@@ -14,8 +18,63 @@ const exampleGuild = {
   externalLink: "https://otherinter.net",
   image:
     "https://lh6.googleusercontent.com/TG1QkKg9QXRyobmLPoJW5Di6Wdl3bZ7eRDwPbWL-fevr1mtoyuHQkhbmVMOgvtUys43uw4H2-ikPyLfMo7S0tmypEyiCSMT1ToGu6aS1FZcskr8M8kwna3u3zgu46AIBPaS7ofYZ",
-  contributions: "ETH",
+  contributions: "ETH"
 };
+
+var storage = multer.memoryStorage();
+var upload = multer({ storage });
+
+var corsOptions = {
+  origin: "*",
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+app.use(express.json()); // for parsing application/json
+app.use(cors(corsOptions)); // for parsing application/json
+
+// Add Endpoints to create metadata file
+// Should take metadata object and return a URI
+
+const getNFTStorageClient = () => {
+  return new NFTStorage({ token: process.env.NFT_STORAGE });
+};
+
+app.post("/api/v1/guild", upload.single("image"), async (req, res) => {
+  // Deserailize JSON
+  const data = req.body;
+  console.log("bidu");
+  const client = getNFTStorageClient();
+  // store image
+  // console.log(req.file);
+  // Remove exif data and other security mitigations
+  let imageCid = "";
+  if (req.file) {
+    console.log("Image");
+    console.log(req.file);
+    imageCid = await client
+      .storeBlob(req.file.buffer)
+      .catch(err => console.error("Failed"));
+    console.log(imageCid);
+  }
+  // Then store metadata]
+  const metadata = {
+    name: data.name,
+    description: data.description,
+    imageCid: imageCid || "",
+    externalLink: data.externalLink,
+    currency: data.currency,
+    amount: data.amount,
+    contentFormat: data.contentFormat
+  };
+  const metadataCid = await client
+    .storeBlob(new Blob([Buffer.from(JSON.stringify(metadata))]))
+    .catch(err => console.error(`Failed: ${err}`));
+  console.log("Metadata");
+  console.log(metadataCid);
+  console.log(data);
+  // Return metadata
+  res.send({ metadataCid });
+});
 
 app.get("/", (req, res) => {
   const filePath = path.resolve(__dirname, "./build", "index.html");
