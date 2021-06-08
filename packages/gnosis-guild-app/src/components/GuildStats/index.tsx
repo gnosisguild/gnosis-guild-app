@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { ethers } from "ethers";
-import profile from "../../assets/profile.png";
 import {
   Button,
   Card,
@@ -12,6 +11,7 @@ import {
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
 import { useGuild } from "../../hooks/useGuild";
+import { APP_DOMAIN } from "../../constants";
 
 const ProfileImage = styled.img`
   height: 6rem;
@@ -48,7 +48,7 @@ const StatsText = styled(Text)`
 
 const GuildStats: React.FC = () => {
   const [numTokens, setNumTokens] = useState("0");
-  const { guildMetadata, setGuildMetadata } = useGuildContext();
+  const { guildMetadata } = useGuildContext();
   const { account, ethersProvider, providerChainId } = useWeb3Context();
   const { fetchGuildTokens } = useGuild();
 
@@ -63,7 +63,13 @@ const GuildStats: React.FC = () => {
       setNumTokens(ethers.utils.formatEther(tokens));
     };
     getTokens();
-  }, [providerChainId, account, guildMetadata.currency]);
+  }, [
+    providerChainId,
+    account,
+    guildMetadata.currency,
+    fetchGuildTokens,
+    ethersProvider
+  ]);
 
   return (
     <div style={{ width: "100%" }}>
@@ -79,19 +85,19 @@ const GuildStats: React.FC = () => {
           Other Internet Guild Page
         </StatsText>
         <CopyToClipboardBtn
-          textToCopy={`https://gateway.ipfs.io/ipfs/guild/${account}`}
+          textToCopy={`${APP_DOMAIN}/guild/${guildMetadata.guildAddress}`}
         />
       </StatItemContainer>
-      <Text size="lg">{"https://gateway.ipfs.io/ipfs..."}</Text>
+      <Text size="lg">{`${APP_DOMAIN}/...`}</Text>
       <StatItemContainer>
         <StatsText size="xl" strong={true}>
           Embed Code
         </StatsText>
         <CopyToClipboardBtn
-          textToCopy={`<iframe src="https://ipfs.io/guild/${account}/contribute/link" />`}
+          textToCopy={`<iframe src="${APP_DOMAIN}/guild/${guildMetadata.guildAddress}/contribute/link" />`}
         />
       </StatItemContainer>
-      <Text size="lg">{`<iframe src="https://ipfs.io/guild...`}</Text>
+      <Text size="lg">{`<iframe src="${APP_DOMAIN}/guild...`}</Text>
       <StatItemContainer>
         <Card style={{ width: "100%", maxWidth: "16rem" }}>
           <TitleCardContainer>
