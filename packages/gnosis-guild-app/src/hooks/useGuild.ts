@@ -24,7 +24,7 @@ export type GraphGuild = {
 };
 
 export const useGuild = () => {
-  const { setGuildMetadata } = useGuildContext();
+  const { guildMetadata, setGuildMetadata } = useGuildContext();
   const fetchGuildByAddress = async (
     address: string,
     chainId: number
@@ -61,43 +61,43 @@ export const useGuild = () => {
     return [];
   };
 
-  const fetchGuild = useCallback(
-    async (guildId: string, chainId: number): Promise<GraphGuild | null> => {
-      const fetchGuildQuery = gql`
-        query getGuild($id: String) {
-          guild(id: $id) {
+  const fetchGuild = async (
+    guildId: string,
+    chainId: number
+  ): Promise<GraphGuild | null> => {
+    const fetchGuildQuery = gql`
+      query getGuild($id: String) {
+        guild(id: $id) {
+          id
+          owner
+          name
+          symbol
+          metadataURI
+          active
+          tokenAddress
+          currentPrice
+          subsPeriod
+          currentBalance
+          subscriptions {
             id
-            owner
-            name
-            symbol
-            metadataURI
-            active
-            tokenAddress
-            currentPrice
-            subsPeriod
-            currentBalance
-            subscriptions {
-              id
-            }
-            totalSubscribers
-            totalSubscriptions
           }
+          totalSubscribers
+          totalSubscriptions
         }
-      `;
-      const network = getNetworkByChainId(chainId);
-      const resp = await request(network.subgraphUrl, fetchGuildQuery, {
-        id: guildId.toLowerCase()
-      }).catch(e => {
-        console.error(e);
-        console.error("Failed call");
-      });
-      if (resp && resp.guild) {
-        return resp.guild;
       }
-      return null;
-    },
-    []
-  );
+    `;
+    const network = getNetworkByChainId(chainId);
+    const resp = await request(network.subgraphUrl, fetchGuildQuery, {
+      id: guildId.toLowerCase()
+    }).catch(e => {
+      console.error(e);
+      console.error("Failed call");
+    });
+    if (resp && resp.guild) {
+      return resp.guild;
+    }
+    return null;
+  };
 
   const fetchMetadata = async (
     metadataURI: string,
@@ -249,19 +249,14 @@ export const useGuild = () => {
     ownerAddress: string,
     token: string
   ): Promise<number> => {
-    const guildAddress = await _fetchGuild(
-      chainId,
-      ethersProvider,
-      ownerAddress
-    );
-    if (!guildAddress) {
+    if (!guildMetadata.guildAddress) {
       return 0;
     }
     const abiApp = [
       "function guildBalance(address _tokenAddress) public view returns (uint256)"
     ];
     const guildContract = new Contract(
-      guildAddress,
+      guildMetadata.guildAddress,
       abiApp,
       ethersProvider.getSigner()
     );
