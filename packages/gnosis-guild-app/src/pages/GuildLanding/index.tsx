@@ -88,8 +88,6 @@ const GuiildLanding: React.FC = () => {
   useEffect(() => {
     const _fetchGuild = async () => {
       const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
-      console.log(meta);
-      console.log("Here");
       if (meta) {
         setGuildActive(meta.active);
         let metadata = {
