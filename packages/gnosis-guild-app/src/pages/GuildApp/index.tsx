@@ -4,7 +4,6 @@ import styled from "styled-components";
 import CreateGuildForm from "../../components/CreateGuildForm";
 import GuildAppInstructions from "../../components/GuildAppInstructions";
 import GuildStats from "../../components/GuildStats";
-import { useGuildContext } from "../../context/GuildContext";
 
 import { useGuild } from "../../hooks/useGuild";
 import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
@@ -34,19 +33,19 @@ const GuildApp: React.FC = () => {
   const { safe } = useSafeAppsSDK();
   const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
   const { fetchGuildByAddress } = useGuild();
-  const { guildMetadata } = useGuildContext();
 
   useEffect(() => {
     const fetchGuild = async () => {
       const resp = await fetchGuildByAddress(safe.safeAddress, safe.chainId);
-      /* const guild = resp.length > 0 ? resp[0] : null; */
-      const guild = guildMetadata.name ? true : false;
+      const guild = resp.length > 0 ? resp[0] : null;
       if (guild) {
         setDisplayPanel(<GuildStats />);
       }
     };
     fetchGuild();
-  }, [guildMetadata.name]);
+  }, [safe.safeAddress, safe.chainId]);
+
+  // Get reference to image
 
   return (
     <Grid>

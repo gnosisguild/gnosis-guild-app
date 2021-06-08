@@ -1,7 +1,9 @@
 import { useCallback } from "react";
+import axios from "axios";
+
 import { request, gql } from "graphql-request";
+import { API, IPFS_GATEWAY } from "../constants";
 import { getNetworkByChainId } from "../lib/networks";
-import { storeGuildLocal, deleteGuildLocal } from "../lib/localStorage";
 import { Contract, ethers } from "ethers";
 import { GuildMetadata, useGuildContext } from "../context/GuildContext";
 
@@ -22,40 +24,40 @@ export type GraphGuild = {
 
 export const useGuild = () => {
   const { setGuildMetadata } = useGuildContext();
-  const fetchGuildByAddress = useCallback(
-    async (address: string, chainId: number): Promise<Array<GraphGuild>> => {
-      const fetchGuildQuery = gql`
-        query getGuildByOwner($ownerAddress: String) {
-          guilds(where: { owner: $ownerAddress }) {
-            id
-            owner
-            name
-            symbol
-            metadataURI
-            active
-            tokenAddress
-            currentPrice
-            subsPeriod
-            currentBalance
-            totalSubscriptions
-            subscriptions
-          }
+  const fetchGuildByAddress = async (
+    address: string,
+    chainId: number
+  ): Promise<Array<GraphGuild>> => {
+    const fetchGuildQuery = gql`
+      query getGuildByOwner($ownerAddress: String) {
+        guilds(where: { owner: $ownerAddress, active: true }) {
+          id
+          owner
+          name
+          symbol
+          metadataURI
+          active
+          tokenAddress
+          currentPrice
+          subsPeriod
+          currentBalance
+          totalSubscriptions
+          subscriptions
         }
-      `;
-      const network = getNetworkByChainId(chainId);
-      const resp = await request(network.subgraphUrl, fetchGuildQuery, {
-        ownerAddress: address
-      }).catch(e => {
-        console.error(e);
-        console.error("Failed call");
-      });
-      if (resp && resp.guilds && resp.guilds.length > 0) {
-        return resp.guilds;
       }
-      return [];
-    },
-    []
-  );
+    `;
+    const network = getNetworkByChainId(chainId);
+    const resp = await request(network.subgraphUrl, fetchGuildQuery, {
+      ownerAddress: address
+    }).catch(e => {
+      console.error(e);
+      console.error("Failed call");
+    });
+    if (resp && resp.guilds && resp.guilds.length > 0) {
+      return resp.guilds;
+    }
+    return [];
+  };
 
   const fetchGuild = useCallback(
     async (guildId: string, chainId: number): Promise<GraphGuild | null> => {
@@ -84,7 +86,6 @@ export const useGuild = () => {
         console.error(e);
         console.error("Failed call");
       });
-      console.log("GUIDL", resp);
       if (resp && resp.guild) {
         return resp.guild;
       }
@@ -92,6 +93,29 @@ export const useGuild = () => {
     },
     []
   );
+
+  const fetchMetadata = async (
+    metadataURI: string,
+    guildAddress: string
+  ): Promise<GuildMetadata> => {
+    const resp = await axios.get(metadataURI);
+
+    let imageResp = await fetch(
+      `${IPFS_GATEWAY}/${resp.data.imageCid}`
+    ).catch((err: Error) => console.error("Failed to fetch metadata image"));
+    let blob = new Blob();
+    if (imageResp) {
+      blob = await imageResp.blob();
+    }
+
+    const image = new File([blob], "profile.jpg");
+    return {
+      ...resp.data,
+      guildAddress: guildAddress,
+      imageCid: resp.data.imageCid,
+      image
+    };
+  };
 
   const createGuild = async (
     chainId: number,
@@ -111,7 +135,6 @@ export const useGuild = () => {
       factoryAbi,
       ethersProvider.getSigner()
     );
-
     const count = await factoryContract
       .totalGuilds()
       .catch((err: Error) =>
@@ -126,49 +149,30 @@ export const useGuild = () => {
       tokenAddress = network.daiToken;
     }
     const subscriptionTime = 30 * 24 * 60 * 60; // 30 days
+    const metadataCid = await saveMetadata(guildInfo);
     const functionArgs = [
       creatorAddress,
       tokenAddress,
       ethers.utils.parseEther(guildInfo.amount),
       subscriptionTime,
-      [guildInfo.name, `GUILD${count}`, "", ""]
+      [guildInfo.name, `GUILD${count}`, "https://ipfs.io/ipfs/", metadataCid]
     ];
     const iface = new ethers.utils.Interface(guildAppAbi);
     const calldata = iface.encodeFunctionData("initialize", functionArgs);
 
-    factoryContract
+    await factoryContract
       .createGuild(calldata)
       .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
-    storeGuildLocal(guildInfo);
   };
 
   const deactivateGuild = async (
     chainId: number,
     ethersProvider: ethers.providers.Web3Provider,
-    ownerAddress: string
+    ownerAddress: string,
+    guildAddress: string
   ): Promise<void> => {
     const network = getNetworkByChainId(chainId);
-    const abi = [
-      "function guildsOf(address _owner) public view returns (address[] memory)"
-    ];
-    // get guilds
-    const guildAppContract = new Contract(
-      network.guildFactory,
-      abi,
-      ethersProvider.getSigner()
-    );
-    const guilds = await guildAppContract
-      .guildsOf(ownerAddress)
-      .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
-
-    // Select the first
-    console.log("Guilds");
-    console.log(guilds);
-    // Call pause
-    const guildAddress = guilds[0];
-
     if (!guildAddress) {
-      deleteGuildLocal();
       return;
     }
     const abiApp = ["function pauseGuild(bool pause) external"];
@@ -177,19 +181,57 @@ export const useGuild = () => {
       abiApp,
       ethersProvider.getSigner()
     );
-    deleteGuildLocal();
     setGuildMetadata({
       name: "",
       description: "",
       contentFormat: "",
       externalLink: "",
-      image: "",
+      image: new File([], ""),
       currency: "ETH",
-      amount: "0"
+      amount: "0",
+      guildAddress: "",
+      imageCid: ""
     });
-    // guildContract
-    //   .pauseGuild(true)
-    //   .catch((err: Error) => console.error(`Failed to pause ${err}`));
+    await guildContract
+      .pauseGuild(false)
+      .catch((err: Error) => console.error(`Failed to pause ${err}`));
+  };
+
+  const updateMetadataCid = async (
+    guildInfo: GuildMetadata,
+    ethersProvider: ethers.providers.Web3Provider
+  ) => {
+    const abiApp = [
+      "function setMetadata(string memory _metadataCID) external "
+    ];
+    const guildContract = new Contract(
+      guildInfo.guildAddress,
+      abiApp,
+      ethersProvider.getSigner()
+    );
+
+    const metadataCid = await saveMetadata(guildInfo);
+
+    await guildContract
+      .setMetadata(metadataCid)
+      .catch((err: Error) => console.error("Failed to set metadata cid"));
+  };
+
+  const saveMetadata = async (guildInfo: GuildMetadata): Promise<string> => {
+    const form = new FormData();
+    form.append("name", guildInfo.name);
+    form.append("description", guildInfo.description);
+    form.append("contentFormat", guildInfo.contentFormat);
+    form.append("externalLink", guildInfo.externalLink);
+    form.append("image", guildInfo.image);
+    form.append("currency", guildInfo.currency);
+    form.append("amount", guildInfo.amount);
+    const resp = await axios.post(`${API}/api/v1/guild`, form, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+    return resp.data.metadataCid;
   };
 
   const fetchSubscribers = () => {
@@ -250,8 +292,6 @@ export const useGuild = () => {
       .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
 
     // Select the first
-    console.log("Guilds");
-    console.log(guilds);
     // Call pause
     const guildAddress = guilds[0];
     return guildAddress;
@@ -303,6 +343,8 @@ export const useGuild = () => {
     createGuild,
     deactivateGuild,
     fetchGuildTokens,
-    subscribe
+    subscribe,
+    fetchMetadata,
+    updateMetadataCid
   };
 };

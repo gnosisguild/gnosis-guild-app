@@ -67,7 +67,10 @@ const GuildStats: React.FC = () => {
 
   return (
     <div style={{ width: "100%" }}>
-      <ProfileImage src={profile} alt="Guild profile" />
+      <ProfileImage
+        src={URL.createObjectURL(guildMetadata.image)}
+        alt="Guild profile"
+      />
       <Title size="md" strong={true}>
         Guild Stats
       </Title>
