@@ -20,6 +20,7 @@ export type GraphGuild = {
   symbol: string;
   tokenAddress: string;
   totalSubscriptions: number;
+  totalSubscribers: number;
 };
 
 export const useGuild = () => {
@@ -41,8 +42,9 @@ export const useGuild = () => {
           currentPrice
           subsPeriod
           currentBalance
-          totalSubscriptions
           subscriptions
+          totalSubscribers
+          totalSubscriptions
         }
       }
     `;
@@ -74,8 +76,11 @@ export const useGuild = () => {
             currentPrice
             subsPeriod
             currentBalance
+            subscriptions {
+              id
+            }
+            totalSubscribers
             totalSubscriptions
-            subscriptions
           }
         }
       `;

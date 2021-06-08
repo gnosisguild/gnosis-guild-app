@@ -92,9 +92,9 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
     }
 
     function pauseGuild(bool pause) external override onlyGuildAdmin {
-        require(isActive != pause, "GuildApp: Guild already in that state");
+        require(isActive == pause, "GuildApp: Guild already in that state");
         emit PausedGuild(pause);
-        isActive = pause;
+        isActive = !pause;
     }
 
     function withdraw(address _tokenAddress, uint256 _amount, address _beneficiary) public override onlyGuildAdmin {

@@ -22,6 +22,7 @@ export function handleCreatedGuild(event: InitializedGuild): void {
     guild.tokenAddress = event.params._tokenAddress;
     guild.currentBalance = BigInt.fromI32(0);
     guild.totalSubscriptions = BigInt.fromI32(0);
+    guild.totalSubscribers = BigInt.fromI32(0);
     guild.subsPeriod = event.params._subscriptionPeriod;
     guild.currentPrice = event.params._subPrice;
     
@@ -60,6 +61,7 @@ export function handleNewSubcription(event: NewSubscription): void {
         let value = event.params._value;
         guild.currentBalance = guild.currentPrice.plus(value);
         guild.totalSubscriptions = guild.totalSubscriptions.plus(value);
+        guild.totalSubscribers = guild.totalSubscribers.plus(BigInt.fromI32(1));
 
         guild.save();
 
