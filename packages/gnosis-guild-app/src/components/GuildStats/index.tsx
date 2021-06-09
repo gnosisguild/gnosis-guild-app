@@ -48,28 +48,24 @@ const StatsText = styled(Text)`
 
 const GuildStats: React.FC = () => {
   const [numTokens, setNumTokens] = useState("0");
+  const [numContributors, setNumContributors] = useState(0);
   const { guildMetadata } = useGuildContext();
   const { account, ethersProvider, providerChainId } = useWeb3Context();
-  const { fetchGuildTokens } = useGuild();
+  const { fetchGuild } = useGuild();
 
   useEffect(() => {
     const getTokens = async () => {
-      const tokens = await fetchGuildTokens(
-        providerChainId,
-        ethersProvider,
-        account,
-        guildMetadata.currency
+      const guild = await fetchGuild(
+        guildMetadata.guildAddress,
+        providerChainId
       );
-      setNumTokens(ethers.utils.formatEther(tokens));
+      if (guild) {
+        setNumTokens(ethers.utils.formatEther(guild.currentBalance));
+        setNumContributors(guild.totalSubscriptions);
+      }
     };
     getTokens();
-  }, [
-    providerChainId,
-    account,
-    guildMetadata.currency,
-    fetchGuildTokens,
-    ethersProvider
-  ]);
+  }, [providerChainId, fetchGuild, guildMetadata.guildAddress]);
 
   return (
     <div style={{ width: "100%" }}>
@@ -102,7 +98,7 @@ const GuildStats: React.FC = () => {
         <Card style={{ width: "100%", maxWidth: "16rem" }}>
           <TitleCardContainer>
             <Text size="lg" color="primary" strong={true}>
-              0
+              {numContributors}
             </Text>
             <Text size="lg" strong={true}>
               Contributors

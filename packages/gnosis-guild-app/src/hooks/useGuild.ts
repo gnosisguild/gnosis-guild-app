@@ -165,6 +165,7 @@ export const useGuild = () => {
     const iface = new ethers.utils.Interface(guildAppAbi);
     const calldata = iface.encodeFunctionData("initialize", functionArgs);
 
+    // TODO: Add Guild address here
     await factoryContract
       .createGuild(calldata)
       .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
