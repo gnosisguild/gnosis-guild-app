@@ -17,6 +17,7 @@ import ConnectWeb3Button from "../../components/ConnectWeb3Button";
 import { useWeb3Context } from "../../context/Web3Context";
 
 import { useGuild } from "../../hooks/useGuild";
+import { ContributorProfile } from "../../types";
 
 const Grid = styled.div`
   width: 100%;
@@ -32,7 +33,7 @@ const Loading = styled.div`
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%, -50%);
 `;
 
 const GridForm = styled.div`
@@ -50,7 +51,13 @@ const FormItem = styled.div`
 `;
 
 const GuildContribute: React.FC = () => {
-  const { ethersProvider, getConnectText, providerChainId } = useWeb3Context();
+  const {
+    ethersProvider,
+    getConnectText,
+    providerChainId,
+    idx,
+    did
+  } = useWeb3Context();
   const [activeCurrency, setActiveCurrency] = useState("ETH");
 
   const [contributorName, setContributorName] = useState("");
@@ -58,10 +65,10 @@ const GuildContribute: React.FC = () => {
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
 
   const { fetchGuild, subscribe } = useGuild();
-  const [ loading, setLoading ] = useState(true);
-  const [ guildMetadata, setGuildMetadata ] = useState<any>();
+  const [loading, setLoading] = useState(true);
+  const [guildMetadata, setGuildMetadata] = useState<any>();
   const { guildId } = useParams<{ guildId: string }>();
-  console.log('GUILD ID ==>', guildId, providerChainId);
+  console.log("GUILD ID ==>", guildId, providerChainId);
 
   const submitContribution = async () => {
     setLoading(true);
@@ -71,41 +78,75 @@ const GuildContribute: React.FC = () => {
         ethersProvider,
         guildId,
         guildMetadata?.tokenAddress,
-        guildMinimumAmount, {
+        guildMinimumAmount,
+        {
           name: contributorName,
-          email: contributorEmail,
-        });
-      
+          email: contributorEmail
+        }
+      );
     } catch (error) {
       // TODO: Show an pop-up error
-
     }
+    // set profile
+    await saveContributorProfile();
     setLoading(false);
-  }
+  };
+
+  const saveContributorProfile = async () => {
+    // If not there then create create
+    // TODO: ADD node server
+    console.log(did);
+    const recipients = [did?.id as string];
+    // Add encryption later
+    // const encryptedProfile = await did?.createDagJWE(
+    //   { name: contributorName, email: contributorEmail },
+    //   recipients
+    // );
+    console.log("here");
+    idx?.set("contributorProfile", {
+      name: contributorName,
+      email: contributorEmail
+    });
+    console.log("Saved");
+  };
+
+  const setContributorProfile = async () => {
+    const profile = (await idx?.get(
+      "contributorProfile"
+    )) as ContributorProfile;
+    console.log(idx);
+    console.log("Profile");
+    console.log(profile);
+    if (profile) {
+      if (!contributorName) {
+        setContributorName(profile.name);
+      }
+      if (!contributorEmail) {
+        setContributorName(profile.email);
+      }
+    }
+  };
 
   useEffect(() => {
     const _fetchGuild = async () => {
       const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
-      console.log('META', meta);
+      console.log("META", meta);
       if (meta) {
         setGuildMetadata(meta);
       }
       setLoading(false);
-    }
+    };
     _fetchGuild();
   }, []);
 
-  // TODO: this should be deleted
-  // const defaultMeta = {
-  //   name: "Other internet",
-  //   description:
-  //     "Other internet is an independent strategy and research group. Our process is different. We research, prototype, and execute new models for thinking about culture and technology. In doing so we've become responsible for the narrative ducts driving software, money, knowledge, media and culture.",
-  //   contentFormat: "Early access to research essays and Discord community.",
-  //   externalLink: "https://otherinter.net",
-  //   image: "",
-  //   currency: "ETH",
-  //   amount: "1"
-  // };
+  // useEffect(() => {
+  //   const setProfile = async () => {
+  //     await setContributorProfile();
+  //   };
+  //   if (idx) {
+  //     setProfile();
+  //   }
+  // }, [idx]);
 
   const connectText = getConnectText();
   return (
@@ -140,8 +181,11 @@ const GuildContribute: React.FC = () => {
             />
           </FormItem>
           <ContributeCard>
-            <ContributeButton onClick={() => submitContribution()} disabled={!providerChainId || loading}>
-              {!loading ? "Contibute": "Sending Contribution..."}
+            <ContributeButton
+              onClick={() => submitContribution()}
+              disabled={!providerChainId || loading}
+            >
+              {!loading ? "Contibute" : "Sending Contribution..."}
             </ContributeButton>
           </ContributeCard>
         </GridForm>
@@ -149,7 +193,7 @@ const GuildContribute: React.FC = () => {
         <Loading>
           {loading ? (
             <Loader size="md" />
-          ): (
+          ) : (
             <Title size="sm" strong={true}>
               404: Guild not found
             </Title>

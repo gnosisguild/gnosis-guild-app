@@ -4,6 +4,7 @@ const API_KEY = process.env.REACT_APP_INFURA_ID;
 export const API = process.env.REACT_APP_API_HOST;
 export const IPFS_GATEWAY = "https://ipfs.io/ipfs";
 export const APP_DOMAIN = process.env.REACT_APP_DOMAIN;
+export const NODE_WALLET = process.env.REACT_APP_NODE_WALLET;
 
 type Networks = {
   [key: number]: IChainData;

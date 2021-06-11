@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@3id/connect": "^0.1.5",
+    "@ceramicnetwork/http-client": "^1.0.6",
+    "@ceramicstudio/idx": "^0.12.1",
     "@gnosis.pm/safe-apps-provider": "^0.5.0",
     "@gnosis.pm/safe-apps-react-sdk": "3.0.0",
     "@gnosis.pm/safe-apps-web3modal": "^0.5.0",
@@ -45,7 +48,8 @@
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "serve-dev": "node server.js",
-    "serve": "yarn build && node server.js"
+    "serve": "yarn build && node server.js",
+    "ceramic": "ceramic daemon"
   },
   "eslintConfig": {
     "extends": [

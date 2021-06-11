@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "ContributorProfile",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "email": {
+      "type": "string",
+      "maxLength": 200,
+      "format": "email"
+    }
+  },
+  "required": ["name", "email"]
+}

@@ -16,3 +16,8 @@ export interface IChainData {
   rpc_url: string;
   native_currency: IAssetData;
 }
+
+export type ContributorProfile = {
+  name: string;
+  email: string;
+};

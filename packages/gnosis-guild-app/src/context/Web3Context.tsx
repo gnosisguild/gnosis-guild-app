@@ -1,27 +1,42 @@
 import React, { useContext, useCallback, useEffect, useState } from "react";
 import { SafeAppWeb3Modal as Web3Modal } from "@gnosis.pm/safe-apps-web3modal";
 
+import { EthereumAuthProvider, ThreeIdConnect } from "@3id/connect";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ethers } from "ethers";
+import type { CeramicApi } from '@ceramicnetwork/common'
+import Ceramic from '@ceramicnetwork/http-client'
+import { IDX } from '@ceramicstudio/idx'
+import type { IDX as IDXApi } from '@ceramicstudio/idx'
+import { DID, DIDProvider } from 'dids'
+import {Resolver} from 'did-resolver'
+import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
+
+
+
 
 import { networks } from "../constants";
 
 export type Web3ContextValue = {
   connectToWeb3: () => void;
+	authenticateCeramic: () => Promise<string>;
   disconnect: () => void;
   getConnectText: () => string;
   ethersProvider: ethers.providers.Web3Provider;
   account: string;
   providerChainId: number;
+  idx?: IDXApi;
+  did?: DID;
 };
 
 const initialWeb3Context = {
   connectToWeb3: () => {},
+	authenticateCeramic: async () => "",
   disconnect: () => {},
   getConnectText: () => "",
   ethersProvider: new ethers.providers.Web3Provider(window.ethereum),
   account: "",
-  providerChainId: 0
+  providerChainId: 0,
 };
 
 export const Web3Context = React.createContext<Web3ContextValue>(
@@ -46,6 +61,9 @@ const web3Modal = new Web3Modal({
   providerOptions: providerOptions,
   disableInjectedProvider: false
 });
+
+
+const threeIdConnect = new ThreeIdConnect();
 
 const initialWeb3State = {
   ethersProvider: new ethers.providers.Web3Provider(window.ethereum),
@@ -102,6 +120,42 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       : "Connect to a Wallet";
   }, [account]);
 
+  const get3IdProvider = async () => {
+		console.log(ethersProvider)
+		console.log(account)
+    const authProvider = new EthereumAuthProvider(window.ethereum, account);
+		console.log(authProvider)
+		const x = await authProvider.accountId()
+		console.log("AccountId")
+		console.log(x)
+    await threeIdConnect.connect(authProvider);
+		console.log("Conected")
+		return threeIdConnect.getDidProvider()
+  };
+
+  const authenticateCeramic = async (): Promise<string> => {
+		if (!account) {
+			return ""
+		}
+     const ceramic = await new Ceramic("https://ceramic-clay.3boxlabs.com") as CeramicApi
+
+		const threeIdProvider = await get3IdProvider()
+		console.log("Got provider")
+		const aliases = {
+			contributorProfile: "kjzl6cwe1jw1493xghc1nffe3ub8kp4iey2bnkly68eqmhd18e98y0r5isf7906",
+		}
+
+		console.log(ceramic)
+		const resolver = new Resolver({ ...ThreeIdResolver.getResolver(ceramic) })
+    const did = new DID({ provider: threeIdProvider , resolver })
+
+		await did.authenticate()
+		await ceramic.setDID(did)
+    const idx = new IDX({ ceramic, aliases })
+		// This may be useful ceramic.did
+    return idx.id
+	};
+
   useEffect(() => {
     (async (): Promise<void> => {
       if (await web3Modal.isSafeApp()) {
@@ -114,6 +168,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     <Web3Context.Provider
       value={{
         connectToWeb3,
+				authenticateCeramic,
         disconnect,
         ethersProvider,
         account,
