@@ -56,8 +56,11 @@ const GuildContribute: React.FC = () => {
     getConnectText,
     providerChainId,
     idx,
-    did
+    did,
+    account
   } = useWeb3Context();
+  console.log("IDX");
+  console.log(idx);
   const [activeCurrency, setActiveCurrency] = useState("ETH");
 
   const [contributorName, setContributorName] = useState("");
@@ -103,10 +106,14 @@ const GuildContribute: React.FC = () => {
     //   recipients
     // );
     console.log("here");
-    idx?.set("contributorProfile", {
-      name: contributorName,
-      email: contributorEmail
-    });
+
+    await idx
+      ?.set("contributorProfile", {
+        name: contributorName,
+        email: contributorEmail,
+        address: account
+      })
+      .catch(err => console.error(`Failed to save: ${err}`));
     console.log("Saved");
   };
 
@@ -122,7 +129,7 @@ const GuildContribute: React.FC = () => {
         setContributorName(profile.name);
       }
       if (!contributorEmail) {
-        setContributorName(profile.email);
+        setContributorEmail(profile.email);
       }
     }
   };
@@ -139,14 +146,17 @@ const GuildContribute: React.FC = () => {
     _fetchGuild();
   }, []);
 
-  // useEffect(() => {
-  //   const setProfile = async () => {
-  //     await setContributorProfile();
-  //   };
-  //   if (idx) {
-  //     setProfile();
-  //   }
-  // }, [idx]);
+  useEffect(() => {
+    const setProfile = async () => {
+      await setContributorProfile();
+    };
+    console.log("Setting Profile Possibly called");
+    console.log(idx);
+    if (idx) {
+      console.log("Setting Profile");
+      setProfile();
+    }
+  }, [idx]);
 
   const connectText = getConnectText();
   return (

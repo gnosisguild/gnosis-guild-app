@@ -75,6 +75,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   const [{ providerChainId, ethersProvider, account }, setWeb3State] = useState(
     initialWeb3State
   );
+  const [idx, setIdx] = useState<IDXApi | null>(null);
   const setWeb3Provider = useCallback(async (initialProvider: any): Promise<
     void
   > => {
@@ -142,7 +143,8 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 		const threeIdProvider = await get3IdProvider()
 		console.log("Got provider")
 		const aliases = {
-			contributorProfile: "kjzl6cwe1jw1493xghc1nffe3ub8kp4iey2bnkly68eqmhd18e98y0r5isf7906",
+			// streamID kjzl6cwe1jw146dkd59jdgyci4l1qcldhzfh33rjxjam8ddohw0tri8o5dio2kn
+			contributorProfile: "kjzl6cwe1jw147hrqhk7ho3awg5cf3l4x83y2e7l2thcemakdxv5eti8bwhklui",
 		}
 
 		console.log(ceramic)
@@ -152,6 +154,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 		await did.authenticate()
 		await ceramic.setDID(did)
     const idx = new IDX({ ceramic, aliases })
+		setIdx(idx)
 		// This may be useful ceramic.did
     return idx.id
 	};
@@ -164,9 +167,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     })();
   }, [connectToWeb3]);
 
-  return (
-    <Web3Context.Provider
-      value={{
+	let values = {
         connectToWeb3,
 				authenticateCeramic,
         disconnect,
@@ -174,7 +175,14 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         account,
         providerChainId,
         getConnectText
-      }}
+      } as Web3ContextValue
+	if (idx) {
+		values = {idx: idx, ...values}
+	}
+
+  return (
+    <Web3Context.Provider
+      value={values}
     >
       {children}
     </Web3Context.Provider>
