@@ -50,7 +50,8 @@
     "serve-dev": "node server.js",
     "serve": "yarn build && node server.js",
     "ceramic": "ceramic daemon",
-    "deploy-schema": "node ./scripts/build_schema.js"
+    "deploy-schema": "node ./scripts/build_schema.js",
+    "generate-did": "node ./scripts/generate_did.js"
   },
   "eslintConfig": {
     "extends": [
@@ -73,5 +74,10 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@ceramicnetwork/3id-did-resolver": "^1.2.6",
+    "dids": "^2.1.0",
+    "key-did-resolver": "^1.2.1",
+    "uint8arrays": "^2.1.5"
+  }
 }

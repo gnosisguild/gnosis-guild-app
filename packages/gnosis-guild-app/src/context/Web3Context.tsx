@@ -143,7 +143,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 		const threeIdProvider = await get3IdProvider()
 		console.log("Got provider")
 		const aliases = {
-			// streamID kjzl6cwe1jw146dkd59jdgyci4l1qcldhzfh33rjxjam8ddohw0tri8o5dio2kn
 			contributorProfile: "kjzl6cwe1jw147hrqhk7ho3awg5cf3l4x83y2e7l2thcemakdxv5eti8bwhklui",
 		}
 
