@@ -65,14 +65,21 @@ const GuildContribute: React.FC = () => {
 
   const submitContribution = async () => {
     setLoading(true);
-    await subscribe(
-      providerChainId,
-      ethersProvider,
-      guildId,
-      guildMinimumAmount, {
-        name: contributorName,
-        email: contributorEmail,
-      });
+    try {
+      await subscribe(
+        providerChainId,
+        ethersProvider,
+        guildId,
+        guildMetadata?.tokenAddress,
+        guildMinimumAmount, {
+          name: contributorName,
+          email: contributorEmail,
+        });
+      
+    } catch (error) {
+      // TODO: Show an pop-up error
+
+    }
     setLoading(false);
   }
 

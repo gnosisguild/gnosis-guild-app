@@ -302,6 +302,7 @@ export const useGuild = () => {
     chainId: number,
     ethersProvider: ethers.providers.Web3Provider,
     guildAddress: string,
+    guildToken: string,
     value: string,
     metadata: {
       name: string;
@@ -313,6 +314,7 @@ export const useGuild = () => {
       chainId,
       await ethersProvider.getSigner().getAddress(),
       guildAddress,
+      guildToken,
       value,
       metadata
     );
@@ -329,13 +331,29 @@ export const useGuild = () => {
 
     // TODO: save metadata on the GuildApp Space (e.g. 3box or 3ID?)
     console.log("Metadata to be saved", metadata);
-    // TOOD:  generate tokenURI
+    // TODO:  generate tokenURI
     const tokenURI = "";
     const bnValue = ethers.utils.parseEther(value);
 
+    if (guildToken !== ethers.constants.AddressZero) {
+      console.log('Should send Token...');
+      // TODO: This should be done using a batch Tx & replaced using the recurring allowance module
+      const erc20Abi = [
+        "function approve(address spender, uint256 amount) public returns (bool)"
+      ];
+      const tokenContract = new Contract(
+        guildToken,
+        erc20Abi,
+        ethersProvider.getSigner()
+      );
+      await tokenContract.approve(guildAddress, bnValue.toString());
+    }
+
     const args = [tokenURI, bnValue.toString(), "0x"];
     console.log("Subscribe args", ...args);
-    await guildContract.subscribe(...args);
+    await guildContract.subscribe(...args, {
+      value: guildToken === ethers.constants.AddressZero ? bnValue.toString(): "0"
+    });
   };
 
   return {
