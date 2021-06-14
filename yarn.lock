@@ -8663,7 +8663,7 @@ dicer@0.2.5:
     readable-stream "1.1.x"
     streamsearch "0.1.2"
 
-did-jwt@^5.0.0:
+did-jwt@^5.0.0, did-jwt@^5.0.1:
   version "5.6.1"
   resolved "https://registry.yarnpkg.com/did-jwt/-/did-jwt-5.6.1.tgz#229b63cfa82c80bf96704b96e32b2ad79b63b157"
   integrity sha512-p2IpvJmfc+2o23BD1e5LHGnNb9ZMd3rUTAjetmoPfZgMWpo+CgZzsz6Y9r5MCb3PQjUs/OOO+MiP2xGr0DyggQ==
@@ -13744,6 +13744,17 @@ keccak@^2.0.0:
     inherits "^2.0.4"
     nan "^2.14.0"
     safe-buffer "^5.2.0"
+
+key-did-provider-ed25519@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/key-did-provider-ed25519/-/key-did-provider-ed25519-1.1.0.tgz#4c8bb9581352457faa0593d46e77dad9aa16f3ba"
+  integrity sha512-kSxpmqYvTCXKTiApgVep3kTqEpUyRMQktaS3R1TD1Y1GbjFLG1RKShQ5qZRK7Z7Gar15Ym3tk3kMjYg76Xe6zQ==
+  dependencies:
+    "@stablelib/ed25519" "^1.0.1"
+    did-jwt "^5.0.1"
+    fast-json-stable-stringify "^2.1.0"
+    rpc-utils "^0.3.4"
+    uint8arrays "^2.1.5"
 
 key-did-resolver@^1.2.1:
   version "1.2.1"
