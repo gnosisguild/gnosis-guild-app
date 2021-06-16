@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "ContributorsCSV",
+  "type": "object",
+  "properties": {
+    "csv": {
+      "type": "string"
+    }
+  },
+  "required": ["csv"]
+}

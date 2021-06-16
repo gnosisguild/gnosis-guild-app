@@ -61,6 +61,7 @@ const GuildContribute: React.FC = () => {
   } = useWeb3Context();
   console.log("IDX");
   console.log(idx);
+  console.log(did);
   const [activeCurrency, setActiveCurrency] = useState("ETH");
 
   const [contributorName, setContributorName] = useState("");
