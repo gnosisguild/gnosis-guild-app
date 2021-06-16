@@ -76,6 +76,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     initialWeb3State
   );
   const [idx, setIdx] = useState<IDXApi | null>(null);
+  const [did, setDid] = useState<DID | null>(null);
   const setWeb3Provider = useCallback(async (initialProvider: any): Promise<
     void
   > => {
@@ -156,6 +157,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 
 		await did.authenticate()
 		await ceramic.setDID(did)
+		setDid(did)
     const idx = new IDX({ ceramic, aliases })
 		setIdx(idx)
 		// This may be useful ceramic.did
@@ -181,6 +183,10 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       } as Web3ContextValue
 	if (idx) {
 		values = {idx: idx, ...values}
+	}
+
+ if (did) {
+	 values = {did: did, ...values}
 	}
 
   return (
