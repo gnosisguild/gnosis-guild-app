@@ -5,13 +5,15 @@ const { exec } = require("child_process");
 const util = require("util");
 const execP = util.promisify(exec);
 
+require("dotenv").config();
+
+const did = process.env.SCHEMA_DID;
+
 const escapedContributorSchema = JSON.stringify(contributorSchema);
 const escapedContributorsCSVSchema = JSON.stringify(contributorCSVSchema);
 const escapedGuildCSVMappingSchema = JSON.stringify(guildCSVMappingSchema);
 
-execP(
-  `idx schema:publish did:key:z6MkvVDYv8tbsHt71thPou827LLnHGjgjtMQSeUUBRE6pYAD '${escapedContributorSchema}'`
-)
+execP(`idx schema:publish ${did} '${escapedContributorSchema}'`)
   .then(resp => {
     console.log(resp);
     console.log(resp.stdout);
@@ -21,9 +23,7 @@ execP(
     console.error(err);
   });
 
-execP(
-  `idx schema:publish did:key:z6MkfR7Kj5kn3XZTooPGLU22ztPSmmzCnkYTB7ifibwBfBcu '${escapedContributorsCSVSchema}'`
-)
+execP(`idx schema:publish ${did} '${escapedContributorsCSVSchema}'`)
   .then(resp => {
     console.log(resp);
     console.log(resp.stdout);
@@ -33,9 +33,7 @@ execP(
     console.error(err);
   });
 
-execP(
-  `idx schema:publish did:key:z6MkfR7Kj5kn3XZTooPGLU22ztPSmmzCnkYTB7ifibwBfBcu '${escapedGuildCSVMappingSchema}'`
-)
+execP(`idx schema:publish ${did} '${escapedGuildCSVMappingSchema}'`)
   .then(resp => {
     console.log(resp);
     console.log(resp.stdout);

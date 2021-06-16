@@ -59,9 +59,6 @@ const GuildContribute: React.FC = () => {
     did,
     account
   } = useWeb3Context();
-  console.log("IDX");
-  console.log(idx);
-  console.log(did);
   const [activeCurrency, setActiveCurrency] = useState("ETH");
 
   const [contributorName, setContributorName] = useState("");
@@ -97,16 +94,8 @@ const GuildContribute: React.FC = () => {
   };
 
   const saveContributorProfile = async () => {
-    // If not there then create create
-    // TODO: ADD node server
-    console.log(did);
     const recipients = [did?.id as string];
-    // Add encryption later
-    // const encryptedProfile = await did?.createDagJWE(
-    //   { name: contributorName, email: contributorEmail },
-    //   recipients
-    // );
-    console.log("here");
+    // TODO: Add encryption later
 
     await idx
       ?.set("contributorProfile", {
@@ -115,16 +104,12 @@ const GuildContribute: React.FC = () => {
         address: account
       })
       .catch(err => console.error(`Failed to save: ${err}`));
-    console.log("Saved");
   };
 
   const setContributorProfile = async () => {
     const profile = (await idx?.get(
       "contributorProfile"
     )) as ContributorProfile;
-    console.log(idx);
-    console.log("Profile");
-    console.log(profile);
     if (profile) {
       if (!contributorName) {
         setContributorName(profile.name);
@@ -138,7 +123,6 @@ const GuildContribute: React.FC = () => {
   useEffect(() => {
     const _fetchGuild = async () => {
       const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
-      console.log("META", meta);
       if (meta) {
         setGuildMetadata(meta);
       }
@@ -151,10 +135,7 @@ const GuildContribute: React.FC = () => {
     const setProfile = async () => {
       await setContributorProfile();
     };
-    console.log("Setting Profile Possibly called");
-    console.log(idx);
     if (idx) {
-      console.log("Setting Profile");
       setProfile();
     }
   }, [idx]);

@@ -123,15 +123,8 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   }, [account]);
 
   const get3IdProvider = async () => {
-		console.log(ethersProvider)
-		console.log(account)
     const authProvider = new EthereumAuthProvider(window.ethereum, account);
-		console.log(authProvider)
-		const x = await authProvider.accountId()
-		console.log("AccountId")
-		console.log(x)
     await threeIdConnect.connect(authProvider);
-		console.log("Conected")
 		return threeIdConnect.getDidProvider()
   };
 
@@ -139,19 +132,15 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 		if (!account) {
 			return ""
 		}
-		console.log("account")
-		console.log(account)
      const ceramic = await new Ceramic("https://ceramic-clay.3boxlabs.com") as CeramicApi
 
 		const threeIdProvider = await get3IdProvider()
-		console.log("Got provider")
 		const aliases = {
 			contributorProfile: "kjzl6cwe1jw147hrqhk7ho3awg5cf3l4x83y2e7l2thcemakdxv5eti8bwhklui",
 			contributorCSV: "kjzl6cwe1jw1475xzl8f0zydr6dinz0akseglx7hja6a13na2l29hh65knps18b",
 			guildCSVMapping: "kjzl6cwe1jw146k5uh5ayrozixpj99jeamsx0tcrc1dnwenshbc8r9ou44ckmin"
 		}
 
-		console.log(ceramic)
 		const resolver = new Resolver({ ...ThreeIdResolver.getResolver(ceramic) })
     const did = new DID({ provider: threeIdProvider , resolver })
 

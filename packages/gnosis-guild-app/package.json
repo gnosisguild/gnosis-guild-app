@@ -55,7 +55,7 @@
     "serve": "yarn build && node ./server/server.js",
     "ceramic": "ceramic daemon",
     "deploy-schema": "node ./scripts/build_schema.js",
-    "contributor-list": "node ./jobs/main.ts"
+    "contributor-list": "tsc ./jobs/main.ts && node ./job/main.js"
   },
   "eslintConfig": {
     "extends": [
