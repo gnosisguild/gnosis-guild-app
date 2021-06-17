@@ -1,14 +1,13 @@
-import type { CeramicApi } from "@ceramicnetwork/common";
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import { DID } from "dids";
 import KeyDidResolver from "key-did-resolver";
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import Ceramic from "@ceramicnetwork/http-client";
-import { Caip10Link } from "@ceramicnetwork/stream-caip10-link"
-import { IDX } from '@ceramicstudio/idx'
+import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
+import { IDX } from "@ceramicstudio/idx";
+import { ethers } from "ethers";
 
-import { parse } from 'json2csv';
-
+import { parse } from "json2csv";
 
 const graphqlRequest = require("graphql-request");
 
@@ -20,7 +19,9 @@ const SUBGRAPH_URL = process.env.SUBGRAPH_URL;
 const NETWORK = process.env.NETWORK;
 let lastGuildID = "";
 let lastContributorID = "";
-const DATE = Date.now().toString().substr(0, 10);
+const DATE = Date.now()
+  .toString()
+  .substr(0, 10);
 
 const fetchGuilds = async () => {
   const fetchGuildQuery = graphqlRequest.gql`
@@ -32,7 +33,7 @@ const fetchGuilds = async () => {
     `;
   try {
     const resp = await graphqlRequest.request(SUBGRAPH_URL, fetchGuildQuery, {
-      lastID: lastGuildID,
+      lastID: lastGuildID
     });
     if (resp && resp.guilds && resp.guilds.length > 0) {
       return resp.guilds;
@@ -43,7 +44,7 @@ const fetchGuilds = async () => {
   return [];
 };
 
-const fetchContributors = async (guild: string) => {
+const fetchContributors = async guild => {
   // TODO: Should expires be same day
   const fetchContributors = graphqlRequest.gql`
 	    query getContributors($lastID: String, $date: String, $guild: String) {
@@ -57,7 +58,7 @@ const fetchContributors = async (guild: string) => {
     const resp = await graphqlRequest.request(SUBGRAPH_URL, fetchContributors, {
       lastID: lastContributorID,
       date: DATE,
-			guild: guild,
+      guild: guild
     });
     if (resp && resp.guildSubscriptions && resp.guildSubscriptions.length > 0) {
       return resp.guildSubscriptions;
@@ -69,12 +70,10 @@ const fetchContributors = async (guild: string) => {
 };
 
 const setupCeramic = async () => {
-  const ceramic = new Ceramic(
-    "https://ceramic-clay.3boxlabs.com"
-  ) as CeramicApi;
+  const ceramic = new Ceramic("https://ceramic-clay.3boxlabs.com");
   const resolver = {
     ...KeyDidResolver.getResolver(),
-    ...ThreeIdResolver.getResolver(ceramic),
+    ...ThreeIdResolver.getResolver(ceramic)
   };
   const seed = process.env.NODE_WALLET_SEED.split(",");
 
@@ -88,42 +87,62 @@ const setupCeramic = async () => {
 
 // Convert id to did
 const ethAddressToDID = async (address, ceramic) => {
-	const link = await Caip10Link.fromAccount(ceramic, address+'@eip155:1' )
-	return link.did
+  const link = await Caip10Link.fromAccount(
+    ceramic,
+    ethers.utils.getAddress(address) + "@eip155:4"
+  );
+  return link.did;
 };
 
 const main = async () => {
   const ceramic = await setupCeramic();
-		const aliases = {
-			contributorProfile: "kjzl6cwe1jw147hrqhk7ho3awg5cf3l4x83y2e7l2thcemakdxv5eti8bwhklui",
-			contributorCSV: "kjzl6cwe1jw1475xzl8f0zydr6dinz0akseglx7hja6a13na2l29hh65knps18b",
-			guildCSVMapping: "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t"
-		}
-   const idx = new IDX({ ceramic, aliases })
-
+  const aliases = {
+    contributorProfile:
+      "kjzl6cwe1jw147hrqhk7ho3awg5cf3l4x83y2e7l2thcemakdxv5eti8bwhklui",
+    contributorCSV:
+      "kjzl6cwe1jw1475xzl8f0zydr6dinz0akseglx7hja6a13na2l29hh65knps18b",
+    guildCSVMapping:
+      "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t"
+  };
+  const idx = new IDX({ ceramic, aliases });
 
   const guilds = await fetchGuilds();
   let contributors = [];
   for (const guild of guilds) {
-		contributors = []
+    contributors = [];
     // get contributors from subgraph
     const activeContributors = await fetchContributors(guild.id);
     for (const contributor of activeContributors) {
       const did = await ethAddressToDID(contributor.owner, ceramic);
-			// Ignore and work with working cid
-			const profile = await idx.get("contributorProfile", 'did:3:kjzl6cwe1jw146kdpi7tdxw3tl7i9dj7sfyzwbsmo62xij83sf870aln9qecfym')
-			// Add and construnct CSV
-			contributors.push({"name": profile.name, "email": profile.email, "address": profile.address})
+      // Ignore and work with working cid
+      const profile = await idx.get("contributorProfile", did);
+      console.log(did);
+      console.log(profile);
+      // Add and construnct CSV
+      if (profile) {
+        contributors.push({
+          name: profile.name,
+          email: profile.email,
+          address: profile.address
+        });
+      }
     }
-		if (contributors.length > 0) {
-		  const csv = parse(contributors);
-			const record =  await idx.set("contributorCSV", {"csv": csv})
-			await ceramic.pin.add(record)
-			const merged = await idx.merge("guildCSVMapping", {[guild.id]: record.cid.toString()})
-			await ceramic.pin.add(merged)
-		}
+    if (contributors.length > 0) {
+      const csv = parse(contributors);
+      const record = await idx.set("contributorCSV", { csv: csv });
+      await ceramic.pin.add(record);
+      const merged = await idx.merge("guildCSVMapping", {
+        [guild.id]: record.cid.toString()
+      });
+      await ceramic.pin.add(merged);
+      console.log(merged);
+      // Add encryption
+      // 1. Redefine schemas to be encryption friendly
+      // 2.
+      // Potentially share another way
+      // Add fetch on download button
+    }
   }
-
 
   // update last guild id
   // upate last contributor id

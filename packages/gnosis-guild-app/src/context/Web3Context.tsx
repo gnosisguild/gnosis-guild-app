@@ -11,6 +11,8 @@ import type { IDX as IDXApi } from '@ceramicstudio/idx'
 import { DID, DIDProvider } from 'dids'
 import {Resolver} from 'did-resolver'
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
+import KeyDidResolver from "key-did-resolver";
+
 
 
 
@@ -141,7 +143,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 			guildCSVMapping: "kjzl6cwe1jw146k5uh5ayrozixpj99jeamsx0tcrc1dnwenshbc8r9ou44ckmin"
 		}
 
-		const resolver = new Resolver({ ...ThreeIdResolver.getResolver(ceramic) })
+		const resolver = new Resolver({ ...ThreeIdResolver.getResolver(ceramic), ...KeyDidResolver.getResolver() })
     const did = new DID({ provider: threeIdProvider , resolver })
 
 		await did.authenticate()
