@@ -100,7 +100,7 @@ const main = async () => {
     contributorProfile:
       "kjzl6cwe1jw14946qcgwbeixkh2ou9hwn29zv331akhfr61a44klf9ukg9jxz8g",
     contributorCSV:
-      " kjzl6cwe1jw14agavukkr2w9qtay6eaxddurgvelnrnf7m74z1s2hofxp15dfea",
+      "kjzl6cwe1jw14agavukkr2w9qtay6eaxddurgvelnrnf7m74z1s2hofxp15dfea",
     guildCSVMapping:
       "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t"
   };
@@ -115,11 +115,14 @@ const main = async () => {
     for (const contributor of activeContributors) {
       const did = await ethAddressToDID(contributor.owner, ceramic);
       // Ignore and work with working cid
-      const profile = await idx.get("contributorProfile", did);
+      const encryptedProfile = await idx.get("contributorProfile", did);
       console.log(did);
-      console.log(profile);
+      console.log(encryptedProfile);
       // Add and construnct CSV
-      if (profile) {
+      if (encryptedProfile) {
+        const profile = await ceramic.did?.decryptDagJWE(
+          encryptedProfile.profile
+        );
         contributors.push({
           name: profile.name,
           email: profile.email,
@@ -129,7 +132,10 @@ const main = async () => {
     }
     if (contributors.length > 0) {
       const csv = parse(contributors);
-      const record = await idx.set("contributorCSV", { csv: csv });
+      const encryptedCSV = await ceramic.did?.createDagJWE(csv, [
+        ceramic.did?.id
+      ]);
+      const record = await idx.set("contributorCSV", { csv: encryptedCSV });
       await ceramic.pin.add(record);
       const merged = await idx.merge("guildCSVMapping", {
         [guild.id]: record.cid.toString()
