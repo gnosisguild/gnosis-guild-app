@@ -1,27 +1,44 @@
 import React, { useContext, useCallback, useEffect, useState } from "react";
 import { SafeAppWeb3Modal as Web3Modal } from "@gnosis.pm/safe-apps-web3modal";
 
+import { EthereumAuthProvider, ThreeIdConnect } from "@3id/connect";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ethers } from "ethers";
+import type { CeramicApi } from '@ceramicnetwork/common'
+import Ceramic from '@ceramicnetwork/http-client'
+import { IDX } from '@ceramicstudio/idx'
+import type { IDX as IDXApi } from '@ceramicstudio/idx'
+import { DID, DIDProvider } from 'dids'
+import {Resolver} from 'did-resolver'
+import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
+import KeyDidResolver from "key-did-resolver";
+
+
+
+
 
 import { networks } from "../constants";
 
 export type Web3ContextValue = {
   connectToWeb3: () => void;
+	authenticateCeramic: () => Promise<string>;
   disconnect: () => void;
   getConnectText: () => string;
   ethersProvider: ethers.providers.Web3Provider;
   account: string;
   providerChainId: number;
+  idx?: IDXApi;
+  did?: DID;
 };
 
 const initialWeb3Context = {
   connectToWeb3: () => {},
+	authenticateCeramic: async () => "",
   disconnect: () => {},
   getConnectText: () => "",
   ethersProvider: new ethers.providers.Web3Provider(window.ethereum),
   account: "",
-  providerChainId: 0
+  providerChainId: 0,
 };
 
 export const Web3Context = React.createContext<Web3ContextValue>(
@@ -47,6 +64,9 @@ const web3Modal = new Web3Modal({
   disableInjectedProvider: false
 });
 
+
+const threeIdConnect = new ThreeIdConnect();
+
 const initialWeb3State = {
   ethersProvider: new ethers.providers.Web3Provider(window.ethereum),
   account: "",
@@ -57,6 +77,8 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   const [{ providerChainId, ethersProvider, account }, setWeb3State] = useState(
     initialWeb3State
   );
+  const [idx, setIdx] = useState<IDXApi | null>(null);
+  const [did, setDid] = useState<DID | null>(null);
   const setWeb3Provider = useCallback(async (initialProvider: any): Promise<
     void
   > => {
@@ -102,6 +124,37 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       : "Connect to a Wallet";
   }, [account]);
 
+  const get3IdProvider = async () => {
+    const authProvider = new EthereumAuthProvider(window.ethereum, account);
+    await threeIdConnect.connect(authProvider);
+		return threeIdConnect.getDidProvider()
+  };
+
+  const authenticateCeramic = async (): Promise<string> => {
+		if (!account) {
+			return ""
+		}
+     const ceramic = await new Ceramic("https://ceramic-clay.3boxlabs.com") as CeramicApi
+
+		const threeIdProvider = await get3IdProvider()
+		const aliases = {
+			contributorProfile: "kjzl6cwe1jw147hrqhk7ho3awg5cf3l4x83y2e7l2thcemakdxv5eti8bwhklui",
+			contributorCSV: "kjzl6cwe1jw1475xzl8f0zydr6dinz0akseglx7hja6a13na2l29hh65knps18b",
+			guildCSVMapping: "kjzl6cwe1jw146k5uh5ayrozixpj99jeamsx0tcrc1dnwenshbc8r9ou44ckmin"
+		}
+
+		const resolver = new Resolver({ ...ThreeIdResolver.getResolver(ceramic), ...KeyDidResolver.getResolver() })
+    const did = new DID({ provider: threeIdProvider , resolver })
+
+		await did.authenticate()
+		await ceramic.setDID(did)
+		setDid(did)
+    const idx = new IDX({ ceramic, aliases })
+		setIdx(idx)
+		// This may be useful ceramic.did
+    return idx.id
+	};
+
   useEffect(() => {
     (async (): Promise<void> => {
       if (await web3Modal.isSafeApp()) {
@@ -110,16 +163,26 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     })();
   }, [connectToWeb3]);
 
-  return (
-    <Web3Context.Provider
-      value={{
+	let values = {
         connectToWeb3,
+				authenticateCeramic,
         disconnect,
         ethersProvider,
         account,
         providerChainId,
         getConnectText
-      }}
+      } as Web3ContextValue
+	if (idx) {
+		values = {idx: idx, ...values}
+	}
+
+ if (did) {
+	 values = {did: did, ...values}
+	}
+
+  return (
+    <Web3Context.Provider
+      value={values}
     >
       {children}
     </Web3Context.Provider>
