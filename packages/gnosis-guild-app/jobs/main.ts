@@ -98,9 +98,9 @@ const main = async () => {
   const ceramic = await setupCeramic();
   const aliases = {
     contributorProfile:
-      "kjzl6cwe1jw147hrqhk7ho3awg5cf3l4x83y2e7l2thcemakdxv5eti8bwhklui",
+      "kjzl6cwe1jw14946qcgwbeixkh2ou9hwn29zv331akhfr61a44klf9ukg9jxz8g",
     contributorCSV:
-      "kjzl6cwe1jw1475xzl8f0zydr6dinz0akseglx7hja6a13na2l29hh65knps18b",
+      " kjzl6cwe1jw14agavukkr2w9qtay6eaxddurgvelnrnf7m74z1s2hofxp15dfea",
     guildCSVMapping:
       "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t"
   };

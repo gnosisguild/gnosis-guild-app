@@ -3,19 +3,32 @@
   "title": "ContributorProfile",
   "type": "object",
   "properties": {
-    "name": {
-      "type": "string",
-      "maxLength": 50
-    },
-    "email": {
-      "type": "string",
-      "maxLength": 200,
-      "format": "email"
-    },
-    "address": {
-      "type": "string",
-      "maxLength": 200
-    }
+    "profile": { "$ref": "#/definitions/ProfileJWE" }
   },
-  "required": ["name", "email", "address"]
+  "required": ["profile"],
+  "additionalProperties": false,
+  "definitions": {
+    "ProfileJWE": {
+      "type": "object",
+      "properties": {
+        "protected": { "type": "string" },
+        "iv": { "type": "string" },
+        "ciphertext": { "type": "string" },
+        "tag": { "type": "string" },
+        "aad": { "type": "string" },
+        "recipients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "header": { "type": "object" },
+              "encrypted_key": { "type": "string" }
+            },
+            "required": ["header", "encrypted_key"]
+          }
+        }
+      },
+      "required": ["protected", "iv", "ciphertext", "tag"]
+    }
+  }
 }

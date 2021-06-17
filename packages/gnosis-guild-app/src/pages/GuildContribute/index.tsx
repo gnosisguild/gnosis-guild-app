@@ -93,10 +93,17 @@ const GuildContribute: React.FC = () => {
     setLoading(false);
   };
 
+  //contributor
+  //ceramic://k3y52l7qbv1frxvd2983wdii0elx5tivrrnyxep30j34f7qfz679cid1cesqmyz28
+  // csv
+  // ceramic://k3y52l7qbv1frxvv2uuiccpr9osah058nzopmekjgplc3kwdb9zsrtk0bljl9ka2o
+
   const saveContributorProfile = async () => {
+    console.log("DID");
+    console.log(did?.id);
     const recipients = [
       did?.id as string,
-      "did:key:z6MkuCGtjBKamt3RaLSjGYcViKYRrmaH7BAavD6o6CESoQBo"
+      "did:key:z6MkuCGtjBKamt3RaLSjGYcViKYRrmaH7BAavD6o6CESoQBo" // Server DID
     ];
     // "did:key:z6MkuCGtjBKamt3RaLSjGYcViKYRrmaH7BAavD6o6CESoQBo"
     // Add encryption later
@@ -115,15 +122,13 @@ const GuildContribute: React.FC = () => {
       },
       recipients
     );
+    // Get the schema right
+    // Decrypt and encrypt
 
     console.log("record", record);
     if (record) {
       const r = await idx
-        ?.set("contributorProfile", {
-          name: contributorName,
-          email: contributorEmail,
-          address: account
-        })
+        ?.set("contributorProfile", { profile: record })
         .catch(err => console.error(`Failed to save: ${err}`));
       console.log("Saved");
       console.log(r);
@@ -131,14 +136,18 @@ const GuildContribute: React.FC = () => {
   };
 
   const setContributorProfile = async () => {
-    // const encryptedProfile = (await idx?.get("contributorProfile")) as any;
-    // console.log(encryptedProfile);
-    // const profile = await did?.decryptDagJWE(encryptedProfile);
-    const example = await idx?.get("cryptoAccounts");
-    console.log("Accounts");
-    console.log(example);
-    const profile = (await idx?.get(
-      "contributorProfile"
+    if (!did) {
+      return;
+    }
+    const encryptedProfile = (await idx?.get(
+      "contributorProfile",
+      did.id
+    )) as any;
+    if (!encryptedProfile) {
+      return;
+    }
+    const profile = (await did?.decryptDagJWE(
+      encryptedProfile.profile
     )) as ContributorProfile;
     if (profile) {
       if (!contributorName) {
