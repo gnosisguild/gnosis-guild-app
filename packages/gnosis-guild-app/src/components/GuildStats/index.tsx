@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
+import axios from "axios";
 import { ethers } from "ethers";
 import {
   Button,
@@ -10,7 +11,7 @@ import {
 } from "@gnosis.pm/safe-react-components";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
-import { APP_DOMAIN } from "../../constants";
+import { API, APP_DOMAIN } from "../../constants";
 import { fetchGuild } from "../../graphql";
 
 const ProfileImage = styled.img`
@@ -50,6 +51,8 @@ const GuildStats: React.FC = () => {
   const [numTokens, setNumTokens] = useState("0");
   const [numContributors, setNumContributors] = useState(0);
   const { guildMetadata } = useGuildContext();
+  const hiddenAnchor = useRef<HTMLAnchorElement>(null);
+  const fileUrl = "";
   const { account, ethersProvider, providerChainId } = useWeb3Context();
 
   useEffect(() => {
@@ -65,6 +68,19 @@ const GuildStats: React.FC = () => {
     };
     getTokens();
   }, [providerChainId, fetchGuild, guildMetadata.guildAddress]);
+
+  const downloadContributors = async () => {
+    const resp = await axios.get(
+      `${API}/api/v1/contributorList?guildAddress=${guildMetadata.guildAddress}`
+    );
+    const data = new Blob([resp.data]);
+    const url = URL.createObjectURL(data);
+    const anchor = hiddenAnchor?.current;
+    if (anchor) {
+      anchor.href = url;
+    }
+    anchor?.click();
+  };
 
   return (
     <div style={{ width: "100%" }}>
@@ -114,9 +130,23 @@ const GuildStats: React.FC = () => {
         </Card>
       </StatItemContainer>
       <ButtonContainer>
-        <Button size="lg" color="primary" variant="contained">
+        <Button
+          size="lg"
+          color="primary"
+          variant="contained"
+          onClick={downloadContributors}
+        >
           Download Contributors List
         </Button>
+        <a
+          ref={hiddenAnchor}
+          download="contributors.csv"
+          type="text/csv"
+          style={{ display: "none" }}
+          href={fileUrl}
+        >
+          Download
+        </a>
       </ButtonContainer>
       <Text size="sm">Last updated 11 November at 10:46 UTC</Text>
     </div>

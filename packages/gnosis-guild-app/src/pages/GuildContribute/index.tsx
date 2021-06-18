@@ -73,40 +73,32 @@ const GuildContribute: React.FC = () => {
 
   const submitContribution = async () => {
     setLoading(true);
-    // try {
-    //   await subscribe(
-    //     providerChainId,
-    //     ethersProvider,
-    //     guildId,
-    //     guildMetadata?.tokenAddress,
-    //     guildMinimumAmount,
-    //     {
-    //       name: contributorName,
-    //       email: contributorEmail
-    //     }
-    //   );
-    // } catch (error) {
-    //   // TODO: Show an pop-up error
-    // }
-    // set profile
+    try {
+      await subscribe(
+        providerChainId,
+        ethersProvider,
+        guildId,
+        guildMetadata?.tokenAddress,
+        guildMinimumAmount,
+        {
+          name: contributorName,
+          email: contributorEmail
+        }
+      );
+    } catch (error) {
+      // TODO: Show an pop-up error
+    }
     await saveContributorProfile();
     setLoading(false);
   };
 
   const saveContributorProfile = async () => {
+    console.log("DID");
+    console.log(did?.id);
     const recipients = [
       did?.id as string,
-      "did:key:z6MkuCGtjBKamt3RaLSjGYcViKYRrmaH7BAavD6o6CESoQBo"
+      "did:key:z6MkuCGtjBKamt3RaLSjGYcViKYRrmaH7BAavD6o6CESoQBo" // Server DID
     ];
-    // "did:key:z6MkuCGtjBKamt3RaLSjGYcViKYRrmaH7BAavD6o6CESoQBo"
-    // Add encryption later
-    // const encryptedProfile = await did?.createDagJWE(
-    //   { name: contributorName, email: contributorEmail },
-    //   recipients
-    // );
-    console.log("here");
-    console.log("dag");
-    console.log(did);
     const record = await did?.createDagJWE(
       {
         name: contributorName,
@@ -116,29 +108,26 @@ const GuildContribute: React.FC = () => {
       recipients
     );
 
-    console.log("record", record);
     if (record) {
       const r = await idx
-        ?.set("contributorProfile", {
-          name: contributorName,
-          email: contributorEmail,
-          address: account
-        })
+        ?.set("contributorProfile", { profile: record })
         .catch(err => console.error(`Failed to save: ${err}`));
-      console.log("Saved");
-      console.log(r);
     }
   };
 
   const setContributorProfile = async () => {
-    // const encryptedProfile = (await idx?.get("contributorProfile")) as any;
-    // console.log(encryptedProfile);
-    // const profile = await did?.decryptDagJWE(encryptedProfile);
-    const example = await idx?.get("cryptoAccounts");
-    console.log("Accounts");
-    console.log(example);
-    const profile = (await idx?.get(
-      "contributorProfile"
+    if (!did) {
+      return;
+    }
+    const encryptedProfile = (await idx?.get(
+      "contributorProfile",
+      did.id
+    )) as any;
+    if (!encryptedProfile) {
+      return;
+    }
+    const profile = (await did?.decryptDagJWE(
+      encryptedProfile.profile
     )) as ContributorProfile;
     if (profile) {
       if (!contributorName) {

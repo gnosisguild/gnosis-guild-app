@@ -8,7 +8,7 @@ import type { CeramicApi } from '@ceramicnetwork/common'
 import Ceramic from '@ceramicnetwork/http-client'
 import { IDX } from '@ceramicstudio/idx'
 import type { IDX as IDXApi } from '@ceramicstudio/idx'
-import { DID, DIDProvider } from 'dids'
+import { DID } from 'dids'
 import {Resolver} from 'did-resolver'
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import KeyDidResolver from "key-did-resolver";
@@ -138,8 +138,8 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 
 		const threeIdProvider = await get3IdProvider()
 		const aliases = {
-			contributorProfile: "kjzl6cwe1jw147hrqhk7ho3awg5cf3l4x83y2e7l2thcemakdxv5eti8bwhklui",
-			contributorCSV: "kjzl6cwe1jw1475xzl8f0zydr6dinz0akseglx7hja6a13na2l29hh65knps18b",
+			contributorProfile: "kjzl6cwe1jw14946qcgwbeixkh2ou9hwn29zv331akhfr61a44klf9ukg9jxz8g",
+			contributorCSV: "kjzl6cwe1jw14agavukkr2w9qtay6eaxddurgvelnrnf7m74z1s2hofxp15dfea",
 			guildCSVMapping: "kjzl6cwe1jw146k5uh5ayrozixpj99jeamsx0tcrc1dnwenshbc8r9ou44ckmin"
 		}
 
@@ -151,9 +151,9 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 		setDid(did)
     const idx = new IDX({ ceramic, aliases })
 		setIdx(idx)
-		// This may be useful ceramic.did
     return idx.id
 	};
+
 
   useEffect(() => {
     (async (): Promise<void> => {

@@ -15,7 +15,7 @@ const escapedGuildCSVMappingSchema = JSON.stringify(guildCSVMappingSchema);
 
 execP(`idx schema:publish ${did} '${escapedContributorSchema}'`)
   .then(resp => {
-    console.log(resp);
+    console.log("Contributor Profile");
     console.log(resp.stdout);
     console.error(resp.stderr);
   })
@@ -25,7 +25,7 @@ execP(`idx schema:publish ${did} '${escapedContributorSchema}'`)
 
 execP(`idx schema:publish ${did} '${escapedContributorsCSVSchema}'`)
   .then(resp => {
-    console.log(resp);
+    console.log("Contributor CSV");
     console.log(resp.stdout);
     console.error(resp.stderr);
   })
@@ -33,9 +33,11 @@ execP(`idx schema:publish ${did} '${escapedContributorsCSVSchema}'`)
     console.error(err);
   });
 
+//ceramic://k3y52l7qbv1frxli9be7tgqhymexl50ah5xgdfkltu2skoqrjpp4kgat5v9qif9q8
+
 execP(`idx schema:publish ${did} '${escapedGuildCSVMappingSchema}'`)
   .then(resp => {
-    console.log(resp);
+    console.log("Guild to CSV mapping");
     console.log(resp.stdout);
     console.error(resp.stderr);
   })
