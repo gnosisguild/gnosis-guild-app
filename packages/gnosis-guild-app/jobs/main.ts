@@ -28,6 +28,7 @@ const fetchGuilds = async () => {
       query getGuildByOwner($lastID: String) {
 				guilds(first: ${BATCH_SIZE} where: { id_gt: $lastID, active: true }) {
           id
+					tokenAddress
       }
 		}
     `;
@@ -51,6 +52,10 @@ const fetchContributors = async guild => {
 				guildSubscriptions(first: ${BATCH_SIZE}, where: { id_gt: $lastID, expires_gte: $date, guild: $guild }) {
 					id,
           owner
+					paymentHistory {
+					  id
+						value
+					}
       }
 		}
 	`;
@@ -119,14 +124,26 @@ const main = async () => {
       console.log(did);
       console.log(encryptedProfile);
       // Add and construnct CSV
-      if (encryptedProfile) {
+      if (encryptedProfile && contributor.paymentHistory.length > 0) {
         const profile = await ceramic.did?.decryptDagJWE(
           encryptedProfile.profile
         );
+        // Dai is defaulted to
+        let paymentAmount = contributor.paymentHistory[0].value;
+        let currency = "DAI";
+        console.log(guild.tokenAddress);
+        if (
+          guild.tokenAddress === "0x0000000000000000000000000000000000000000"
+        ) {
+          paymentAmount = ethers.utils.formatEther(paymentAmount);
+          currency = "ETH";
+        }
         contributors.push({
           name: profile.name,
           email: profile.email,
-          address: profile.address
+          address: profile.address,
+          amount: paymentAmount,
+          currency: currency
         });
       }
     }
@@ -144,11 +161,6 @@ const main = async () => {
       });
       await ceramic.pin.add(merged);
       console.log(merged);
-      // Add encryption
-      // 1. Redefine schemas to be encryption friendly
-      // 2.
-      // Potentially share another way
-      // Add fetch on download button
     }
   }
 

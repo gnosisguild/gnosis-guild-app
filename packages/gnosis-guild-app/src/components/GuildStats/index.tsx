@@ -74,16 +74,12 @@ const GuildStats: React.FC = () => {
     const resp = await axios.get(
       `${API}/api/v1/contributorList?guildAddress=${guildMetadata.guildAddress}`
     );
-    console.log(resp);
-    console.log("File");
     const data = new Blob([resp.data]);
     const url = URL.createObjectURL(data);
-    console.log(hiddenAnchor?.current);
     const anchor = hiddenAnchor?.current;
     if (anchor) {
       anchor.href = url;
     }
-    console.log(anchor?.href);
     anchor?.click();
     // put on hidden tag and click
     // window.location.href = url;
