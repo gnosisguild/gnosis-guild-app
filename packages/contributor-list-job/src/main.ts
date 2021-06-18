@@ -153,7 +153,6 @@ const main = async () => {
   };
   const idx = new IDX({ ceramic, aliases });
   const data = fs.readFileSync("./last_run.json");
-  console.log(data);
   if (data) {
     const deserializedData = JSON.parse(data) as LastRun;
     lastContributorID = deserializedData.lastContributorID;
@@ -161,9 +160,6 @@ const main = async () => {
   } else {
     console.warn("No last_run file");
   }
-
-  console.log(lastGuildID);
-  console.log(lastContributorID);
 
   const guilds = await fetchGuilds();
   let contributors = [];

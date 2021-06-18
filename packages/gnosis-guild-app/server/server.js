@@ -111,9 +111,10 @@ app.get("/api/v1/contributorList", async (req, res) => {
   // Does this work with multiple guilds
   const encryptedCsv = await streamTile.TileDocument.load(ceramicInst, csvDid);
   const csv = await ceramicInst.did?.decryptDagJWE(encryptedCsv.content.csv);
+
   // Write as temporary file and send
   res.attachment("contributors.csv");
-  res.status(200).send(csv);
+  res.status(200).send(csv.csvString);
 });
 
 app.post("/api/v1/guild", upload.single("image"), async (req, res) => {
