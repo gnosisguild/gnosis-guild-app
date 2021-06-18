@@ -51,7 +51,7 @@ const GuildStats: React.FC = () => {
   const [numTokens, setNumTokens] = useState("0");
   const [numContributors, setNumContributors] = useState(0);
   const { guildMetadata } = useGuildContext();
-  const { account, ethersProvider, providerChainId } = useWeb3Context();
+  const { providerChainId } = useWeb3Context();
   const { fetchGuild } = useGuild();
   const hiddenAnchor = useRef<HTMLAnchorElement>(null);
   const fileUrl = "";
@@ -81,10 +81,6 @@ const GuildStats: React.FC = () => {
       anchor.href = url;
     }
     anchor?.click();
-    // Add Lerna
-    // Cleanup
-    // Go through flows
-    // Start working through UI changes
   };
 
   return (

@@ -83,8 +83,9 @@ const getGuildCsvMapping = async () => {
   const ceramicInst = await ceramicAuth();
   const idx = idxSetup(ceramicInst);
   const mapping = await idx.get("guildCSVMapping");
-  console.log("mapping");
-  console.log(mapping);
+  if (!mapping) {
+    console.error("No guild mapping available");
+  }
   CsvMapping = mapping;
 };
 
@@ -96,13 +97,11 @@ setInterval(function() {
 app.get("/api/v1/contributorList", async (req, res) => {
   console.log(req.query);
   const ceramicInst = await ceramicAuth();
-  const idx = idxSetup(ceramicInst);
 
   const guildAddress = req.query.guildAddress;
   if (!guildAddress) {
     return;
   }
-  // get mapping mapping locally
   const csvDid = CsvMapping[guildAddress];
   if (!csvDid) {
     res.attachment("contributors.csv");
@@ -110,10 +109,7 @@ app.get("/api/v1/contributorList", async (req, res) => {
     return;
   }
   // Does this work with multiple guilds
-  console.log(csvDid);
   const encryptedCsv = await streamTile.TileDocument.load(ceramicInst, csvDid);
-  console.log(encryptedCsv);
-  console.log(encryptedCsv.content);
   const csv = await ceramicInst.did?.decryptDagJWE(encryptedCsv.content.csv);
   // Write as temporary file and send
   res.attachment("contributors.csv");
