@@ -81,8 +81,10 @@ const GuildStats: React.FC = () => {
       anchor.href = url;
     }
     anchor?.click();
-    // put on hidden tag and click
-    // window.location.href = url;
+    // Add Lerna
+    // Cleanup
+    // Go through flows
+    // Start working through UI changes
   };
 
   return (

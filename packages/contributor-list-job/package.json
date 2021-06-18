@@ -1,0 +1,35 @@
+{
+  "name": "contributor-list-job",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "author": "Alexander Keating <keating.dev@protonmail.com>",
+  "homepage": "https://github.com/raid-guild/gnosis-guild-app#readme",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raid-guild/gnosis-guild-app.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "start": "TS_NODE_PROJECT=tsconfig.json ts-node ./src/main.ts"
+  },
+  "bugs": {
+    "url": "https://github.com/raid-guild/gnosis-guild-app/issues"
+  },
+  "devDependencies": {
+    "ts-node": "^10.0.0"
+  },
+  "dependencies": {
+    "@ceramicnetwork/3id-did-resolver": "^1.2.6",
+    "@ceramicnetwork/http-client": "^1.0.6",
+    "@ceramicnetwork/stream-caip10-link": "^1.0.6",
+    "@ceramicstudio/idx": "^0.12.1",
+    "dids": "^2.1.0",
+    "dotenv": "^10.0.0",
+    "ethers": "^5.3.1",
+    "graphql-request": "^3.4.0",
+    "json2csv": "^5.0.6",
+    "key-did-provider-ed25519": "^1.1.0",
+    "key-did-resolver": "^1.2.1"
+  }
+}

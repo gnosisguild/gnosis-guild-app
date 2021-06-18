@@ -9,14 +9,25 @@ import { ethers } from "ethers";
 
 import { parse } from "json2csv";
 
+import CeramicClient from "@ceramicnetwork/http-client";
+
 const graphqlRequest = require("graphql-request");
 
 require("dotenv").config();
 
+type Payment = {
+  id: string;
+  value: number;
+};
+type Contributor = {
+  id: string;
+  owner: string;
+  paymentHistory: Array<Payment>;
+};
+
 // TODO: Move to a separate package
 const BATCH_SIZE = 100;
 const SUBGRAPH_URL = process.env.SUBGRAPH_URL;
-const NETWORK = process.env.NETWORK;
 let lastGuildID = "";
 let lastContributorID = "";
 const DATE = Date.now()
@@ -45,7 +56,9 @@ const fetchGuilds = async () => {
   return [];
 };
 
-const fetchContributors = async guild => {
+const fetchContributors = async (
+  guild: string
+): Promise<Array<Contributor>> => {
   // TODO: Should expires be same day
   const fetchContributors = graphqlRequest.gql`
 	    query getContributors($lastID: String, $date: String, $guild: String) {
@@ -80,18 +93,22 @@ const setupCeramic = async () => {
     ...KeyDidResolver.getResolver(),
     ...ThreeIdResolver.getResolver(ceramic)
   };
-  const seed = process.env.NODE_WALLET_SEED.split(",");
+  const seed = process.env.NODE_WALLET_SEED?.split(",");
+  if (!seed) {
+    console.error("NODE_WALLET_SEED is missing");
+    return ceramic;
+  }
 
   const provider = new Ed25519Provider(new Uint8Array(seed.map(Number)));
   const did = new DID({ resolver });
   ceramic.setDID(did);
-  ceramic.did.setProvider(provider);
-  await ceramic.did.authenticate();
+  ceramic?.did?.setProvider(provider);
+  await ceramic?.did?.authenticate();
   return ceramic;
 };
 
 // Convert id to did
-const ethAddressToDID = async (address, ceramic) => {
+const ethAddressToDID = async (address: string, ceramic: CeramicClient) => {
   const link = await Caip10Link.fromAccount(
     ceramic,
     ethers.utils.getAddress(address) + "@eip155:4"
@@ -120,7 +137,13 @@ const main = async () => {
     for (const contributor of activeContributors) {
       const did = await ethAddressToDID(contributor.owner, ceramic);
       // Ignore and work with working cid
-      const encryptedProfile = await idx.get("contributorProfile", did);
+      if (!did) {
+        console.error(`Missing did for contributor ${contributor.owner}`);
+        continue;
+      }
+      const encryptedProfile = (await idx.get("contributorProfile", did)) as {
+        profile: any;
+      };
       console.log(did);
       console.log(encryptedProfile);
       // Add and construnct CSV
@@ -129,7 +152,7 @@ const main = async () => {
           encryptedProfile.profile
         );
         // Dai is defaulted to
-        let paymentAmount = contributor.paymentHistory[0].value;
+        let paymentAmount = contributor.paymentHistory[0].value.toString();
         let currency = "DAI";
         console.log(guild.tokenAddress);
         if (
@@ -139,9 +162,9 @@ const main = async () => {
           currency = "ETH";
         }
         contributors.push({
-          name: profile.name,
-          email: profile.email,
-          address: profile.address,
+          name: profile?.name,
+          email: profile?.email,
+          address: profile?.address,
           amount: paymentAmount,
           currency: currency
         });
@@ -149,7 +172,7 @@ const main = async () => {
     }
     if (contributors.length > 0) {
       const csv = parse(contributors);
-      const encryptedCSV = await ceramic.did?.createDagJWE(csv, [
+      const encryptedCSV = await ceramic.did?.createDagJWE({ csvString: csv }, [
         ceramic.did?.id
       ]);
       const record = await idx.set("contributorCSV", { csv: encryptedCSV });
