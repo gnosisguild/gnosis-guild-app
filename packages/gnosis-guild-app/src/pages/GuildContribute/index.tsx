@@ -134,6 +134,7 @@ const GuildContribute: React.FC = () => {
       console.log(r);
     }
   };
+  // Dowload Button, cleanup job
 
   const setContributorProfile = async () => {
     if (!did) {

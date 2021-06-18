@@ -136,9 +136,11 @@ const main = async () => {
         ceramic.did?.id
       ]);
       const record = await idx.set("contributorCSV", { csv: encryptedCSV });
+      console.log(record);
+      console.log(record.toString());
       await ceramic.pin.add(record);
       const merged = await idx.merge("guildCSVMapping", {
-        [guild.id]: record.cid.toString()
+        [guild.id]: record.toString()
       });
       await ceramic.pin.add(merged);
       console.log(merged);

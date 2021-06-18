@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
+import axios from "axios";
 import { ethers } from "ethers";
 import {
   Button,
@@ -11,7 +12,7 @@ import {
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
 import { useGuild } from "../../hooks/useGuild";
-import { APP_DOMAIN } from "../../constants";
+import { API, APP_DOMAIN } from "../../constants";
 
 const ProfileImage = styled.img`
   height: 6rem;
@@ -52,6 +53,8 @@ const GuildStats: React.FC = () => {
   const { guildMetadata } = useGuildContext();
   const { account, ethersProvider, providerChainId } = useWeb3Context();
   const { fetchGuild } = useGuild();
+  const hiddenAnchor = useRef<HTMLAnchorElement>(null);
+  const fileUrl = "";
 
   useEffect(() => {
     const getTokens = async () => {
@@ -66,6 +69,25 @@ const GuildStats: React.FC = () => {
     };
     getTokens();
   }, [providerChainId, fetchGuild, guildMetadata.guildAddress]);
+
+  const downloadContributors = async () => {
+    const resp = await axios.get(
+      `${API}/api/v1/contributorList?guildAddress=${guildMetadata.guildAddress}`
+    );
+    console.log(resp);
+    console.log("File");
+    const data = new Blob([resp.data]);
+    const url = URL.createObjectURL(data);
+    console.log(hiddenAnchor?.current);
+    const anchor = hiddenAnchor?.current;
+    if (anchor) {
+      anchor.href = url;
+    }
+    console.log(anchor?.href);
+    anchor?.click();
+    // put on hidden tag and click
+    // window.location.href = url;
+  };
 
   return (
     <div style={{ width: "100%" }}>
@@ -115,9 +137,23 @@ const GuildStats: React.FC = () => {
         </Card>
       </StatItemContainer>
       <ButtonContainer>
-        <Button size="lg" color="primary" variant="contained">
+        <Button
+          size="lg"
+          color="primary"
+          variant="contained"
+          onClick={downloadContributors}
+        >
           Download Contributors List
         </Button>
+        <a
+          ref={hiddenAnchor}
+          download="contributors.csv"
+          type="text/csv"
+          style={{ display: "none" }}
+          href={fileUrl}
+        >
+          Download
+        </a>
       </ButtonContainer>
       <Text size="sm">Last updated 11 November at 10:46 UTC</Text>
     </div>

@@ -4,6 +4,15 @@ const multer = require("multer");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+
+const ed255199 = require("key-did-provider-ed25519");
+const dids = require("dids");
+const keyResolver = require("key-did-resolver").default;
+const threeIdResolver = require("@ceramicnetwork/3id-did-resolver").default;
+const Ceramic = require("@ceramicnetwork/http-client").default;
+const ceramicIdx = require("@ceramicstudio/idx");
+const streamTile = require("@ceramicnetwork/stream-tile");
+
 require("dotenv").config();
 
 const PORT = process.env.SERVER_PORT || 4000;
@@ -36,6 +45,80 @@ app.use(cors(corsOptions)); // for parsing application/json
 const getNFTStorageClient = () => {
   return new NFTStorage({ token: process.env.NFT_STORAGE });
 };
+
+const ceramicAuth = async () => {
+  const ceramic = new Ceramic("https://ceramic-clay.3boxlabs.com");
+  const resolver = {
+    ...keyResolver.getResolver(),
+    ...threeIdResolver.getResolver(ceramic)
+  };
+  const seed = process.env.NODE_WALLET_SEED.split(",");
+
+  const provider = new ed255199.Ed25519Provider(
+    new Uint8Array(seed.map(Number))
+  );
+  const did = new dids.DID({ resolver });
+  ceramic.setDID(did);
+  ceramic.did.setProvider(provider);
+  await ceramic.did.authenticate();
+  return ceramic;
+};
+
+const idxSetup = ceramic => {
+  const aliases = {
+    contributorProfile:
+      "kjzl6cwe1jw14946qcgwbeixkh2ou9hwn29zv331akhfr61a44klf9ukg9jxz8g",
+    contributorCSV:
+      "kjzl6cwe1jw14agavukkr2w9qtay6eaxddurgvelnrnf7m74z1s2hofxp15dfea",
+    guildCSVMapping:
+      "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t"
+  };
+  const idx = new ceramicIdx.IDX({ ceramic, aliases });
+  return idx;
+};
+
+let CsvMapping;
+
+const getGuildCsvMapping = async () => {
+  const ceramicInst = await ceramicAuth();
+  const idx = idxSetup(ceramicInst);
+  const mapping = await idx.get("guildCSVMapping");
+  console.log("mapping");
+  console.log(mapping);
+  CsvMapping = mapping;
+};
+
+getGuildCsvMapping();
+setInterval(function() {
+  getGuildCsvMapping();
+}, 3600000); // 1 hour
+
+app.get("/api/v1/contributorList", async (req, res) => {
+  console.log(req.query);
+  const ceramicInst = await ceramicAuth();
+  const idx = idxSetup(ceramicInst);
+
+  const guildAddress = req.query.guildAddress;
+  if (!guildAddress) {
+    return;
+  }
+  // get mapping mapping locally
+  const csvDid = CsvMapping[guildAddress];
+  if (!csvDid) {
+    res.attachment("contributors.csv");
+    res.status(404).send("No csv found for provided guildAddress");
+    return;
+  }
+  // Does this work with multiple guilds
+  console.log(csvDid);
+  const encryptedCsv = await streamTile.TileDocument.load(ceramicInst, csvDid);
+  console.log(encryptedCsv);
+  console.log(encryptedCsv.content);
+  const csv = await ceramicInst.did?.decryptDagJWE(encryptedCsv.content.csv);
+  // Write as temporary file and send
+  res.attachment("contributors.csv");
+  res.status(200).send(csv);
+});
 
 app.post("/api/v1/guild", upload.single("image"), async (req, res) => {
   const data = req.body;
