@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { Loader } from "@gnosis.pm/safe-react-components";
 
 import CreateGuildForm from "../../components/CreateGuildForm";
 import GuildAppInstructions from "../../components/GuildAppInstructions";
@@ -28,8 +29,15 @@ const GridDisplay = styled.div`
   align-items: center;
 `;
 
+const Loading = styled.div`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+`;
+
 const GuildApp: React.FC = () => {
-  const { guildMetadata } = useGuildContext();
+  const { loading, guildMetadata } = useGuildContext();
   const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
 
   useEffect(() => {
@@ -43,8 +51,13 @@ const GuildApp: React.FC = () => {
   }, [guildMetadata.guildAddress]);
 
   // Get reference to image
+  console.log('Inspect', loading, guildMetadata)
 
-  return (
+  return loading ? (
+    <Loading>
+      <Loader size="md" />
+    </Loading>
+  ) : (
     <Grid>
       <CreateGuildForm />
       <GridDisplay>{displayPanel}</GridDisplay>

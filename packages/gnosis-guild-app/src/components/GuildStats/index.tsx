@@ -11,8 +11,8 @@ import {
 } from "@gnosis.pm/safe-react-components";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
-import { useGuild } from "../../hooks/useGuild";
 import { API, APP_DOMAIN } from "../../constants";
+import { fetchGuild } from "../../graphql";
 
 const ProfileImage = styled.img`
   height: 6rem;
@@ -51,10 +51,9 @@ const GuildStats: React.FC = () => {
   const [numTokens, setNumTokens] = useState("0");
   const [numContributors, setNumContributors] = useState(0);
   const { guildMetadata } = useGuildContext();
-  const { providerChainId } = useWeb3Context();
-  const { fetchGuild } = useGuild();
   const hiddenAnchor = useRef<HTMLAnchorElement>(null);
   const fileUrl = "";
+  const { account, ethersProvider, providerChainId } = useWeb3Context();
 
   useEffect(() => {
     const getTokens = async () => {
