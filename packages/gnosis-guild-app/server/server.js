@@ -95,8 +95,8 @@ setInterval(function() {
 }, 3600000); // 1 hour
 
 app.get("/api/v1/contributorList", async (req, res) => {
-  console.log(req.query);
   const ceramicInst = await ceramicAuth();
+  console.debug(`Incoming query string ${req.query}`);
 
   const guildAddress = req.query.guildAddress;
   if (!guildAddress) {
