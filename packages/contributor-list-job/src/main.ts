@@ -12,6 +12,7 @@ import { parse } from "json2csv";
 import CeramicClient from "@ceramicnetwork/http-client";
 
 const graphqlRequest = require("graphql-request");
+const fs = require("fs");
 
 require("dotenv").config();
 
@@ -23,6 +24,11 @@ type Contributor = {
   id: string;
   owner: string;
   paymentHistory: Array<Payment>;
+};
+
+type LastRun = {
+  lastGuildID: string;
+  lastContributorID: string;
 };
 
 // TODO: Move to a separate package
@@ -116,6 +122,25 @@ const ethAddressToDID = async (address: string, ceramic: CeramicClient) => {
   return link.did;
 };
 
+const fileHandler = (err: Error) => {
+  if (err) {
+    return console.error(err);
+  }
+};
+
+const updateLastRun = async (
+  lastGuildID: string,
+  lastContributorID: string
+) => {
+  await fs.truncate("./last_run.json", 0, () => {
+    fs.writeFileSync(
+      "./last_run.json",
+      JSON.stringify({ lastContributorID, lastGuildID }),
+      fileHandler
+    );
+  });
+};
+
 const main = async () => {
   const ceramic = await setupCeramic();
   const aliases = {
@@ -127,6 +152,18 @@ const main = async () => {
       "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t"
   };
   const idx = new IDX({ ceramic, aliases });
+  const data = fs.readFileSync("./last_run.json");
+  console.log(data);
+  if (data) {
+    const deserializedData = JSON.parse(data) as LastRun;
+    lastContributorID = deserializedData.lastContributorID;
+    lastGuildID = deserializedData.lastGuildID;
+  } else {
+    console.warn("No last_run file");
+  }
+
+  console.log(lastGuildID);
+  console.log(lastContributorID);
 
   const guilds = await fetchGuilds();
   let contributors = [];
@@ -144,8 +181,6 @@ const main = async () => {
       const encryptedProfile = (await idx.get("contributorProfile", did)) as {
         profile: any;
       };
-      console.log(did);
-      console.log(encryptedProfile);
       // Add and construnct CSV
       if (encryptedProfile && contributor.paymentHistory.length > 0) {
         const profile = await ceramic.did?.decryptDagJWE(
@@ -154,7 +189,6 @@ const main = async () => {
         // Dai is defaulted to
         let paymentAmount = contributor.paymentHistory[0].value.toString();
         let currency = "DAI";
-        console.log(guild.tokenAddress);
         if (
           guild.tokenAddress === "0x0000000000000000000000000000000000000000"
         ) {
@@ -169,6 +203,13 @@ const main = async () => {
           currency: currency
         });
       }
+
+      lastContributorID = contributor.id;
+
+      await updateLastRun(lastGuildID, lastContributorID);
+      console.log(
+        `Contributor ${contributor.id} has been added to guild ${guild.id}`
+      );
     }
     if (contributors.length > 0) {
       const csv = parse(contributors);
@@ -176,19 +217,21 @@ const main = async () => {
         ceramic.did?.id
       ]);
       const record = await idx.set("contributorCSV", { csv: encryptedCSV });
-      console.log(record);
-      console.log(record.toString());
       await ceramic.pin.add(record);
       const merged = await idx.merge("guildCSVMapping", {
         [guild.id]: record.toString()
       });
       await ceramic.pin.add(merged);
-      console.log(merged);
     }
+
+    lastGuildID = guild.id;
+    await updateLastRun(lastGuildID, "");
+
+    console.log(`Guild ${guild.id} processed`);
   }
 
-  // update last guild id
-  // upate last contributor id
+  await updateLastRun("", "");
+  console.log(`Job has completed`);
 };
 
 main();
