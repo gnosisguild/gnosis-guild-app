@@ -64,7 +64,7 @@ const GuildStats: React.FC = () => {
       );
       if (guild) {
         setNumTokens(ethers.utils.formatEther(guild.currentBalance));
-        setNumContributors(guild.totalSubscriptions);
+        setNumContributors(guild.totalSubscribers);
       }
     };
     getTokens();
