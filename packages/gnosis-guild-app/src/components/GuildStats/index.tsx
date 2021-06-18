@@ -13,6 +13,7 @@ import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
 import { API, APP_DOMAIN } from "../../constants";
 import { fetchGuild } from "../../graphql";
+import profile from "../../assets/profile.png";
 
 const ProfileImage = styled.img`
   height: 6rem;
@@ -82,12 +83,15 @@ const GuildStats: React.FC = () => {
     anchor?.click();
   };
 
+  console.log("stats");
+  const imageUrl = guildMetadata.image
+    ? URL.createObjectURL(guildMetadata.image)
+    : "";
+  console.log(imageUrl);
+
   return (
     <div style={{ width: "100%" }}>
-      <ProfileImage
-        src={URL.createObjectURL(guildMetadata.image)}
-        alt="Guild profile"
-      />
+      <ProfileImage src={imageUrl || profile} alt="Guild profile" />
       <Title size="md" strong={true}>
         Guild Stats
       </Title>

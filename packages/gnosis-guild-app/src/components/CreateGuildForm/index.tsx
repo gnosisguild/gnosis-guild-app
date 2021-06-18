@@ -91,11 +91,14 @@ const CreateGuildForm: React.FC = () => {
 
   // TODO: Implement acutal logic below
   // The current logic is incomplete
-  const uploadImage = (e: MouseEvent<HTMLInputElement>) => {
+  const uploadImage = (
+    e: MouseEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>
+  ) => {
     const target = e.target as HTMLInputElement;
     const input = hiddenImageInput.current as HTMLInputElement;
     if (target.files && input.files) {
       setGuildImage(input.files[0]);
+      setGuildMetadata({ ...guildMetadata, image: input.files[0] });
     }
   };
 
@@ -103,23 +106,16 @@ const CreateGuildForm: React.FC = () => {
     hiddenImageInput?.current?.click();
   };
 
-  // TODO: Modify to implement correct logic
-  // Curently placeholder logic
   const submitTx = async (): Promise<void> => {
     setSubmitting(true);
     try {
       // Create guild
-      let image = new File([""], "");
-      const input = hiddenImageInput.current as HTMLInputElement;
-      if (input.files && input.files.length > 0) {
-        image = input.files[0];
-      }
       const guildInfo = {
         name: guildName,
         description: guildDescription,
         contentFormat: contentFormat,
         externalLink: guildExternalLink,
-        image: image,
+        image: guildImage,
         currency: activeCurrency,
         amount: guildMinimumAmount,
         guildAddress: guildAddress,
@@ -155,7 +151,9 @@ const CreateGuildForm: React.FC = () => {
     ? "Replace Image"
     : "Upload Image";
   const guildButtonText = guildMetadata.name ? "Update Guild" : "Create Guild";
-  const submitGuildButtonText = `${guildMetadata.name ? "Updating" : "Creating"} Guild...`;
+  const submitGuildButtonText = `${
+    guildMetadata.name ? "Updating" : "Creating"
+  } Guild...`;
   const guildTx = guildMetadata.name ? updateTx : submitTx;
 
   const updateGuildName = (e: ChangeEvent<HTMLInputElement>) => {
@@ -276,6 +274,7 @@ const CreateGuildForm: React.FC = () => {
           ref={hiddenImageInput}
           style={{ display: "none" }}
           onClick={uploadImage}
+          onChange={uploadImage}
         />
       </ButtonContainer>
       <FormItem>
@@ -296,9 +295,7 @@ const CreateGuildForm: React.FC = () => {
           onClick={guildTx}
           disabled={submitting}
         >
-          {submitting
-            ? submitGuildButtonText
-            : guildButtonText}
+          {submitting ? submitGuildButtonText : guildButtonText}
         </Button>
         {deleteButton}
       </ButtonContainer>
