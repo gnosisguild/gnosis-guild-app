@@ -64,10 +64,13 @@ const GuildContribute: React.FC = () => {
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
+  const [invalidForm, setInvalidForm] = useState(false);
+  console.log("invalid form");
+  console.log(invalidForm);
 
   const { subscribe } = useGuild();
-  const [ loading, setLoading ] = useState(true);
-  const [ guildMetadata, setGuildMetadata ] = useState<any>();
+  const [loading, setLoading] = useState(true);
+  const [guildMetadata, setGuildMetadata] = useState<any>();
   const { guildId } = useParams<{ guildId: string }>();
   console.log("GUILD ID ==>", guildId, providerChainId);
 
@@ -174,12 +177,14 @@ const GuildContribute: React.FC = () => {
             <ContributorNameInput
               name={contributorName}
               setContributorName={setContributorName}
+              setInvalidForm={setInvalidForm}
             />
           </FormItem>
           <FormItem>
             <ContributorEmailInput
               email={contributorEmail}
               setContributorEmail={setContributorEmail}
+              setInvalidForm={setInvalidForm}
             />
           </FormItem>
           <FormItem>
@@ -194,7 +199,7 @@ const GuildContribute: React.FC = () => {
           <ContributeCard>
             <ContributeButton
               onClick={() => submitContribution()}
-              disabled={!providerChainId || loading}
+              disabled={!providerChainId || loading || invalidForm}
             >
               {!loading ? "Contibute" : "Sending Contribution..."}
             </ContributeButton>

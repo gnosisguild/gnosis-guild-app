@@ -5,11 +5,13 @@ import isEmail from "validator/lib/isEmail";
 type Props = {
   email: string;
   setContributorEmail: (arg0: string) => void;
+  setInvalidForm: (arg0: boolean) => void;
 };
 
 const ContributorEmailInput: React.FC<Props> = ({
   email,
-  setContributorEmail
+  setContributorEmail,
+  setInvalidForm
 }) => {
   const [meta, setMeta] = useState({});
 
@@ -19,6 +21,9 @@ const ContributorEmailInput: React.FC<Props> = ({
     setContributorEmail(val);
     if (val && !isEmail(val)) {
       setMeta({ error: "Must be a valid email" });
+      setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
     }
   };
 

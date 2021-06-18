@@ -4,11 +4,13 @@ import { Text, TextField } from "@gnosis.pm/safe-react-components";
 type Props = {
   name: string;
   setContributorName: (arg0: string) => void;
+  setInvalidForm: (arg0: boolean) => void;
 };
 
 const ContributorNameInput: React.FC<Props> = ({
   name,
-  setContributorName
+  setContributorName,
+  setInvalidForm
 }) => {
   const [meta, setMeta] = useState({});
 
@@ -18,6 +20,9 @@ const ContributorNameInput: React.FC<Props> = ({
     setContributorName(val);
     if (val && val.length > 50) {
       setMeta({ error: "Name must be less than 50 characters" });
+      setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
     }
   };
 

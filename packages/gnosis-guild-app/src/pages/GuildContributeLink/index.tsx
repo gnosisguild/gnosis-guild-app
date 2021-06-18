@@ -78,6 +78,7 @@ const GuildContributeLink: React.FC = () => {
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
+  const [invalidForm, setInvalidForm] = useState(false);
 
   const contribute = () => {
     console.log("dummy");
@@ -104,12 +105,14 @@ const GuildContributeLink: React.FC = () => {
           <ContributorNameInput
             name={contributorName}
             setContributorName={setContributorName}
+            setInvalidForm={setInvalidForm}
           />
         </FormItem>
         <FormItem>
           <ContributorEmailInput
             email={contributorEmail}
             setContributorEmail={setContributorEmail}
+            setInvalidForm={setInvalidForm}
           />
         </FormItem>
         <FormItem>
@@ -122,7 +125,12 @@ const GuildContributeLink: React.FC = () => {
           />
         </FormItem>
       </GridForm>
-      <ActionButton size="lg" color="secondary" onClick={onClickAction}>
+      <ActionButton
+        size="lg"
+        color="secondary"
+        onClick={onClickAction}
+        disabled={invalidForm}
+      >
         {buttonTxt}
       </ActionButton>
     </Grid>
