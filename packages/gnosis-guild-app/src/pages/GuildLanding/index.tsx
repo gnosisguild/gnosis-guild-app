@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { Loader, Text, Title } from "@gnosis.pm/safe-react-components";
 
 import profile from "../../assets/profile.png";
 import { IPFS_GATEWAY } from "../../constants";
@@ -16,8 +17,7 @@ import GridWallet from "../../components/GridWallet";
 import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 
-import { Loader, Text, Title } from "@gnosis.pm/safe-react-components";
-
+import { fetchGuild } from "../../graphql";
 import { useGuild } from "../../hooks/useGuild";
 
 const Grid = styled.div`
@@ -80,7 +80,7 @@ const GuiildLanding: React.FC = () => {
   const [guildActive, setGuildActive] = useState(false);
   const { getConnectText, providerChainId } = useWeb3Context();
   const connectText = getConnectText();
-  const { fetchGuild, fetchMetadata } = useGuild();
+  const { fetchMetadata } = useGuild();
   const [loading, setLoading] = useState(true);
   const { guildId } = useParams<{ guildId: string }>();
   const { setGuildMetadata } = useGuildContext();

@@ -3,6 +3,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useGuild } from "../hooks/useGuild";
 import { useWeb3Context } from "../context/Web3Context";
 import { IPFS_GATEWAY } from "../constants";
+import { fetchGuildByAddress } from "../graphql";
 
 export type GuildMetadata = {
   name: string;
@@ -29,10 +30,14 @@ const initialGuildMetadata = {
 };
 
 export type GuildContextValue = {
-  guildMetadata: GuildMetadata;
-  setGuildMetadata: (arg0: GuildMetadata) => void;
+  loading: boolean,
+  refreshGuild: () => void,
+  guildMetadata: GuildMetadata,
+  setGuildMetadata: (arg0: GuildMetadata) => void,
 };
 export const GuildContext = React.createContext<GuildContextValue>({
+  loading: false,
+  refreshGuild: async () => {},
   guildMetadata: initialGuildMetadata,
   setGuildMetadata: guildMeta => {}
 });
@@ -40,17 +45,18 @@ export const GuildContext = React.createContext<GuildContextValue>({
 export const useGuildContext = () => useContext(GuildContext);
 
 export const GuildProvider: React.FC = ({ children }) => {
+  const [loading, setLoading] = useState(true);
   const [guildMetadata, setGuildMetadata] = useState(initialGuildMetadata);
-  const { fetchGuildByAddress, fetchMetadata } = useGuild();
+  const { fetchMetadata } = useGuild();
   const { providerChainId, account } = useWeb3Context();
 
-  // TODO: Placeholder values
-  useEffect(() => {
-    const initialGuild = async () => {
+  const refreshGuild = async () => {
+    if (account) {
+      setLoading(true);
       const guilds = await fetchGuildByAddress(account, providerChainId);
       // Also fetch metadata
       if (guilds && guilds.length > 0) {
-        const guild = guilds[0];
+        const guild = guilds[guilds.length - 1];
         let metadata = {
           ...guildMetadata
         };
@@ -80,11 +86,17 @@ export const GuildProvider: React.FC = ({ children }) => {
           imageCid: metadata.imageCid
         });
       }
-    };
-    initialGuild();
+      setLoading(false);
+    }
+  };
+
+  // TODO: Placeholder values
+  useEffect(() => {
+    refreshGuild();
   }, [account, providerChainId]);
+
   return (
-    <GuildContext.Provider value={{ guildMetadata, setGuildMetadata }}>
+    <GuildContext.Provider value={{ loading, refreshGuild, guildMetadata, setGuildMetadata }}>
       {children}
     </GuildContext.Provider>
   );

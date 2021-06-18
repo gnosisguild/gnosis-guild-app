@@ -15,7 +15,7 @@ import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
 import { useWeb3Context } from "../../context/Web3Context";
-
+import { fetchGuild } from "../../graphql";
 import { useGuild } from "../../hooks/useGuild";
 import { ContributorProfile } from "../../types";
 
@@ -65,9 +65,9 @@ const GuildContribute: React.FC = () => {
   const [contributorEmail, setContributorEmail] = useState("");
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
 
-  const { fetchGuild, subscribe } = useGuild();
-  const [loading, setLoading] = useState(true);
-  const [guildMetadata, setGuildMetadata] = useState<any>();
+  const { subscribe } = useGuild();
+  const [ loading, setLoading ] = useState(true);
+  const [ guildMetadata, setGuildMetadata ] = useState<any>();
   const { guildId } = useParams<{ guildId: string }>();
   console.log("GUILD ID ==>", guildId, providerChainId);
 

@@ -44,7 +44,7 @@ const DeleteButton = styled(Button)`
 `;
 
 const CreateGuildForm: React.FC = () => {
-  const { guildMetadata, setGuildMetadata } = useGuildContext();
+  const { refreshGuild, guildMetadata, setGuildMetadata } = useGuildContext();
 
   const { ethersProvider, account, providerChainId } = useWeb3Context();
   const { createGuild, deactivateGuild, updateMetadataCid } = useGuild();
@@ -125,21 +125,11 @@ const CreateGuildForm: React.FC = () => {
         guildAddress: guildAddress,
         imageCid: ""
       };
-      createGuild(providerChainId, ethersProvider, guildInfo, account);
+      await createGuild(providerChainId, ethersProvider, guildInfo, account);
+      refreshGuild();
     } catch (e) {
       console.error(e);
     }
-    setGuildMetadata({
-      name: guildName,
-      description: guildDescription,
-      contentFormat: contentFormat,
-      externalLink: guildExternalLink,
-      image: guildImage,
-      currency: activeCurrency,
-      amount: guildMinimumAmount,
-      guildAddress: guildAddress,
-      imageCid: ""
-    });
     setSubmitting(false);
   };
 
@@ -165,6 +155,7 @@ const CreateGuildForm: React.FC = () => {
     ? "Replace Image"
     : "Upload Image";
   const guildButtonText = guildMetadata.name ? "Update Guild" : "Create Guild";
+  const submitGuildButtonText = `${guildMetadata.name ? "Updating" : "Creating"} Guild...`;
   const guildTx = guildMetadata.name ? updateTx : submitTx;
 
   const updateGuildName = (e: ChangeEvent<HTMLInputElement>) => {
@@ -213,7 +204,7 @@ const CreateGuildForm: React.FC = () => {
     deactivateGuild(providerChainId, ethersProvider, account, guildAddress);
   };
 
-  const deleteButton = guildMetadata.name ? (
+  const deleteButton = guildMetadata.name && (
     <DeleteButton
       size="lg"
       color="error"
@@ -222,8 +213,6 @@ const CreateGuildForm: React.FC = () => {
     >
       Delete Guild
     </DeleteButton>
-  ) : (
-    <p />
   );
 
   return (
@@ -298,31 +287,21 @@ const CreateGuildForm: React.FC = () => {
           setAmount={setGuildMinimumAmount}
         />
       </FormItem>
-      {submitting ? (
-        <ButtonContainer>
-          <Button
-            size="lg"
-            color="secondary"
-            onClick={() => {
-              setSubmitting(false);
-            }}
-          >
-            Cancel
-          </Button>
-        </ButtonContainer>
-      ) : (
-        <ButtonContainer>
-          <Button
-            size="lg"
-            color="primary"
-            variant="contained"
-            onClick={guildTx}
-          >
-            {guildButtonText}
-          </Button>
-          {deleteButton}
-        </ButtonContainer>
-      )}
+
+      <ButtonContainer>
+        <Button
+          size="lg"
+          color="primary"
+          variant="contained"
+          onClick={guildTx}
+          disabled={submitting}
+        >
+          {submitting
+            ? submitGuildButtonText
+            : guildButtonText}
+        </Button>
+        {deleteButton}
+      </ButtonContainer>
     </GridForm>
   );
 };
