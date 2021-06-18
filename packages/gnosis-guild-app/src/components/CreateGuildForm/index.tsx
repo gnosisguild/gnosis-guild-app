@@ -49,6 +49,7 @@ const CreateGuildForm: React.FC = () => {
   const { ethersProvider, account, providerChainId } = useWeb3Context();
   const { createGuild, deactivateGuild, updateMetadataCid } = useGuild();
   const [submitting, setSubmitting] = useState(false);
+  const [invalidForm, setInvalidForm] = useState(false);
   // Input values
   const [guildAddress, setGuildAddress] = useState(guildMetadata.guildAddress);
   const [guildName, setGuildName] = useState(guildMetadata.name);
@@ -68,10 +69,16 @@ const CreateGuildForm: React.FC = () => {
 
   //
   // Input error states
-  const [guildNameMeta, setGuildNameMeta] = useState({});
-  const [guildDescriptionMeta, setGuildDescriptionMeta] = useState({});
-  const [guildExternalLinkMeta, setGuildExternalLinkMeta] = useState({});
-  const [guildContentFormatMeta, setGuildContentFormatMeta] = useState({});
+  const [guildNameMeta, setGuildNameMeta] = useState({ error: "" });
+  const [guildDescriptionMeta, setGuildDescriptionMeta] = useState({
+    error: ""
+  });
+  const [guildExternalLinkMeta, setGuildExternalLinkMeta] = useState({
+    error: ""
+  });
+  const [guildContentFormatMeta, setGuildContentFormatMeta] = useState({
+    error: ""
+  });
 
   const [guildImage, setGuildImage] = useState(guildMetadata.image);
   const hiddenImageInput = useRef<HTMLInputElement>(null);
@@ -89,8 +96,21 @@ const CreateGuildForm: React.FC = () => {
     setGuildMinimumAmount(guildMetadata.amount);
   }, [guildMetadata]);
 
-  // TODO: Implement acutal logic below
-  // The current logic is incomplete
+  useEffect(() => {
+    // Check all fields are valid
+    const valid =
+      !guildNameMeta.error &&
+      !guildDescriptionMeta.error &&
+      !guildExternalLinkMeta.error &&
+      !guildContentFormatMeta.error;
+    setInvalidForm(!valid);
+  }, [
+    guildNameMeta,
+    guildDescriptionMeta,
+    guildContentFormatMeta,
+    guildExternalLinkMeta
+  ]);
+
   const uploadImage = (
     e: MouseEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>
   ) => {
@@ -158,7 +178,7 @@ const CreateGuildForm: React.FC = () => {
 
   const updateGuildName = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setGuildNameMeta({});
+    setGuildNameMeta({ error: "" });
     setGuildName(val);
     if (val && val.length > 50) {
       setGuildNameMeta({ error: "Name must be less than 50 characters" });
@@ -167,7 +187,7 @@ const CreateGuildForm: React.FC = () => {
 
   const updateGuildDescription = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setGuildDescriptionMeta({});
+    setGuildDescriptionMeta({ error: "" });
     setGuildDescription(val);
     if (val && val.length > 200) {
       setGuildDescriptionMeta({
@@ -178,7 +198,7 @@ const CreateGuildForm: React.FC = () => {
 
   const updateGuildExternalLink = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setGuildExternalLinkMeta({});
+    setGuildExternalLinkMeta({ error: "" });
     setGuildExternalLink(val);
     if (val && !isURL(val)) {
       setGuildExternalLinkMeta({
@@ -189,7 +209,7 @@ const CreateGuildForm: React.FC = () => {
 
   const updateGuildContentFormat = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setGuildContentFormatMeta({});
+    setGuildContentFormatMeta({ error: "" });
     setContentFormat(val);
     if (val && val.length > 200) {
       setGuildContentFormatMeta({
@@ -293,7 +313,7 @@ const CreateGuildForm: React.FC = () => {
           color="primary"
           variant="contained"
           onClick={guildTx}
-          disabled={submitting}
+          disabled={submitting || invalidForm}
         >
           {submitting ? submitGuildButtonText : guildButtonText}
         </Button>
