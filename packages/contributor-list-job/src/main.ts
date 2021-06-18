@@ -185,9 +185,7 @@ const main = async () => {
         // Dai is defaulted to
         let paymentAmount = contributor.paymentHistory[0].value.toString();
         let currency = "DAI";
-        if (
-          guild.tokenAddress === "0x0000000000000000000000000000000000000000"
-        ) {
+        if (guild.tokenAddress === ethers.constants.AddressZero) {
           paymentAmount = ethers.utils.formatEther(paymentAmount);
           currency = "ETH";
         }
