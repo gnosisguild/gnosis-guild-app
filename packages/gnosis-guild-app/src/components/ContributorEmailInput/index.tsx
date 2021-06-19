@@ -6,12 +6,14 @@ type Props = {
   email: string;
   setContributorEmail: (arg0: string) => void;
   setInvalidForm: (arg0: boolean) => void;
+  disabled: boolean;
 };
 
 const ContributorEmailInput: React.FC<Props> = ({
   email,
   setContributorEmail,
-  setInvalidForm
+  setInvalidForm,
+  disabled
 }) => {
   const [meta, setMeta] = useState({});
 
@@ -37,6 +39,7 @@ const ContributorEmailInput: React.FC<Props> = ({
         meta={meta}
         value={email}
         onChange={updateGuildEmail}
+        readOnly={disabled}
       />
     </>
   );

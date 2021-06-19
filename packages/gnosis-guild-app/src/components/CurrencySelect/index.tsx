@@ -1,4 +1,5 @@
 import { Select } from "@gnosis.pm/safe-react-components";
+import { CURRENCIES } from "../../constants";
 
 type Props = {
   activeId: string;
@@ -6,11 +7,7 @@ type Props = {
 };
 
 const CurrencySelect: React.FC<Props> = ({ activeId, setActiveCurrency }) => {
-  const selectItems = [
-    { id: "ETH", label: "ETH" },
-    { id: "DAI", label: "Dai" }
-  ];
-
+  const selectItems = CURRENCIES;
   const changeCurrency = (id: string) => {
     if (id === "ETH" || id === "DAI") {
       setActiveCurrency(id);

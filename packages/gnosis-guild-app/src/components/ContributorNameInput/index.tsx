@@ -5,12 +5,14 @@ type Props = {
   name: string;
   setContributorName: (arg0: string) => void;
   setInvalidForm: (arg0: boolean) => void;
+  disabled: boolean;
 };
 
 const ContributorNameInput: React.FC<Props> = ({
   name,
   setContributorName,
-  setInvalidForm
+  setInvalidForm,
+  disabled
 }) => {
   const [meta, setMeta] = useState({});
 
@@ -36,6 +38,7 @@ const ContributorNameInput: React.FC<Props> = ({
         meta={meta}
         value={name}
         onChange={updateGuildName}
+        readOnly={disabled}
       />
     </>
   );
