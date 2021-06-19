@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { Loader, Title } from "@gnosis.pm/safe-react-components";
+import { ethers } from "ethers";
 
 import AmountInput from "../../components/AmountInput";
 import ContributorNameInput from "../../components/ContributorNameInput";
@@ -15,7 +16,7 @@ import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
 import { useWeb3Context } from "../../context/Web3Context";
-import { fetchGuild } from "../../graphql";
+import { fetchGuild, fetchSubscriberByGuild } from "../../graphql";
 import { useGuild } from "../../hooks/useGuild";
 import { ContributorProfile } from "../../types";
 
@@ -64,10 +65,12 @@ const GuildContribute: React.FC = () => {
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
+  const [invalidForm, setInvalidForm] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
 
   const { subscribe } = useGuild();
-  const [ loading, setLoading ] = useState(true);
-  const [ guildMetadata, setGuildMetadata ] = useState<any>();
+  const [loading, setLoading] = useState(true);
+  const [guildMetadata, setGuildMetadata] = useState<any>();
   const { guildId } = useParams<{ guildId: string }>();
   console.log("GUILD ID ==>", guildId, providerChainId);
 
@@ -139,6 +142,7 @@ const GuildContribute: React.FC = () => {
     }
   };
 
+  // Fetch Guild
   useEffect(() => {
     const _fetchGuild = async () => {
       const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
@@ -150,6 +154,7 @@ const GuildContribute: React.FC = () => {
     _fetchGuild();
   }, []);
 
+  // Set Idx ContributorProfile
   useEffect(() => {
     const setProfile = async () => {
       await setContributorProfile();
@@ -159,7 +164,39 @@ const GuildContribute: React.FC = () => {
     }
   }, [idx]);
 
+  useEffect(() => {
+    const setSubscriber = async () => {
+      if (!guildId || !providerChainId || !account) {
+        return;
+      }
+      const subscribers = await fetchSubscriberByGuild(
+        guildId,
+        account,
+        providerChainId
+      );
+      if (!subscribers) {
+        return;
+      }
+      if (subscribers.length > 0) {
+        setSubscribed(true);
+        const subscriber = subscribers[0];
+        if (subscriber.paymentHistory.length > 0) {
+          const payment = subscriber.paymentHistory[0];
+          setGuildMinimumAmount(ethers.utils.formatEther(payment.value));
+        }
+      }
+    };
+    setSubscriber();
+  });
+
   const connectText = getConnectText();
+  const contributeText = subscribed ? "Cancel Contribution" : "Contibute";
+
+  // TODO: implement unsubscribe
+  const unsubscribe = () => {
+    console.log("Unsubscribe");
+  };
+  const contributionTx = subscribed ? unsubscribe : submitContribution;
   return (
     <Grid>
       <GridLogo>
@@ -174,12 +211,16 @@ const GuildContribute: React.FC = () => {
             <ContributorNameInput
               name={contributorName}
               setContributorName={setContributorName}
+              setInvalidForm={setInvalidForm}
+              disabled={subscribed}
             />
           </FormItem>
           <FormItem>
             <ContributorEmailInput
               email={contributorEmail}
               setContributorEmail={setContributorEmail}
+              setInvalidForm={setInvalidForm}
+              disabled={subscribed}
             />
           </FormItem>
           <FormItem>
@@ -189,14 +230,16 @@ const GuildContribute: React.FC = () => {
               setCurrency={setActiveCurrency}
               amount={guildMinimumAmount}
               setAmount={setGuildMinimumAmount}
+              dropdown={false}
+              disabled={subscribed}
             />
           </FormItem>
           <ContributeCard>
             <ContributeButton
-              onClick={() => submitContribution()}
-              disabled={!providerChainId || loading}
+              onClick={contributionTx}
+              disabled={!providerChainId || loading || invalidForm}
             >
-              {!loading ? "Contibute" : "Sending Contribution..."}
+              {!loading ? contributeText : "Sending Contribution..."}
             </ContributeButton>
           </ContributeCard>
         </GridForm>

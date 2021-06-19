@@ -4,11 +4,15 @@ import { Text, TextField } from "@gnosis.pm/safe-react-components";
 type Props = {
   name: string;
   setContributorName: (arg0: string) => void;
+  setInvalidForm: (arg0: boolean) => void;
+  disabled: boolean;
 };
 
 const ContributorNameInput: React.FC<Props> = ({
   name,
-  setContributorName
+  setContributorName,
+  setInvalidForm,
+  disabled
 }) => {
   const [meta, setMeta] = useState({});
 
@@ -18,6 +22,9 @@ const ContributorNameInput: React.FC<Props> = ({
     setContributorName(val);
     if (val && val.length > 50) {
       setMeta({ error: "Name must be less than 50 characters" });
+      setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
     }
   };
 
@@ -31,6 +38,7 @@ const ContributorNameInput: React.FC<Props> = ({
         meta={meta}
         value={name}
         onChange={updateGuildName}
+        readOnly={disabled}
       />
     </>
   );

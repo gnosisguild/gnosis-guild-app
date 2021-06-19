@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { Button, Text } from "@gnosis.pm/safe-react-components";
+import { ethers } from "ethers";
 
 import AmountInput from "../../components/AmountInput";
 import ContributorNameInput from "../../components/ContributorNameInput";
@@ -8,6 +10,7 @@ import ContributorEmailInput from "../../components/ContributorEmailInput";
 import GridLogo from "../../components/GridLogo";
 import GuildLogo from "../../components/GuildLogo";
 
+import { fetchSubscriberByGuild } from "../../graphql";
 import { useWeb3Context } from "../../context/Web3Context";
 import { useGuildContext } from "../../context/GuildContext";
 
@@ -69,8 +72,9 @@ const GuildLogoSmall = styled(GuildLogo)`
   }
 `;
 
+// TODO: Abstract out GuildContribute and reuse here
 const GuildContributeLink: React.FC = () => {
-  const { connectToWeb3, account } = useWeb3Context();
+  const { connectToWeb3, account, providerChainId } = useWeb3Context();
 
   const { guildMetadata } = useGuildContext();
   const [activeCurrency, setActiveCurrency] = useState("ETH");
@@ -78,13 +82,48 @@ const GuildContributeLink: React.FC = () => {
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
+  const [invalidForm, setInvalidForm] = useState(false);
+  const { guildId } = useParams<{ guildId: string }>();
+  const [subscribed, setSubscribed] = useState(false);
 
   const contribute = () => {
     console.log("dummy");
   };
 
-  const onClickAction = account ? contribute : connectToWeb3;
-  const buttonTxt = account ? "Contribute" : "Connect";
+  const contributeText = subscribed ? "Cancel Contribution" : "Contibute";
+  const buttonTxt = account ? contributeText : "Connect";
+
+  // TODO: implement unsubscribe
+  const unsubscribe = () => {
+    console.log("Unsubscribe");
+  };
+
+  const contributionTx = subscribed ? unsubscribe : contribute;
+  const onClickAction = account ? contributionTx : connectToWeb3;
+  useEffect(() => {
+    const setSubscriber = async () => {
+      if (!guildId || !providerChainId || !account) {
+        return;
+      }
+      const subscribers = await fetchSubscriberByGuild(
+        guildId,
+        account,
+        providerChainId
+      );
+      if (!subscribers) {
+        return;
+      }
+      if (subscribers.length > 0) {
+        setSubscribed(true);
+        const subscriber = subscribers[0];
+        if (subscriber.paymentHistory.length > 0) {
+          const payment = subscriber.paymentHistory[0];
+          setGuildMinimumAmount(ethers.utils.formatEther(payment.value));
+        }
+      }
+    };
+    setSubscriber();
+  });
 
   return (
     <Grid>
@@ -104,12 +143,16 @@ const GuildContributeLink: React.FC = () => {
           <ContributorNameInput
             name={contributorName}
             setContributorName={setContributorName}
+            setInvalidForm={setInvalidForm}
+            disabled={subscribed}
           />
         </FormItem>
         <FormItem>
           <ContributorEmailInput
             email={contributorEmail}
             setContributorEmail={setContributorEmail}
+            setInvalidForm={setInvalidForm}
+            disabled={subscribed}
           />
         </FormItem>
         <FormItem>
@@ -119,10 +162,17 @@ const GuildContributeLink: React.FC = () => {
             setCurrency={setActiveCurrency}
             amount={guildMinimumAmount}
             setAmount={setGuildMinimumAmount}
+            dropdown={false}
+            disabled={subscribed}
           />
         </FormItem>
       </GridForm>
-      <ActionButton size="lg" color="secondary" onClick={onClickAction}>
+      <ActionButton
+        size="lg"
+        color="secondary"
+        onClick={onClickAction}
+        disabled={invalidForm}
+      >
         {buttonTxt}
       </ActionButton>
     </Grid>

@@ -5,6 +5,7 @@ import isInt from "validator/lib/isInt";
 import isDecimal from "validator/lib/isDecimal";
 
 import CurrencySelect from "../CurrencySelect";
+import { CURRENCIES } from "../../constants";
 
 type Props = {
   currency: string;
@@ -12,6 +13,8 @@ type Props = {
   amount: string;
   setAmount: (arg0: string) => void;
   title: string;
+  dropdown?: boolean;
+  disabled?: boolean;
 };
 
 const CurrencyContainer = styled.div`
@@ -19,12 +22,22 @@ const CurrencyContainer = styled.div`
   margin-top: 0.5rem;
 `;
 
+const CurrencyIndicator = styled(TextField)`
+  max-width: 4.5rem;
+`;
+
+const CurrencyAmount = styled(TextField)`
+  border-top-left-radius: 0px;
+`;
+
 const ContributorEmailInput: React.FC<Props> = ({
   currency,
   setCurrency,
   amount,
   setAmount,
-  title
+  title,
+  dropdown = true,
+  disabled = false
 }) => {
   const [meta, setMeta] = useState({});
 
@@ -32,10 +45,18 @@ const ContributorEmailInput: React.FC<Props> = ({
     const val = e.target.value;
     setMeta({});
     setAmount(val);
-    if (!isInt(val) && !isDecimal(val) || parseFloat(val) < 0) {
+    if ((!isInt(val) && !isDecimal(val)) || parseFloat(val) < 0) {
       setMeta({ error: "Must be a valid number" });
     }
   };
+  let currencyIndicator;
+  let currencyName = ` (${currency})`;
+  if (dropdown) {
+    currencyIndicator = (
+      <CurrencySelect activeId={currency} setActiveCurrency={setCurrency} />
+    );
+    currencyName = "";
+  }
 
   return (
     <>
@@ -43,12 +64,13 @@ const ContributorEmailInput: React.FC<Props> = ({
         {title}
       </Text>
       <CurrencyContainer>
-        <CurrencySelect activeId={currency} setActiveCurrency={setCurrency} />
-        <TextField
-          label="Minimum Amount"
+        {currencyIndicator}
+        <CurrencyAmount
+          label={`Minimum Amount${currencyName}`}
           value={amount}
           meta={meta}
           onChange={updateAmount}
+          readOnly={disabled}
         />
       </CurrencyContainer>
     </>
