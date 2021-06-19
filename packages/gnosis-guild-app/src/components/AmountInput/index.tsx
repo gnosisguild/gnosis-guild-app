@@ -5,7 +5,6 @@ import isInt from "validator/lib/isInt";
 import isDecimal from "validator/lib/isDecimal";
 
 import CurrencySelect from "../CurrencySelect";
-import { CURRENCIES } from "../../constants";
 
 type Props = {
   currency: string;
@@ -20,14 +19,6 @@ type Props = {
 const CurrencyContainer = styled.div`
   display: flex;
   margin-top: 0.5rem;
-`;
-
-const CurrencyIndicator = styled(TextField)`
-  max-width: 4.5rem;
-`;
-
-const CurrencyAmount = styled(TextField)`
-  border-top-left-radius: 0px;
 `;
 
 const ContributorEmailInput: React.FC<Props> = ({
@@ -65,7 +56,7 @@ const ContributorEmailInput: React.FC<Props> = ({
       </Text>
       <CurrencyContainer>
         {currencyIndicator}
-        <CurrencyAmount
+        <TextField
           label={`Minimum Amount${currencyName}`}
           value={amount}
           meta={meta}
