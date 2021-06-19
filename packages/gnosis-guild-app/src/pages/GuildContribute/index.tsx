@@ -178,3 +178,6 @@ const GuildContribute: React.FC = () => {
 };
 
 export default GuildContribute;
+
+// 2. Add hooks to contribute widget
+// 3. Clear data after disconnect

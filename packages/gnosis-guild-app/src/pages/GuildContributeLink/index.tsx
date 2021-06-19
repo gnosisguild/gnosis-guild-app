@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Button, Text } from "@gnosis.pm/safe-react-components";
+import { Button, Loader, Text, Title } from "@gnosis.pm/safe-react-components";
 import { ethers } from "ethers";
 
 import AmountInput from "../../components/AmountInput";
@@ -10,9 +10,12 @@ import ContributorEmailInput from "../../components/ContributorEmailInput";
 import GridLogo from "../../components/GridLogo";
 import GuildLogo from "../../components/GuildLogo";
 
-import { fetchSubscriberByGuild } from "../../graphql";
+import { fetchGuild, fetchSubscriberByGuild } from "../../graphql";
 import { useWeb3Context } from "../../context/Web3Context";
 import { useGuildContext } from "../../context/GuildContext";
+import { useContributorProfile } from "../../hooks/useContributorProfile";
+import { useSubscriber } from "../../hooks/useSubscriber";
+import { useContribute } from "../../hooks/useContribute";
 
 const Grid = styled.div`
   width: 100%;
@@ -64,6 +67,13 @@ const ActionButton = styled(Button)`
   }
 `;
 
+const Loading = styled.div`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+`;
+
 const GuildLogoSmall = styled(GuildLogo)`
   object-fit: contain;
 
@@ -74,20 +84,65 @@ const GuildLogoSmall = styled(GuildLogo)`
 
 // TODO: Abstract out GuildContribute and reuse here
 const GuildContributeLink: React.FC = () => {
-  const { connectToWeb3, account, providerChainId } = useWeb3Context();
+  const {
+    connectToWeb3,
+    account,
+    providerChainId,
+    authenticateCeramic
+  } = useWeb3Context();
+  const contractGuild = useGuildContext();
 
-  const { guildMetadata } = useGuildContext();
   const [activeCurrency, setActiveCurrency] = useState("ETH");
 
+  const [guildMetadata, setGuildMetadata] = useState<any>();
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
   const [invalidForm, setInvalidForm] = useState(false);
   const { guildId } = useParams<{ guildId: string }>();
-  const [subscribed, setSubscribed] = useState(false);
 
-  const contribute = () => {
-    console.log("dummy");
+  const { profileName, profileEmail } = useContributorProfile();
+  const { currentMinimumAmount, subscribed } = useSubscriber();
+  const {
+    submitContribution,
+    contributeLoading,
+    setContributeLoading
+  } = useContribute();
+
+  const web3connect = async () => {
+    connectToWeb3();
+    await authenticateCeramic();
+  };
+
+  useEffect(() => {
+    const ceramicAuth = async () => {
+      await authenticateCeramic();
+    };
+    if (account) {
+      ceramicAuth();
+    }
+  }, [account]);
+
+  // Fetch Guild
+  useEffect(() => {
+    setContributeLoading(true);
+    const _fetchGuild = async () => {
+      const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
+      if (meta) {
+        setGuildMetadata(meta);
+      }
+      setContributeLoading(false);
+    };
+    _fetchGuild();
+  }, []);
+
+  const submitContributionTx = async () => {
+    await submitContribution(
+      guildMetadata.tokenAddress,
+      guildMinimumAmount,
+      contributorName,
+      contributorEmail
+    );
   };
 
   const contributeText = subscribed ? "Cancel Contribution" : "Contibute";
@@ -98,32 +153,21 @@ const GuildContributeLink: React.FC = () => {
     console.log("Unsubscribe");
   };
 
-  const contributionTx = subscribed ? unsubscribe : contribute;
-  const onClickAction = account ? contributionTx : connectToWeb3;
+  const contributionTx = subscribed ? unsubscribe : submitContributionTx;
+  const onClickAction = account ? contributionTx : web3connect;
+
   useEffect(() => {
-    const setSubscriber = async () => {
-      if (!guildId || !providerChainId || !account) {
-        return;
-      }
-      const subscribers = await fetchSubscriberByGuild(
-        guildId,
-        account,
-        providerChainId
-      );
-      if (!subscribers) {
-        return;
-      }
-      if (subscribers.length > 0) {
-        setSubscribed(true);
-        const subscriber = subscribers[0];
-        if (subscriber.paymentHistory.length > 0) {
-          const payment = subscriber.paymentHistory[0];
-          setGuildMinimumAmount(ethers.utils.formatEther(payment.value));
-        }
-      }
-    };
-    setSubscriber();
-  });
+    setContributorEmail(profileEmail);
+    setContributorName(profileName);
+  }, [profileName, profileEmail]);
+
+  useEffect(() => {
+    setGuildMinimumAmount(currentMinimumAmount);
+  }, [currentMinimumAmount]);
+
+  const guildName = guildMetadata
+    ? guildMetadata.name
+    : contractGuild.guildMetadata.name;
 
   return (
     <Grid>
@@ -132,41 +176,53 @@ const GuildContributeLink: React.FC = () => {
         href={`${window.location}/guild/1/contribute`}
       >
         <Text size="xl" strong={true} color="white">
-          Contribute to {guildMetadata.name} with crypto today
+          Contribute to {guildName} with crypto today
         </Text>
         <GridLogo>
           <GuildLogoSmall />
         </GridLogo>
       </GridHeader>
-      <GridForm>
-        <FormItem>
-          <ContributorNameInput
-            name={contributorName}
-            setContributorName={setContributorName}
-            setInvalidForm={setInvalidForm}
-            disabled={subscribed}
-          />
-        </FormItem>
-        <FormItem>
-          <ContributorEmailInput
-            email={contributorEmail}
-            setContributorEmail={setContributorEmail}
-            setInvalidForm={setInvalidForm}
-            disabled={subscribed}
-          />
-        </FormItem>
-        <FormItem>
-          <AmountInput
-            title="Monthly Contribution"
-            currency={activeCurrency}
-            setCurrency={setActiveCurrency}
-            amount={guildMinimumAmount}
-            setAmount={setGuildMinimumAmount}
-            dropdown={false}
-            disabled={subscribed}
-          />
-        </FormItem>
-      </GridForm>
+      {guildMetadata ? (
+        <GridForm>
+          <FormItem>
+            <ContributorNameInput
+              name={contributorName}
+              setContributorName={setContributorName}
+              setInvalidForm={setInvalidForm}
+              disabled={subscribed}
+            />
+          </FormItem>
+          <FormItem>
+            <ContributorEmailInput
+              email={contributorEmail}
+              setContributorEmail={setContributorEmail}
+              setInvalidForm={setInvalidForm}
+              disabled={subscribed}
+            />
+          </FormItem>
+          <FormItem>
+            <AmountInput
+              title="Monthly Contribution"
+              currency={activeCurrency}
+              setCurrency={setActiveCurrency}
+              amount={guildMinimumAmount}
+              setAmount={setGuildMinimumAmount}
+              dropdown={false}
+              disabled={subscribed}
+            />
+          </FormItem>
+        </GridForm>
+      ) : (
+        <Loading>
+          {contributeLoading ? (
+            <Loader size="md" />
+          ) : (
+            <Title size="sm" strong={true}>
+              404: Guild not found
+            </Title>
+          )}
+        </Loading>
+      )}
       <ActionButton
         size="lg"
         color="secondary"
