@@ -186,6 +186,3 @@ const GuildContribute: React.FC = () => {
 };
 
 export default GuildContribute;
-
-// 3. Clear data after disconnect
-// 4. Also handle wallet updates properly
