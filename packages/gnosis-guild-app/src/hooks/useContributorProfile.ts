@@ -9,8 +9,6 @@ export const useContributorProfile = () => {
   const [profileEmail, setProfileEmail] = useState("");
 
   const saveContributorProfile = async (name: string, email: string) => {
-    console.log("DID");
-    console.log(did?.id);
     const recipients = [
       did?.id as string,
       "did:key:z6MkuCGtjBKamt3RaLSjGYcViKYRrmaH7BAavD6o6CESoQBo" // Server DID

@@ -16,7 +16,6 @@ import RiskAgreement from "../../components/RiskAgreement";
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
 import { useWeb3Context } from "../../context/Web3Context";
 import { fetchGuild } from "../../graphql";
-import { useGuild } from "../../hooks/useGuild";
 import { useSubscriber } from "../../hooks/useSubscriber";
 import { useContributorProfile } from "../../hooks/useContributorProfile";
 import { useContribute } from "../../hooks/useContribute";
@@ -109,6 +108,13 @@ const GuildContribute: React.FC = () => {
       contributorEmail
     );
   };
+
+  const onDisconnect = () => {
+    setContributorName("");
+    setContributorEmail("");
+    setGuildMinimumAmount("0");
+  };
+
   const contributionTx = subscribed ? unsubscribe : submitContributionTx;
   return (
     <Grid>
@@ -168,7 +174,9 @@ const GuildContribute: React.FC = () => {
         </Loading>
       )}
       <GridWallet>
-        <ConnectWeb3Button>{connectText}</ConnectWeb3Button>
+        <ConnectWeb3Button disconnectAction={onDisconnect}>
+          {connectText}
+        </ConnectWeb3Button>
       </GridWallet>
       <GridAgreementFooter>
         <RiskAgreement />
@@ -179,5 +187,5 @@ const GuildContribute: React.FC = () => {
 
 export default GuildContribute;
 
-// 2. Add hooks to contribute widget
 // 3. Clear data after disconnect
+// 4. Also handle wallet updates properly

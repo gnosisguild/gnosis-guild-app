@@ -134,7 +134,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 		if (!account) {
 			return ""
 		}
-     const ceramic = await new Ceramic("https://ceramic-clay.3boxlabs.com") as CeramicApi
+    const ceramic = await new Ceramic("https://ceramic-clay.3boxlabs.com") as CeramicApi
 
 		const threeIdProvider = await get3IdProvider()
 		const aliases = {
@@ -144,14 +144,14 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 		}
 
 		const resolver = new Resolver({ ...ThreeIdResolver.getResolver(ceramic), ...KeyDidResolver.getResolver() })
-    const did = new DID({ provider: threeIdProvider , resolver })
+    const genDid = new DID({ provider: threeIdProvider , resolver })
 
-		await did.authenticate()
-		await ceramic.setDID(did)
-		setDid(did)
-    const idx = new IDX({ ceramic, aliases })
-		setIdx(idx)
-    return idx.id
+		await genDid.authenticate()
+		await ceramic.setDID(genDid)
+		setDid(genDid)
+    const genIdx = new IDX({ ceramic, aliases })
+		setIdx(genIdx)
+    return genIdx.id
 	};
 
 
