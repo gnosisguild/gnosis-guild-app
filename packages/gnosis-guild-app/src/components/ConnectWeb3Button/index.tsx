@@ -35,7 +35,7 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
     if (account) {
       ceramicAuth();
     }
-  }, [account, authenticateCeramic]);
+  }, [account]);
   return (
     <Button size="md" color="secondary" onClick={onClickAction}>
       {children}
