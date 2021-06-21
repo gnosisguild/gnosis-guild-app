@@ -7,7 +7,13 @@ import React, {
 } from "react";
 import styled from "styled-components";
 import isURL from "validator/lib/isURL";
-import { Button, Text, TextField } from "@gnosis.pm/safe-react-components";
+import {
+  Button,
+  GenericModal,
+  Loader,
+  Text,
+  TextField
+} from "@gnosis.pm/safe-react-components";
 
 import AmountInput from "../AmountInput";
 import { useGuildContext } from "../../context/GuildContext";
@@ -43,13 +49,23 @@ const DeleteButton = styled(Button)`
   }
 `;
 
+const GuildLoaderContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
 const CreateGuildForm: React.FC = () => {
   const { refreshGuild, guildMetadata, setGuildMetadata } = useGuildContext();
 
   const { ethersProvider, account, providerChainId } = useWeb3Context();
   const { createGuild, deactivateGuild, updateMetadataCid } = useGuild();
-  const [submitting, setSubmitting] = useState(false);
   const [invalidForm, setInvalidForm] = useState(false);
+
+  // Transaction Processing variables
+  const [loadingTitle, setLoadingTitle] = useState("");
+  const [loadingFooter, setLoadingFooter] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   // Input values
   const [guildAddress, setGuildAddress] = useState(guildMetadata.guildAddress);
   const [guildName, setGuildName] = useState(guildMetadata.name);
@@ -118,7 +134,17 @@ const CreateGuildForm: React.FC = () => {
     const input = hiddenImageInput.current as HTMLInputElement;
     if (target.files && input.files) {
       setGuildImage(input.files[0]);
-      setGuildMetadata({ ...guildMetadata, image: input.files[0] });
+      setGuildMetadata({
+        name: guildName,
+        description: guildDescription,
+        contentFormat: contentFormat,
+        externalLink: guildExternalLink,
+        currency: activeCurrency,
+        amount: guildMinimumAmount,
+        guildAddress: guildAddress,
+        imageCid: guildMetadata.imageCid,
+        image: input.files[0]
+      });
     }
   };
 
@@ -130,6 +156,8 @@ const CreateGuildForm: React.FC = () => {
     setSubmitting(true);
     try {
       // Create guild
+
+      setLoadingTitle("Setting up transaction to be sent");
       const guildInfo = {
         name: guildName,
         description: guildDescription,
@@ -141,8 +169,22 @@ const CreateGuildForm: React.FC = () => {
         guildAddress: guildAddress,
         imageCid: ""
       };
-      await createGuild(providerChainId, ethersProvider, guildInfo, account);
+      const tx = await createGuild(
+        providerChainId,
+        ethersProvider,
+        guildInfo,
+        account
+      );
+      setLoadingTitle("Transaction is processing");
+      setLoadingFooter("Processing should be finished in a few minutes!");
+
       refreshGuild();
+      if (tx) {
+        tx.wait(1);
+      }
+
+      setLoadingTitle("");
+      setLoadingFooter("");
     } catch (e) {
       console.error(e);
     }
@@ -150,7 +192,9 @@ const CreateGuildForm: React.FC = () => {
   };
 
   const updateTx = async (): Promise<void> => {
-    updateMetadataCid(
+    setSubmitting(true);
+    setLoadingTitle("Setting up transaction to be sent");
+    const tx = await updateMetadataCid(
       {
         name: guildName,
         description: guildDescription,
@@ -164,17 +208,28 @@ const CreateGuildForm: React.FC = () => {
       },
       ethersProvider
     );
+
+    setLoadingTitle("Transaction is processing");
+    setLoadingFooter("Processing should be finished in a few minutes!");
+    if (tx) {
+      tx.wait(1);
+    }
+    setLoadingTitle("");
+    setLoadingFooter("");
+    setSubmitting(false);
   };
 
   // Upload text
   const imageUploadText = guildMetadata.description
     ? "Replace Image"
     : "Upload Image";
-  const guildButtonText = guildMetadata.name ? "Update Guild" : "Create Guild";
+  const guildButtonText = guildMetadata.imageCid
+    ? "Update Guild"
+    : "Create Guild";
   const submitGuildButtonText = `${
-    guildMetadata.name ? "Updating" : "Creating"
+    guildMetadata.imageCid ? "Updating" : "Creating"
   } Guild...`;
-  const guildTx = guildMetadata.name ? updateTx : submitTx;
+  const guildTx = guildMetadata.imageCid ? updateTx : submitTx;
 
   const updateGuildName = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -231,6 +286,12 @@ const CreateGuildForm: React.FC = () => {
     >
       Delete Guild
     </DeleteButton>
+  );
+
+  const TransactionLoader = (
+    <GuildLoaderContainer>
+      <Loader size="lg" />
+    </GuildLoaderContainer>
   );
 
   return (
@@ -319,6 +380,14 @@ const CreateGuildForm: React.FC = () => {
         </Button>
         {deleteButton}
       </ButtonContainer>
+      {submitting && (
+        <GenericModal
+          onClose={() => setSubmitting(false)}
+          title={loadingTitle}
+          body={TransactionLoader}
+          footer={loadingFooter}
+        />
+      )}
     </GridForm>
   );
 };
