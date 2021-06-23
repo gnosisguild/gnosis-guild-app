@@ -51,6 +51,32 @@ export class Guild extends Entity {
     this.set("createdAt", Value.fromString(value));
   }
 
+  get lastMetadataUpdate(): string {
+    let value = this.get("lastMetadataUpdate");
+    return value.toString();
+  }
+
+  set lastMetadataUpdate(value: string) {
+    this.set("lastMetadataUpdate", Value.fromString(value));
+  }
+
+  get pausedAt(): string | null {
+    let value = this.get("pausedAt");
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set pausedAt(value: string | null) {
+    if (value === null) {
+      this.unset("pausedAt");
+    } else {
+      this.set("pausedAt", Value.fromString(value as string));
+    }
+  }
+
   get owner(): Bytes {
     let value = this.get("owner");
     return value.toBytes();
@@ -123,24 +149,6 @@ export class Guild extends Entity {
     this.set("subsPeriod", Value.fromBigInt(value));
   }
 
-  get currentBalance(): BigInt {
-    let value = this.get("currentBalance");
-    return value.toBigInt();
-  }
-
-  set currentBalance(value: BigInt) {
-    this.set("currentBalance", Value.fromBigInt(value));
-  }
-
-  get totalSubscriptions(): BigInt {
-    let value = this.get("totalSubscriptions");
-    return value.toBigInt();
-  }
-
-  set totalSubscriptions(value: BigInt) {
-    this.set("totalSubscriptions", Value.fromBigInt(value));
-  }
-
   get totalSubscribers(): BigInt {
     let value = this.get("totalSubscribers");
     return value.toBigInt();
@@ -148,6 +156,23 @@ export class Guild extends Entity {
 
   set totalSubscribers(value: BigInt) {
     this.set("totalSubscribers", Value.fromBigInt(value));
+  }
+
+  get balances(): Array<string> | null {
+    let value = this.get("balances");
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  set balances(value: Array<string> | null) {
+    if (value === null) {
+      this.unset("balances");
+    } else {
+      this.set("balances", Value.fromStringArray(value as Array<string>));
+    }
   }
 
   get subscriptions(): Array<string> | null {
@@ -165,6 +190,99 @@ export class Guild extends Entity {
     } else {
       this.set("subscriptions", Value.fromStringArray(value as Array<string>));
     }
+  }
+
+  get withdrawals(): Array<string> | null {
+    let value = this.get("withdrawals");
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  set withdrawals(value: Array<string> | null) {
+    if (value === null) {
+      this.unset("withdrawals");
+    } else {
+      this.set("withdrawals", Value.fromStringArray(value as Array<string>));
+    }
+  }
+}
+
+export class GuildBalance extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id !== null, "Cannot save GuildBalance entity without an ID");
+    assert(
+      id.kind == ValueKind.STRING,
+      "Cannot save GuildBalance entity with non-string ID. " +
+        'Considering using .toHex() to convert the "id" to a string.'
+    );
+    store.set("GuildBalance", id.toString(), this);
+  }
+
+  static load(id: string): GuildBalance | null {
+    return store.get("GuildBalance", id) as GuildBalance | null;
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get guild(): string {
+    let value = this.get("guild");
+    return value.toString();
+  }
+
+  set guild(value: string) {
+    this.set("guild", Value.fromString(value));
+  }
+
+  get addedAt(): string {
+    let value = this.get("addedAt");
+    return value.toString();
+  }
+
+  set addedAt(value: string) {
+    this.set("addedAt", Value.fromString(value));
+  }
+
+  get tokenAddress(): Bytes {
+    let value = this.get("tokenAddress");
+    return value.toBytes();
+  }
+
+  set tokenAddress(value: Bytes) {
+    this.set("tokenAddress", Value.fromBytes(value));
+  }
+
+  get currentBalance(): BigInt {
+    let value = this.get("currentBalance");
+    return value.toBigInt();
+  }
+
+  set currentBalance(value: BigInt) {
+    this.set("currentBalance", Value.fromBigInt(value));
+  }
+
+  get totalSubscriptions(): BigInt {
+    let value = this.get("totalSubscriptions");
+    return value.toBigInt();
+  }
+
+  set totalSubscriptions(value: BigInt) {
+    this.set("totalSubscriptions", Value.fromBigInt(value));
   }
 }
 
@@ -309,6 +427,15 @@ export class Payment extends Entity {
     this.set("subscription", Value.fromString(value));
   }
 
+  get token(): Bytes {
+    let value = this.get("token");
+    return value.toBytes();
+  }
+
+  set token(value: Bytes) {
+    this.set("token", Value.fromBytes(value));
+  }
+
   get value(): BigInt {
     let value = this.get("value");
     return value.toBigInt();
@@ -316,5 +443,89 @@ export class Payment extends Entity {
 
   set value(value: BigInt) {
     this.set("value", Value.fromBigInt(value));
+  }
+
+  get transferSignature(): Bytes | null {
+    let value = this.get("transferSignature");
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set transferSignature(value: Bytes | null) {
+    if (value === null) {
+      this.unset("transferSignature");
+    } else {
+      this.set("transferSignature", Value.fromBytes(value as Bytes));
+    }
+  }
+}
+
+export class GuildWithdrawal extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id !== null, "Cannot save GuildWithdrawal entity without an ID");
+    assert(
+      id.kind == ValueKind.STRING,
+      "Cannot save GuildWithdrawal entity with non-string ID. " +
+        'Considering using .toHex() to convert the "id" to a string.'
+    );
+    store.set("GuildWithdrawal", id.toString(), this);
+  }
+
+  static load(id: string): GuildWithdrawal | null {
+    return store.get("GuildWithdrawal", id) as GuildWithdrawal | null;
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get guild(): string {
+    let value = this.get("guild");
+    return value.toString();
+  }
+
+  set guild(value: string) {
+    this.set("guild", Value.fromString(value));
+  }
+
+  get tokenAddress(): Bytes {
+    let value = this.get("tokenAddress");
+    return value.toBytes();
+  }
+
+  set tokenAddress(value: Bytes) {
+    this.set("tokenAddress", Value.fromBytes(value));
+  }
+
+  get value(): BigInt {
+    let value = this.get("value");
+    return value.toBigInt();
+  }
+
+  set value(value: BigInt) {
+    this.set("value", Value.fromBigInt(value));
+  }
+
+  get beneficiary(): Bytes {
+    let value = this.get("beneficiary");
+    return value.toBytes();
+  }
+
+  set beneficiary(value: Bytes) {
+    this.set("beneficiary", Value.fromBytes(value));
   }
 }

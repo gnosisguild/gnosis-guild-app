@@ -63,7 +63,8 @@ const GuildStats: React.FC = () => {
         providerChainId
       );
       if (guild) {
-        setNumTokens(ethers.utils.formatEther(guild.currentBalance));
+        const guildMainBalance = guild.balances.find(b => b.tokenAddress === guild.tokenAddress);
+        setNumTokens(ethers.utils.formatEther(guildMainBalance ? guildMainBalance.totalSubscriptions : "0"));
         setNumContributors(guild.totalSubscribers);
       }
     };
