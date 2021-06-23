@@ -30,10 +30,10 @@ const initialGuildMetadata = {
 };
 
 export type GuildContextValue = {
-  loading: boolean,
-  refreshGuild: () => void,
-  guildMetadata: GuildMetadata,
-  setGuildMetadata: (arg0: GuildMetadata) => void,
+  loading: boolean;
+  refreshGuild: () => void;
+  guildMetadata: GuildMetadata;
+  setGuildMetadata: (arg0: GuildMetadata) => void;
 };
 export const GuildContext = React.createContext<GuildContextValue>({
   loading: false,
@@ -96,7 +96,9 @@ export const GuildProvider: React.FC = ({ children }) => {
   }, [account, providerChainId]);
 
   return (
-    <GuildContext.Provider value={{ loading, refreshGuild, guildMetadata, setGuildMetadata }}>
+    <GuildContext.Provider
+      value={{ loading, refreshGuild, guildMetadata, setGuildMetadata }}
+    >
       {children}
     </GuildContext.Provider>
   );

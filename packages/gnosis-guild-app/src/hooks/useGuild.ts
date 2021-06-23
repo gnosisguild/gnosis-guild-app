@@ -8,7 +8,6 @@ import { getNetworkByChainId } from "../lib/networks";
 
 import { GuildMetadata, useGuildContext } from "../context/GuildContext";
 
-
 export const useGuild = () => {
   const { refreshGuild, guildMetadata } = useGuildContext();
 
@@ -40,7 +39,7 @@ export const useGuild = () => {
     ethersProvider: ethers.providers.Web3Provider,
     guildInfo: GuildMetadata,
     creatorAddress: string
-  ): Promise<void> => {
+  ): Promise<ethers.providers.TransactionResponse> => {
     try {
       const network = getNetworkByChainId(chainId);
 
@@ -69,11 +68,11 @@ export const useGuild = () => {
       const calldata = iface.encodeFunctionData("initialize", functionArgs);
 
       // TODO: Add Guild address here
-      const txResponse = await factoryContract.functions['createGuild(bytes)'](calldata);
-      console.log('TX Response', txResponse);
-      await txResponse.wait(1);
-      console.log('TX has been mined!');
-    } catch(error) {
+      const txResponse = await factoryContract.functions["createGuild(bytes)"](
+        calldata
+      );
+      return txResponse;
+    } catch (error) {
       console.error(`Failed to create guild: ${error}`);
       throw new Error(error);
     }
@@ -96,7 +95,7 @@ export const useGuild = () => {
       ethersProvider.getSigner()
     );
     await guildContract
-      .pauseGuild(false)
+      .pauseGuild(true)
       .catch((err: Error) => console.error(`Failed to pause ${err}`));
 
     refreshGuild();
@@ -105,7 +104,7 @@ export const useGuild = () => {
   const updateMetadataCid = async (
     guildInfo: GuildMetadata,
     ethersProvider: ethers.providers.Web3Provider
-  ) => {
+  ): Promise<ethers.providers.TransactionResponse> => {
     const abiApp = [
       "function setMetadata(string memory _metadataCID) external "
     ];
@@ -117,9 +116,10 @@ export const useGuild = () => {
 
     const metadataCid = await saveMetadata(guildInfo);
 
-    await guildContract
+    const transaction = await guildContract
       .setMetadata(metadataCid)
       .catch((err: Error) => console.error("Failed to set metadata cid"));
+    return transaction;
   };
 
   const saveMetadata = async (guildInfo: GuildMetadata): Promise<string> => {
@@ -231,7 +231,7 @@ export const useGuild = () => {
     const bnValue = ethers.utils.parseEther(value);
 
     if (guildToken !== ethers.constants.AddressZero) {
-      console.log('Should send Token...');
+      console.log("Should send Token...");
       // TODO: This should be done using a batch Tx & replaced using the recurring allowance module
       const erc20Abi = [
         "function approve(address spender, uint256 amount) public returns (bool)"
@@ -247,7 +247,8 @@ export const useGuild = () => {
     const args = [tokenURI, bnValue.toString(), "0x"];
     console.log("Subscribe args", ...args);
     await guildContract.subscribe(...args, {
-      value: guildToken === ethers.constants.AddressZero ? bnValue.toString(): "0"
+      value:
+        guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0"
     });
   };
 
