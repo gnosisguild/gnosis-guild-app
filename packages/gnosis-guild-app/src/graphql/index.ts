@@ -2,9 +2,15 @@ import { request, gql } from "graphql-request";
 
 import { getNetworkByChainId } from "../lib/networks";
 
+export type Balance = {
+  currentBalance: number;
+  tokenAddress: string;
+  totalSubscriptions: number;
+};
+
 export type GraphGuild = {
   active: boolean;
-  currentBalance: number;
+  balances: Array<Balance>;
   currentPrice: number;
   id: string;
   metadataURI: string;
@@ -14,7 +20,6 @@ export type GraphGuild = {
   subscriptions: Array<any>;
   symbol: string;
   tokenAddress: string;
-  totalSubscriptions: number;
   totalSubscribers: number;
 };
 
