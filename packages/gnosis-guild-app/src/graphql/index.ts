@@ -43,9 +43,12 @@ const guildBaseFields = `
     tokenAddress
     currentPrice
     subsPeriod
-    currentBalance
     totalSubscribers
-    totalSubscriptions
+		balances {
+		  currentBalance
+		  tokenAddress
+			totalSubscriptions
+		}
 `;
 
 export const fetchGuildByAddress = async (
