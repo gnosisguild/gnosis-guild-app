@@ -1,5 +1,5 @@
-import { BigInt, Address, log } from "@graphprotocol/graph-ts";
-import { Guild, GuildSubscription, Payment } from "../generated/schema";
+import { BigInt, log } from "@graphprotocol/graph-ts";
+import { Guild, GuildBalance, GuildSubscription, Payment, GuildWithdrawal } from "../generated/schema";
 import {
     InitializedGuild,
     NewSubscription,
@@ -18,15 +18,24 @@ export function handleCreatedGuild(event: InitializedGuild): void {
     guild.name = event.params._metadata.name;
     guild.symbol = event.params._metadata.symbol;
     guild.metadataURI = event.params._metadata.baseURI.concat(event.params._metadata.metadataCID);
+    guild.lastMetadataUpdate = event.block.timestamp.toString();
     guild.active = true;
     guild.tokenAddress = event.params._tokenAddress;
-    guild.currentBalance = BigInt.fromI32(0);
-    guild.totalSubscriptions = BigInt.fromI32(0);
     guild.totalSubscribers = BigInt.fromI32(0);
     guild.subsPeriod = event.params._subscriptionPeriod;
     guild.currentPrice = event.params._subPrice;
     
     guild.save();
+
+    let balanceId = guildId.concat("-").concat(guild.tokenAddress.toHexString());
+    let guildBalance = new GuildBalance(balanceId);
+    guildBalance.guild = guildId;
+    guildBalance.addedAt = event.block.timestamp.toString();
+    guildBalance.tokenAddress = guild.tokenAddress;
+    guildBalance.currentBalance = BigInt.fromI32(0);
+    guildBalance.totalSubscriptions = BigInt.fromI32(0);
+
+    guildBalance.save();
 
 }
 
@@ -34,6 +43,7 @@ export function handleUpdatedMetadata(event: UpdatedMetadata): void {
     let guild = Guild.load(event.address.toHex());
     if (guild != null) {
         guild.metadataURI = event.params._metadataURI;
+        guild.lastMetadataUpdate = event.block.timestamp.toString();
         guild.save();
     }
 }
@@ -42,6 +52,8 @@ export function handlePausedGuild(event: PausedGuild):void {
     let guild = Guild.load(event.address.toHex());
     if (guild != null) {
         guild.active = event.params._isPaused;
+        // guild.pausedAt = event.params._isPaused ? event.block.timestamp.toString() : "";
+        guild.pausedAt = event.block.timestamp.toString();
         guild.save();
     }
 }
@@ -52,6 +64,20 @@ export function handleUpdatedPaymentInfo(event: SubscriptionPriceChanged): void 
         guild.tokenAddress = event.params._tokenAddress;
         guild.currentPrice = event.params._subPrice;
         guild.save();
+
+        let balanceId = guild.id.concat("-").concat(guild.tokenAddress.toHexString());
+        let guildBalance = GuildBalance.load(balanceId);
+        if (guildBalance == null) {
+            let guildBalance = new GuildBalance(balanceId);
+            guildBalance.guild = guild.id;
+            guildBalance.addedAt = event.block.timestamp.toString();
+            guildBalance.tokenAddress = guild.tokenAddress;
+            guildBalance.currentBalance = BigInt.fromI32(0);
+            guildBalance.totalSubscriptions = BigInt.fromI32(0);
+
+            guildBalance.save();
+
+        }
     }
 }
 
@@ -59,32 +85,40 @@ export function handleNewSubcription(event: NewSubscription): void {
     let guild = Guild.load(event.address.toHex());
     if (guild != null) {
         let value = event.params._value;
-        guild.currentBalance = guild.currentPrice.plus(value);
-        guild.totalSubscriptions = guild.totalSubscriptions.plus(value);
         guild.totalSubscribers = guild.totalSubscribers.plus(BigInt.fromI32(1));
 
         guild.save();
 
-        let keyId = event.params._tokenId;
-        let subId = guild.id.concat("-").concat(keyId.toHexString());
+        let balanceId = guild.id.concat("-").concat(guild.tokenAddress.toHexString());
+        let guildBalance = GuildBalance.load(balanceId);
+        guildBalance.currentBalance = guildBalance.currentBalance.plus(value);
+        guildBalance.totalSubscriptions = guildBalance.totalSubscriptions.plus(value);
+
+        guildBalance.save();
+
+        let owner = event.transaction.from;
+        let subId = guild.id.concat("-").concat(owner.toHexString());
         let subscription = new GuildSubscription(subId);
         subscription.createdAt = event.block.timestamp.toString();
         subscription.guild = guild.id;
-        subscription.keyId = keyId;
-        subscription.owner = event.transaction.from;
+        subscription.keyId = event.params._tokenId;
+        subscription.owner = owner;
         subscription.expires = event.params.expiry.toString();
 
         subscription.save();
 
         let paymentId = guild.id
             .concat("-")
-            .concat(keyId.toHexString())
+            .concat(owner.toHexString())
             .concat("-")
             .concat(event.params.expiry.toHexString());
         let payment = new Payment(paymentId);
         payment.purchasedAt = event.block.timestamp.toString();
         payment.subscription = subId;
+        payment.token = guild.tokenAddress;
         payment.value = value;
+        // TODO: set signature if sent by a Gnosis Proxy Contract with Allowance module
+        // payment.transferSignature = 
 
         payment.save();
     }
@@ -96,13 +130,15 @@ export function handleRenewSubcription(event: RenewSubscription): void {
         let keyId = event.params._tokenId;
         let subId = event.address.toHexString().concat("-").concat(keyId.toHexString());
         let subscription = GuildSubscription.load(subId);
-        // TODO: update Guild balances
         if (subscription != null) {
             let value = event.params._value;
-            guild.currentBalance = guild.currentPrice.plus(value);
-            guild.totalSubscriptions = guild.totalSubscriptions.plus(value);
 
-            guild.save();
+            let balanceId = guild.id.concat("-").concat(guild.tokenAddress.toHexString());
+            let guildBalance = GuildBalance.load(balanceId);
+            guildBalance.currentBalance = guildBalance.currentBalance.plus(value);
+            guildBalance.totalSubscriptions = guildBalance.totalSubscriptions.plus(value);
+
+            guildBalance.save();
 
             subscription.expires = event.params.expiry.toString();
 
@@ -114,6 +150,7 @@ export function handleRenewSubcription(event: RenewSubscription): void {
             let payment = new Payment(paymentId);
             payment.purchasedAt = event.block.timestamp.toString();
             payment.subscription = subId;
+            payment.token = guild.tokenAddress;
             payment.value = value;
 
             payment.save();
@@ -124,9 +161,20 @@ export function handleRenewSubcription(event: RenewSubscription): void {
 export function handleWithdraw(event: Withdraw): void {
     let guild = Guild.load(event.address.toHex());
     if (guild != null) {
+        let tokenAddress = event.params._tokenAddress;
         let value = event.params._amount;
-        guild.currentBalance = guild.currentPrice.minus(value);
+        let balanceId = guild.id.concat("-").concat(tokenAddress.toHexString());
+        let guildBalance = GuildBalance.load(balanceId);
+        guildBalance.currentBalance = guildBalance.currentBalance.minus(value);
 
-        guild.save();
+        guildBalance.save();
+
+        let withdrawal = new GuildWithdrawal(event.transaction.hash.toHexString());
+        withdrawal.guild = guild.id;
+        withdrawal.tokenAddress = tokenAddress;
+        withdrawal.value = value;
+        withdrawal.beneficiary = event.params.beneficiary;
+
+        withdrawal.save();
     }
 }

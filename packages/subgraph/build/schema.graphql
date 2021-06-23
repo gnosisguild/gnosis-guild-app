@@ -1,6 +1,8 @@
 type Guild @entity {
   id: ID!
   createdAt: String!
+  lastMetadataUpdate: String!
+  pausedAt: String
   owner: Bytes!
   name: String!
   symbol: String!
@@ -9,10 +11,19 @@ type Guild @entity {
   tokenAddress: Bytes!
   currentPrice: BigInt!
   subsPeriod: BigInt!
+  totalSubscribers: BigInt!
+  balances: [GuildBalance!] @derivedFrom(field: "guild")
+  subscriptions: [GuildSubscription!] @derivedFrom(field: "guild")
+  withdrawals: [GuildWithdrawal!] @derivedFrom(field: "guild")
+}
+
+type GuildBalance @entity {
+  id: ID!
+  guild: Guild!
+  addedAt: String!
+  tokenAddress: Bytes!
   currentBalance: BigInt!
   totalSubscriptions: BigInt!
-  totalSubscribers: BigInt!
-  subscriptions: [GuildSubscription!] @derivedFrom(field: "guild")
 }
 
 type GuildSubscription @entity {
@@ -29,5 +40,15 @@ type Payment @entity {
   id: ID!
   purchasedAt: String!
   subscription: GuildSubscription!
+  token: Bytes!
   value: BigInt!
+  transferSignature: Bytes
+}
+
+type GuildWithdrawal @entity {
+  id: ID!
+  guild: Guild!
+  tokenAddress: Bytes!
+  value: BigInt!
+  beneficiary: Bytes!
 }
