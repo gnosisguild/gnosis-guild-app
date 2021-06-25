@@ -27,6 +27,7 @@ export type Web3ContextValue = {
   ethersProvider: ethers.providers.Web3Provider;
   account: string;
   providerChainId: number;
+	connected: boolean;
   idx?: IDXApi;
   did?: DID;
 };
@@ -39,6 +40,7 @@ const initialWeb3Context = {
   ethersProvider: new ethers.providers.Web3Provider(window.ethereum),
   account: "",
   providerChainId: 0,
+	connected: false,
 };
 
 export const Web3Context = React.createContext<Web3ContextValue>(
@@ -77,6 +79,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   const [{ providerChainId, ethersProvider, account }, setWeb3State] = useState(
     initialWeb3State
   );
+	const [connected, setConnected] = useState(false)
   const [idx, setIdx] = useState<IDXApi | null>(null);
   const [did, setDid] = useState<DID | null>(null);
   const setWeb3Provider = useCallback(async (initialProvider: any): Promise<
@@ -111,12 +114,14 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     modalProvider.on("chainChanged", () => {
       setWeb3Provider(modalProvider);
     });
+		setConnected(true)
   }, [setWeb3Provider]);
 
-  const disconnect = useCallback(async () => {
+  const disconnect = async () => {
     web3Modal.clearCachedProvider();
     setWeb3State(initialWeb3State);
-  }, []);
+		setConnected(false)
+  };
 
   const getConnectText = useCallback(() => {
     return account
@@ -170,7 +175,8 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         ethersProvider,
         account,
         providerChainId,
-        getConnectText
+        getConnectText,
+		    connected
       } as Web3ContextValue
 	if (idx) {
 		values = {idx: idx, ...values}

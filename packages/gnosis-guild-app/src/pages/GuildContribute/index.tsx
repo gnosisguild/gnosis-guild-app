@@ -62,7 +62,7 @@ const GuildContribute: React.FC = () => {
 
   const [guildMetadata, setGuildMetadata] = useState<any>();
   const { guildId } = useParams<{ guildId: string }>();
-  console.log("GUILD ID ==>", guildId, providerChainId);
+  // console.log("GUILD ID ==>", guildId, providerChainId);
   const { currentMinimumAmount, subscribed } = useSubscriber();
   const { profileName, profileEmail } = useContributorProfile();
   const {
