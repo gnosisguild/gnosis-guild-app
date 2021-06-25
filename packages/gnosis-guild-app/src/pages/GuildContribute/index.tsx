@@ -52,7 +52,7 @@ const FormItem = styled.div`
 `;
 
 const GuildContribute: React.FC = () => {
-  const { getConnectText, providerChainId } = useWeb3Context();
+  const { getConnectText, providerChainId, account } = useWeb3Context();
   const [activeCurrency, setActiveCurrency] = useState("ETH");
 
   const [contributorName, setContributorName] = useState("");

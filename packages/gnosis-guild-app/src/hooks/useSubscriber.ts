@@ -22,6 +22,7 @@ export const useSubscriber = () => {
         providerChainId
       );
       if (!subscribers) {
+        setSubscribed(false);
         return;
       }
       if (subscribers.length > 0) {
@@ -31,10 +32,12 @@ export const useSubscriber = () => {
           const payment = subscriber.paymentHistory[0];
           setCurrentMinimumAmount(ethers.utils.formatEther(payment.value));
         }
+      } else {
+        setSubscribed(false);
       }
     };
     setSubscriber();
-  }, [subscribed, providerChainId, account, guildId]);
+  }, [providerChainId, account, guildId]);
   return {
     subscribed,
     currentMinimumAmount
