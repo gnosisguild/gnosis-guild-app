@@ -28,6 +28,12 @@ export type Web3ContextValue = {
   did?: DID;
 };
 
+type Web3State = {
+  account: string;
+  providerChainId: number;
+  ethersProvider?: ethers.providers.Web3Provider;
+};
+
 const newProvider = () => {
   return new ethers.providers.Web3Provider(window.ethereum);
 };
@@ -63,14 +69,13 @@ const web3Modal = new Web3Modal({
 });
 
 const initialWeb3State = {
-  ethersProvider: new ethers.providers.Web3Provider(window.ethereum),
   account: "",
   providerChainId: 0,
 };
 
 export const Web3ContextProvider: React.FC = ({ children }) => {
   const [{ providerChainId, ethersProvider, account }, setWeb3State] =
-    useState(initialWeb3State);
+    useState<Web3State>(initialWeb3State);
   const [connected, setConnected] = useState(false);
   const [idx, setIdx] = useState<IDXApi | null>(null);
   const [did, setDid] = useState<DID | null>(null);

@@ -51,7 +51,7 @@ const GuildApp: React.FC = () => {
   }, [guildMetadata.guildAddress]);
 
   // Get reference to image
-  console.log('Inspect', loading, guildMetadata)
+  console.log("Inspect", loading, guildMetadata);
 
   return loading ? (
     <Loading>
@@ -66,3 +66,4 @@ const GuildApp: React.FC = () => {
 };
 
 export default GuildApp;
+// Fix loading windows
