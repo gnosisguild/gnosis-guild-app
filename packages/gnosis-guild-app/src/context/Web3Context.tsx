@@ -128,17 +128,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   }, [account]);
 
   const get3IdProvider = async () => {
-    console.log("Account");
-    console.log(account);
     const authProvider = new EthereumAuthProvider(window.ethereum, account);
 
-    console.log(authProvider);
     const threeIdConnect = new ThreeIdConnect();
     await threeIdConnect.connect(authProvider);
-    console.log(threeIdConnect);
-    const x = threeIdConnect.getDidProvider();
-    console.log(x);
-    return x;
+    return threeIdConnect.getDidProvider();
   };
 
   const authenticateCeramic = async (): Promise<string> => {
@@ -149,8 +143,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 
     const threeIdProvider = await get3IdProvider();
 
-    console.log("provider");
-    console.log(threeIdProvider);
     const aliases = {
       contributorProfile:
         "kjzl6cwe1jw14946qcgwbeixkh2ou9hwn29zv331akhfr61a44klf9ukg9jxz8g",
@@ -172,15 +164,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       resolver,
     });
 
-    console.log(genDid);
     await genDid.authenticate();
     await ceramic.setDID(genDid);
-    console.log("DID/IDX");
-    console.log(genDid);
     setDid(genDid);
     const genIdx = new IDX({ ceramic, aliases });
     setIdx(genIdx);
-    console.log(genIdx.id);
     return genIdx.id;
   };
 

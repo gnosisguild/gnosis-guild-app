@@ -8,13 +8,8 @@ type Props = {
 
 const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
   const [currentAccount, setCurrentAccount] = useState("");
-  const {
-    connectToWeb3,
-    account,
-    disconnect,
-    authenticateCeramic,
-    connected
-  } = useWeb3Context();
+  const { connectToWeb3, account, disconnect, authenticateCeramic, connected } =
+    useWeb3Context();
 
   // set values to 0
   const web3Disconnect = async () => {
@@ -35,7 +30,6 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
     };
     let connectedIn = connected;
     if (account && currentAccount && account !== currentAccount) {
-      console.log("disconnecting");
       setCurrentAccount("");
       connectedIn = false;
       web3Disconnect();
