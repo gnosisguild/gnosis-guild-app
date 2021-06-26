@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@3id/connect": "^0.1.5",
-    "@ceramicnetwork/http-client": "^1.0.6",
-    "@ceramicnetwork/stream-caip10-link": "^1.0.6",
-    "@ceramicnetwork/stream-tile": "^1.0.6",
+    "@3id/connect": "0.1.5",
+    "@ceramicnetwork/http-client": "1.0.6",
+    "@ceramicnetwork/stream-caip10-link": "1.0.6",
+    "@ceramicnetwork/stream-tile": "1.0.6",
     "@ceramicstudio/idx": "^0.12.1",
     "@gnosis.pm/safe-apps-provider": "^0.5.0",
     "@gnosis.pm/safe-apps-react-sdk": "3.0.0",
@@ -79,9 +79,9 @@
     ]
   },
   "devDependencies": {
-    "@ceramicnetwork/3id-did-resolver": "^1.2.6",
-    "dids": "^2.1.0",
-    "key-did-resolver": "^1.2.1",
+    "@ceramicnetwork/3id-did-resolver": "1.2.6",
+    "dids": "2.1.0",
+    "key-did-resolver": "1.2.1",
     "uint8arrays": "^2.1.5"
   }
 }

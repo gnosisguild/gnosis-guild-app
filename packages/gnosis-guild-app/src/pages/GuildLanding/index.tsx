@@ -4,9 +4,7 @@ import styled from "styled-components";
 import { Loader, Text, Title } from "@gnosis.pm/safe-react-components";
 
 import profile from "../../assets/profile.png";
-import { IPFS_GATEWAY } from "../../constants";
 import { useWeb3Context } from "../../context/Web3Context";
-import { useGuildContext, GuildMetadata } from "../../context/GuildContext";
 
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
 import ContributeButton from "../../components/ContributeButton";
@@ -17,8 +15,7 @@ import GridWallet from "../../components/GridWallet";
 import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 
-import { fetchGuild } from "../../graphql";
-import { useGuild } from "../../hooks/useGuild";
+import { useGuildByParams } from "../../hooks/useGuildByParams";
 
 const Grid = styled.div`
   width: 100%;
@@ -66,67 +63,10 @@ const ContributeLink = styled(Link)`
 `;
 
 const GuiildLanding: React.FC = () => {
-  const [guild, setGuild] = useState<GuildMetadata>({
-    name: "",
-    description: "",
-    contentFormat: "",
-    externalLink: "",
-    image: new File([], ""),
-    currency: "ETH",
-    amount: "0",
-    guildAddress: "",
-    imageCid: ""
-  });
-  const [guildActive, setGuildActive] = useState(false);
-  const { getConnectText, providerChainId } = useWeb3Context();
+  const { getConnectText } = useWeb3Context();
   const connectText = getConnectText();
-  const { fetchMetadata } = useGuild();
-  const [loading, setLoading] = useState(true);
+  const { loading, guild, guildActive } = useGuildByParams();
   const { guildId } = useParams<{ guildId: string }>();
-  const { setGuildMetadata } = useGuildContext();
-
-  useEffect(() => {
-    const _fetchGuild = async () => {
-      const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
-      if (meta) {
-        setGuildActive(meta.active);
-        let metadata = {
-          ...guild
-        };
-
-        if (meta.metadataURI) {
-          metadata = await fetchMetadata(meta.metadataURI, guildId);
-        }
-        let blob = new Blob();
-        if (metadata.imageCid) {
-          let resp = await fetch(
-            `${IPFS_GATEWAY}/${metadata.imageCid}`
-          ).catch((err: Error) =>
-            console.error("Failed to fetch metadata image")
-          );
-          if (resp) {
-            blob = await resp.blob();
-          }
-        }
-        const data = {
-          name: metadata.name,
-          description: metadata.description,
-          contentFormat: metadata.contentFormat,
-          externalLink: metadata.externalLink,
-          image: new File([blob], "profile.jpg"),
-          currency: metadata.currency,
-          amount: metadata.amount,
-          guildAddress: metadata.guildAddress,
-          imageCid: metadata.imageCid
-        };
-        setGuildMetadata(data);
-        setGuild(data);
-      }
-      // TODO: Redirect to 404 if data is missing
-      setLoading(false);
-    };
-    _fetchGuild();
-  }, [guildId, providerChainId]);
 
   return (
     <Grid>

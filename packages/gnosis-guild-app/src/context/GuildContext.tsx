@@ -15,6 +15,7 @@ export type GuildMetadata = {
   amount: string;
   guildAddress: string;
   imageCid: string;
+	tokenAddress?: string;
 };
 
 const initialGuildMetadata = {

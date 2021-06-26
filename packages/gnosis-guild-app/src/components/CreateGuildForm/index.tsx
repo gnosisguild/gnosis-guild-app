@@ -153,6 +153,10 @@ const CreateGuildForm: React.FC = () => {
   };
 
   const submitTx = async (): Promise<void> => {
+    if (!ethersProvider) {
+      console.error("EthersProvider has not been set yet");
+      return;
+    }
     setSubmitting(true);
     try {
       // Create guild
@@ -192,6 +196,11 @@ const CreateGuildForm: React.FC = () => {
   };
 
   const updateTx = async (): Promise<void> => {
+    if (!ethersProvider) {
+      console.error("EthersProvider has not been set yet");
+      return;
+    }
+
     setSubmitting(true);
     setLoadingTitle("Setting up transaction to be sent");
     const tx = await updateMetadataCid(
@@ -274,6 +283,11 @@ const CreateGuildForm: React.FC = () => {
   };
 
   const pauseGuild = (e: MouseEvent<HTMLButtonElement>) => {
+    if (!ethersProvider) {
+      console.error("EthersProvider has not been set yet");
+      return;
+    }
+
     deactivateGuild(providerChainId, ethersProvider, account, guildAddress);
   };
 

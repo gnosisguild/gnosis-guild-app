@@ -35,16 +35,12 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
     };
     let connectedIn = connected;
     if (account && currentAccount && account !== currentAccount) {
+      console.log("disconnecting");
       setCurrentAccount("");
       connectedIn = false;
       web3Disconnect();
     }
-    console.log(connectedIn);
     if (account && connectedIn) {
-      console.log(account);
-      console.log(connected);
-      console.log(window.ethereum);
-      console.log("Authenticating Connect UseEffect");
       setCurrentAccount(account);
       ceramicAuth();
     }
