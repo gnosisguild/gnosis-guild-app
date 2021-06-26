@@ -25,7 +25,7 @@ const GridForm = styled.form`
   margin: 0.4rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   max-width: 600px;
 `;
 
