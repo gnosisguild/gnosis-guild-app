@@ -2,15 +2,22 @@ import { request, gql } from "graphql-request";
 
 import { getNetworkByChainId } from "../lib/networks";
 
-export type Balance = {
-  currentBalance: number;
+export type GuildBalance = {
+  addedAt: string;
   tokenAddress: string;
+  currentBalance: number;
   totalSubscriptions: number;
-};
+}
+
+export type GuildWithdrawal = {
+  id: string;
+  tokenAddress: string;
+  value: number;
+  beneficiary: string;
+}
 
 export type GraphGuild = {
   active: boolean;
-  balances: Array<Balance>;
   currentPrice: number;
   id: string;
   metadataURI: string;
@@ -21,6 +28,8 @@ export type GraphGuild = {
   symbol: string;
   tokenAddress: string;
   totalSubscribers: number;
+  balances: Array<GuildBalance>;
+  withdrawals: Array<GuildWithdrawal>;
 };
 
 export type Payment = {
@@ -44,11 +53,16 @@ const guildBaseFields = `
     currentPrice
     subsPeriod
     totalSubscribers
-		balances {
-		  currentBalance
-		  tokenAddress
-			totalSubscriptions
-		}
+    balances {
+      tokenAddress
+      currentBalance
+      totalSubscriptions
+    }
+    withdrawals {
+      tokenAddress
+      value
+      beneficiary
+    }
 `;
 
 export const fetchGuildByAddress = async (
