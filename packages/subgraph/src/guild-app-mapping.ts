@@ -51,9 +51,8 @@ export function handleUpdatedMetadata(event: UpdatedMetadata): void {
 export function handlePausedGuild(event: PausedGuild):void {
     let guild = Guild.load(event.address.toHex());
     if (guild != null) {
-        guild.active = event.params._isPaused;
-        // guild.pausedAt = event.params._isPaused ? event.block.timestamp.toString() : "";
-        guild.pausedAt = event.block.timestamp.toString();
+        guild.active = !event.params._isPaused;
+        guild.pausedAt = event.params._isPaused ? event.block.timestamp.toString() : null;
         guild.save();
     }
 }
