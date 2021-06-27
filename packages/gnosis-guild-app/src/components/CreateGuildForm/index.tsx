@@ -3,7 +3,7 @@ import React, {
   useRef,
   MouseEvent,
   ChangeEvent,
-  useEffect
+  useEffect,
 } from "react";
 import styled from "styled-components";
 import isURL from "validator/lib/isURL";
@@ -12,7 +12,7 @@ import {
   GenericModal,
   Loader,
   Text,
-  TextField
+  TextField,
 } from "@gnosis.pm/safe-react-components";
 
 import AmountInput from "../AmountInput";
@@ -25,7 +25,7 @@ const GridForm = styled.form`
   margin: 0.4rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   max-width: 600px;
 `;
 
@@ -87,13 +87,13 @@ const CreateGuildForm: React.FC = () => {
   // Input error states
   const [guildNameMeta, setGuildNameMeta] = useState({ error: "" });
   const [guildDescriptionMeta, setGuildDescriptionMeta] = useState({
-    error: ""
+    error: "",
   });
   const [guildExternalLinkMeta, setGuildExternalLinkMeta] = useState({
-    error: ""
+    error: "",
   });
   const [guildContentFormatMeta, setGuildContentFormatMeta] = useState({
-    error: ""
+    error: "",
   });
 
   const [guildImage, setGuildImage] = useState(guildMetadata.image);
@@ -124,7 +124,7 @@ const CreateGuildForm: React.FC = () => {
     guildNameMeta,
     guildDescriptionMeta,
     guildContentFormatMeta,
-    guildExternalLinkMeta
+    guildExternalLinkMeta,
   ]);
 
   const uploadImage = (
@@ -143,7 +143,7 @@ const CreateGuildForm: React.FC = () => {
         amount: guildMinimumAmount,
         guildAddress: guildAddress,
         imageCid: guildMetadata.imageCid,
-        image: input.files[0]
+        image: input.files[0],
       });
     }
   };
@@ -153,6 +153,10 @@ const CreateGuildForm: React.FC = () => {
   };
 
   const submitTx = async (): Promise<void> => {
+    if (!ethersProvider) {
+      console.error("EthersProvider has not been set yet");
+      return;
+    }
     setSubmitting(true);
     try {
       // Create guild
@@ -167,14 +171,16 @@ const CreateGuildForm: React.FC = () => {
         currency: activeCurrency,
         amount: guildMinimumAmount,
         guildAddress: guildAddress,
-        imageCid: ""
+        imageCid: "",
       };
       const tx = await createGuild(
         providerChainId,
         ethersProvider,
         guildInfo,
-        account
+        account,
+        setSubmitting
       );
+      setSubmitting(true);
       setLoadingTitle("Transaction is processing");
       setLoadingFooter("Processing should be finished in a few minutes!");
 
@@ -192,6 +198,11 @@ const CreateGuildForm: React.FC = () => {
   };
 
   const updateTx = async (): Promise<void> => {
+    if (!ethersProvider) {
+      console.error("EthersProvider has not been set yet");
+      return;
+    }
+
     setSubmitting(true);
     setLoadingTitle("Setting up transaction to be sent");
     const tx = await updateMetadataCid(
@@ -204,10 +215,12 @@ const CreateGuildForm: React.FC = () => {
         currency: activeCurrency,
         amount: guildMinimumAmount,
         guildAddress: guildAddress,
-        imageCid: ""
+        imageCid: "",
       },
-      ethersProvider
+      ethersProvider,
+      setSubmitting
     );
+    setSubmitting(true);
 
     setLoadingTitle("Transaction is processing");
     setLoadingFooter("Processing should be finished in a few minutes!");
@@ -246,7 +259,7 @@ const CreateGuildForm: React.FC = () => {
     setGuildDescription(val);
     if (val && val.length > 200) {
       setGuildDescriptionMeta({
-        error: "Description must be less than 200 characters"
+        error: "Description must be less than 200 characters",
       });
     }
   };
@@ -257,7 +270,7 @@ const CreateGuildForm: React.FC = () => {
     setGuildExternalLink(val);
     if (val && !isURL(val)) {
       setGuildExternalLinkMeta({
-        error: "Guild external link must be a valid Url"
+        error: "Guild external link must be a valid Url",
       });
     }
   };
@@ -268,12 +281,17 @@ const CreateGuildForm: React.FC = () => {
     setContentFormat(val);
     if (val && val.length > 200) {
       setGuildContentFormatMeta({
-        error: "Must be less than 200 characters"
+        error: "Must be less than 200 characters",
       });
     }
   };
 
   const pauseGuild = (e: MouseEvent<HTMLButtonElement>) => {
+    if (!ethersProvider) {
+      console.error("EthersProvider has not been set yet");
+      return;
+    }
+
     deactivateGuild(providerChainId, ethersProvider, account, guildAddress);
   };
 

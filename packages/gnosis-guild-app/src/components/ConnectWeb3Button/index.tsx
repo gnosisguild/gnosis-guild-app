@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@gnosis.pm/safe-react-components";
 import { useWeb3Context } from "../../context/Web3Context";
 
@@ -7,35 +7,38 @@ type Props = {
 };
 
 const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
-  const {
-    connectToWeb3,
-    account,
-    disconnect,
-    authenticateCeramic
-  } = useWeb3Context();
+  const [currentAccount, setCurrentAccount] = useState("");
+  const { connectToWeb3, account, disconnect, authenticateCeramic, connected } =
+    useWeb3Context();
 
   // set values to 0
-  const web3Disconnect = () => {
+  const web3Disconnect = async () => {
     if (disconnectAction) {
       disconnectAction();
     }
-    disconnect();
+    await disconnect();
   };
 
   const onClickAction = account
     ? web3Disconnect
     : async () => {
-        await connectToWeb3();
-        await authenticateCeramic();
+        connectToWeb3();
       };
   useEffect(() => {
     const ceramicAuth = async () => {
       await authenticateCeramic();
     };
-    if (account) {
+    let connectedIn = connected;
+    if (account && currentAccount && account !== currentAccount) {
+      setCurrentAccount("");
+      connectedIn = false;
+      web3Disconnect();
+    }
+    if (account && connectedIn) {
+      setCurrentAccount(account);
       ceramicAuth();
     }
-  }, [account]);
+  }, [account, connected]);
   return (
     <Button size="md" color="secondary" onClick={onClickAction}>
       {children}

@@ -16,7 +16,9 @@ const Grid = styled.div`
   gap: 0rem 4rem;
   display: grid;
   grid-template:
-    "form display" 1fr
+    "_ _" 1fr
+    "form display" 2fr
+    "left right" 1fr
     / 1fr 1fr;
 `;
 
@@ -24,7 +26,9 @@ const GridDisplay = styled.div`
   grid-area: display;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  // This must match the form margin
+  padding-top: 0.8rem;
   max-width: 600px;
   align-items: center;
 `;
@@ -51,7 +55,7 @@ const GuildApp: React.FC = () => {
   }, [guildMetadata.guildAddress]);
 
   // Get reference to image
-  console.log('Inspect', loading, guildMetadata)
+  console.log("Inspect", loading, guildMetadata);
 
   return loading ? (
     <Loading>
@@ -66,3 +70,4 @@ const GuildApp: React.FC = () => {
 };
 
 export default GuildApp;
+// Fix loading windows

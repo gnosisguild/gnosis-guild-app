@@ -19,6 +19,7 @@ import { fetchGuild } from "../../graphql";
 import { useSubscriber } from "../../hooks/useSubscriber";
 import { useContributorProfile } from "../../hooks/useContributorProfile";
 import { useContribute } from "../../hooks/useContribute";
+import { useGuildByParams } from "../../hooks/useGuildByParams";
 
 const Grid = styled.div`
   width: 100%;
@@ -59,30 +60,15 @@ const GuildContribute: React.FC = () => {
   const [contributorEmail, setContributorEmail] = useState("");
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
   const [invalidForm, setInvalidForm] = useState(false);
+  const { loading, guild } = useGuildByParams();
 
   const [guildMetadata, setGuildMetadata] = useState<any>();
   const { guildId } = useParams<{ guildId: string }>();
-  console.log("GUILD ID ==>", guildId, providerChainId);
+  // console.log("GUILD ID ==>", guildId, providerChainId);
   const { currentMinimumAmount, subscribed } = useSubscriber();
   const { profileName, profileEmail } = useContributorProfile();
-  const {
-    submitContribution,
-    contributeLoading,
-    setContributeLoading
-  } = useContribute();
-
-  // Fetch Guild
-  useEffect(() => {
-    setContributeLoading(true);
-    const _fetchGuild = async () => {
-      const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
-      if (meta) {
-        setGuildMetadata(meta);
-      }
-      setContributeLoading(false);
-    };
-    _fetchGuild();
-  }, []);
+  const { submitContribution, contributeLoading, setContributeLoading } =
+    useContribute();
 
   useEffect(() => {
     setContributorEmail(profileEmail);
@@ -101,8 +87,12 @@ const GuildContribute: React.FC = () => {
     console.log("Unsubscribe");
   };
   const submitContributionTx = async () => {
+    if (!guild.tokenAddress) {
+      console.error("No token address");
+      return;
+    }
     await submitContribution(
-      guildMetadata.tokenAddress,
+      guild.tokenAddress,
       guildMinimumAmount,
       contributorName,
       contributorEmail
@@ -121,10 +111,10 @@ const GuildContribute: React.FC = () => {
       <GridLogo>
         <GuildLogo />
       </GridLogo>
-      {guildMetadata ? (
+      {guild.name ? (
         <GridForm>
           <Title size="sm" strong={true}>
-            {guildMetadata.name}
+            {guild.name}
           </Title>
           <FormItem>
             <ContributorNameInput
@@ -164,7 +154,7 @@ const GuildContribute: React.FC = () => {
         </GridForm>
       ) : (
         <Loading>
-          {contributeLoading ? (
+          {loading ? (
             <Loader size="md" />
           ) : (
             <Title size="sm" strong={true}>

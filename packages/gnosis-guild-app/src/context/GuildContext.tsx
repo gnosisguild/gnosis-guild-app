@@ -15,6 +15,7 @@ export type GuildMetadata = {
   amount: string;
   guildAddress: string;
   imageCid: string;
+  tokenAddress?: string;
 };
 
 const initialGuildMetadata = {
@@ -26,7 +27,7 @@ const initialGuildMetadata = {
   currency: "ETH",
   amount: "0",
   guildAddress: "",
-  imageCid: ""
+  imageCid: "",
 };
 
 export type GuildContextValue = {
@@ -39,7 +40,7 @@ export const GuildContext = React.createContext<GuildContextValue>({
   loading: false,
   refreshGuild: async () => {},
   guildMetadata: initialGuildMetadata,
-  setGuildMetadata: guildMeta => {}
+  setGuildMetadata: (guildMeta) => {},
 });
 
 export const useGuildContext = () => useContext(GuildContext);
@@ -58,17 +59,16 @@ export const GuildProvider: React.FC = ({ children }) => {
       if (guilds && guilds.length > 0) {
         const guild = guilds[guilds.length - 1];
         let metadata = {
-          ...guildMetadata
+          ...guildMetadata,
         };
         if (guild.metadataURI) {
-          metadata = await fetchMetadata(guild.metadataURI, guild.id);
+          const cid = guild.metadataURI.split("/").slice(-1)[0];
+          metadata = await fetchMetadata(`${IPFS_GATEWAY}/${cid}`, guild.id);
         }
         let blob = new Blob();
         if (metadata.imageCid) {
-          let resp = await fetch(
-            `${IPFS_GATEWAY}/${metadata.imageCid}`
-          ).catch((err: Error) =>
-            console.error("Failed to fetch metadata image")
+          let resp = await fetch(`${IPFS_GATEWAY}/${metadata.imageCid}`).catch(
+            (err: Error) => console.error("Failed to fetch metadata image")
           );
           if (resp) {
             blob = await resp.blob();
@@ -83,7 +83,7 @@ export const GuildProvider: React.FC = ({ children }) => {
           currency: metadata.currency,
           amount: metadata.amount,
           guildAddress: metadata.guildAddress,
-          imageCid: metadata.imageCid
+          imageCid: metadata.imageCid,
         });
       }
       setLoading(false);

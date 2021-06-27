@@ -2,11 +2,11 @@ import { IChainData } from "./types";
 
 const API_KEY = process.env.REACT_APP_INFURA_ID;
 export const API = process.env.REACT_APP_API_HOST;
-export const IPFS_GATEWAY = "https://ipfs.io/ipfs";
+export const IPFS_GATEWAY = "https://dweb.link/ipfs";
 export const APP_DOMAIN = process.env.REACT_APP_DOMAIN;
 export const CURRENCIES = [
   { id: "ETH", label: "ETH" },
-  { id: "DAI", label: "Dai" }
+  { id: "DAI", label: "Dai" },
 ];
 
 type Networks = {
@@ -27,8 +27,8 @@ export const networks: Networks = {
       name: "Ethereum",
       decimals: "18",
       contractAddress: "",
-      balance: ""
-    }
+      balance: "",
+    },
   },
   4: {
     name: "Ethereum Rinkeby",
@@ -43,7 +43,7 @@ export const networks: Networks = {
       name: "Ethereum",
       decimals: "18",
       contractAddress: "",
-      balance: ""
-    }
-  }
+      balance: "",
+    },
+  },
 };

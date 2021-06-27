@@ -17,9 +17,9 @@ export const useGuild = () => {
   ): Promise<GuildMetadata> => {
     const resp = await axios.get(metadataURI);
 
-    let imageResp = await fetch(
-      `${IPFS_GATEWAY}/${resp.data.imageCid}`
-    ).catch((err: Error) => console.error("Failed to fetch metadata image"));
+    let imageResp = await fetch(`${IPFS_GATEWAY}/${resp.data.imageCid}`).catch(
+      (err: Error) => console.error("Failed to fetch metadata image")
+    );
     let blob = new Blob();
     if (imageResp) {
       blob = await imageResp.blob();
@@ -30,7 +30,7 @@ export const useGuild = () => {
       ...resp.data,
       guildAddress: guildAddress,
       imageCid: resp.data.imageCid,
-      image
+      image,
     };
   };
 
@@ -38,7 +38,8 @@ export const useGuild = () => {
     chainId: number,
     ethersProvider: ethers.providers.Web3Provider,
     guildInfo: GuildMetadata,
-    creatorAddress: string
+    creatorAddress: string,
+    setPrevModal?: (arg0: boolean) => void
   ): Promise<ethers.providers.TransactionResponse> => {
     try {
       const network = getNetworkByChainId(chainId);
@@ -61,12 +62,15 @@ export const useGuild = () => {
         tokenAddress,
         ethers.utils.parseEther(guildInfo.amount),
         subscriptionTime,
-        [guildInfo.name, `GUILD${count}`, "https://ipfs.io/ipfs/", metadataCid]
+        [guildInfo.name, `GUILD${count}`, "https://ipfs.io/ipfs/", metadataCid],
       ];
 
       const iface = new ethers.utils.Interface(GuildAppABI);
       const calldata = iface.encodeFunctionData("initialize", functionArgs);
 
+      if (setPrevModal) {
+        setPrevModal(false);
+      }
       // TODO: Add Guild address here
       const txResponse = await factoryContract.functions["createGuild(bytes)"](
         calldata
@@ -103,10 +107,11 @@ export const useGuild = () => {
 
   const updateMetadataCid = async (
     guildInfo: GuildMetadata,
-    ethersProvider: ethers.providers.Web3Provider
+    ethersProvider: ethers.providers.Web3Provider,
+    setPrevModal?: (arg0: boolean) => void
   ): Promise<ethers.providers.TransactionResponse> => {
     const abiApp = [
-      "function setMetadata(string memory _metadataCID) external "
+      "function setMetadata(string memory _metadataCID) external ",
     ];
     const guildContract = new Contract(
       guildInfo.guildAddress,
@@ -116,6 +121,9 @@ export const useGuild = () => {
 
     const metadataCid = await saveMetadata(guildInfo);
 
+    if (setPrevModal) {
+      setPrevModal(false);
+    }
     const transaction = await guildContract
       .setMetadata(metadataCid)
       .catch((err: Error) => console.error("Failed to set metadata cid"));
@@ -133,8 +141,8 @@ export const useGuild = () => {
     form.append("amount", guildInfo.amount);
     const resp = await axios.post(`${API}/api/v1/guild`, form, {
       headers: {
-        "Content-Type": "multipart/form-data"
-      }
+        "Content-Type": "multipart/form-data",
+      },
     });
     return resp.data.metadataCid;
   };
@@ -153,7 +161,7 @@ export const useGuild = () => {
       return 0;
     }
     const abiApp = [
-      "function guildBalance(address _tokenAddress) public view returns (uint256)"
+      "function guildBalance(address _tokenAddress) public view returns (uint256)",
     ];
     const guildContract = new Contract(
       guildMetadata.guildAddress,
@@ -179,7 +187,7 @@ export const useGuild = () => {
   ): Promise<string> => {
     const network = getNetworkByChainId(chainId);
     const abi = [
-      "function guildsOf(address _owner) public view returns (address[] memory)"
+      "function guildsOf(address _owner) public view returns (address[] memory)",
     ];
     // get guilds
     const guildAppContract = new Contract(
@@ -234,7 +242,7 @@ export const useGuild = () => {
       console.log("Should send Token...");
       // TODO: This should be done using a batch Tx & replaced using the recurring allowance module
       const erc20Abi = [
-        "function approve(address spender, uint256 amount) public returns (bool)"
+        "function approve(address spender, uint256 amount) public returns (bool)",
       ];
       const tokenContract = new Contract(
         guildToken,
@@ -248,7 +256,7 @@ export const useGuild = () => {
     console.log("Subscribe args", ...args);
     await guildContract.subscribe(...args, {
       value:
-        guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0"
+        guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0",
     });
   };
 
@@ -258,6 +266,6 @@ export const useGuild = () => {
     fetchGuildTokens,
     subscribe,
     fetchMetadata,
-    updateMetadataCid
+    updateMetadataCid,
   };
 };

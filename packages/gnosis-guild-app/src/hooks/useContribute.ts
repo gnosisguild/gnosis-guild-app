@@ -18,6 +18,11 @@ export const useContribute = () => {
     contributorName: string,
     contributorEmail: string
   ): Promise<void> => {
+    if (!ethersProvider) {
+      console.error("EthersProvider has not been set yet");
+      return;
+    }
+
     setContributeLoading(true);
     try {
       await subscribe(

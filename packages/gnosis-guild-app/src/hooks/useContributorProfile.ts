@@ -35,16 +35,17 @@ export const useContributorProfile = () => {
     if (!did) {
       return;
     }
-    const encryptedProfile = (await idx?.get(
-      "contributorProfile",
-      did.id
-    )) as any;
+    const encryptedProfile = (await idx?.get("contributorProfile")) as any;
     if (!encryptedProfile) {
       return;
     }
+    console.log(idx);
+    console.log("Profile");
     const profile = (await did?.decryptDagJWE(
       encryptedProfile.profile
     )) as ContributorProfile;
+
+    console.log(profile);
     if (profile) {
       if (!profileName) {
         setProfileName(profile.name);
