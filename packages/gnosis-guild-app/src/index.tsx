@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { ThemeProvider } from "styled-components";
 import { theme } from "@gnosis.pm/safe-react-components";
+import { SnackbarProvider } from "notistack";
 
 import { GuildProvider } from "./context/GuildContext";
 import { Web3ContextProvider } from "./context/Web3Context";
@@ -16,7 +17,9 @@ ReactDOM.render(
         <Web3ContextProvider>
           <GuildProvider>
             <GlobalStyle />
-            <Routes />
+            <SnackbarProvider>
+              <Routes />
+            </SnackbarProvider>
           </GuildProvider>
         </Web3ContextProvider>
       </ThemeProvider>

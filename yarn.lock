@@ -2180,17 +2180,22 @@
     "@gnosis.pm/safe-apps-sdk" "3.0.0"
     events "^3.3.0"
 
-"@gnosis.pm/safe-apps-react-sdk@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-react-sdk/-/safe-apps-react-sdk-3.0.0.tgz#6c8062f36b52d2cf0ada1dd664d3e5d9fe109e43"
-  integrity sha512-A2TyKWR+GMcSL4Qp0/ViriIckqwHyzZTvE8W5l50k1KGCVQlvBLoE3xolm5f+To5sKkHHsOjNhEbuXRb7ntY3Q==
+"@gnosis.pm/safe-apps-react-sdk@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-react-sdk/-/safe-apps-react-sdk-4.0.0.tgz#15c5014bbf3e0bff6ef4c296f9b8c184a50eb7fa"
+  integrity sha512-1+UoqdWUJOZ5cM+1hAosCMx2zHBNMC6YVm3vKYBfG8Er/z4VTimR27QldjVN241s/INA4Lw/LYmL5jFlynhOLw==
   dependencies:
-    "@gnosis.pm/safe-apps-sdk" "3.0.0"
+    "@gnosis.pm/safe-apps-sdk" "4.0.0"
 
 "@gnosis.pm/safe-apps-sdk@3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-sdk/-/safe-apps-sdk-3.0.0.tgz#0f90185c3693f2683322d275e796e61ff99ce87d"
   integrity sha512-dLCSlniYnxEqCglx4XdhByvi7KKuSYRWJKm1lVXAc4oJqwwVkoCwp0bFIejLZ/dnf7cQSBUUVsTGWhvSda511w==
+
+"@gnosis.pm/safe-apps-sdk@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-sdk/-/safe-apps-sdk-4.0.0.tgz#2fa53ba3e6a88c606787cc7c4d7836181e256024"
+  integrity sha512-D+jFrRnhzmDbuA3D6tLH615WXdOtBEsv3qCAbBfXFDUiDbXFPVZbMdgnWUowA8he6PBbBYTn7LbSJaq/K5T3ZA==
 
 "@gnosis.pm/safe-apps-web3modal@^0.5.0":
   version "0.5.0"
@@ -7495,7 +7500,7 @@ clone@^1.0.2:
   resolved "https://registry.yarnpkg.com/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
   integrity sha1-2jCcwmPfFZlMaIypAheco8fNfH4=
 
-clsx@^1.0.4:
+clsx@^1.0.4, clsx@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-1.1.1.tgz#98b3134f9abbdf23b2663491ace13c5c03a73188"
   integrity sha512-6/bPho624p3S2pMyvP5kKBPXnI3ufHLObBFCfgx+LkeR5lg2XYy2hqZqUf45ypD8COn2bhgGJSUE+l5dhNBieA==
@@ -15886,6 +15891,14 @@ normalize-url@^4.1.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-4.5.0.tgz#453354087e6ca96957bd8f5baf753f5982142129"
   integrity sha512-2s47yzUxdexf1OhyRi4Em83iQk0aPvwTddtFz4hnSSw9dCEsLEGf6SwIO8ss/19S9iBb5sJaOuTvTGDeZI00BQ==
+
+notistack@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/notistack/-/notistack-1.0.9.tgz#8b3d692bb0c70413efd7424d85d563d667206542"
+  integrity sha512-Dal2HtTpWrdYCZ3t0HhJt47NJZwVSPee36WzORRbqUkFR0k9pxFszxBuPSWshBLwF6Av8s86XPP+ED5zRz0CGw==
+  dependencies:
+    clsx "^1.1.0"
+    hoist-non-react-statics "^3.3.0"
 
 npm-bundled@^1.1.1:
   version "1.1.2"

@@ -160,12 +160,15 @@ export const useGuild = () => {
     const safeTxs = await sdk.txs.send({ txs });
 
     //  ENV information hasn't been synced yet or there was an error during the process
-    //  const safeTx = sdk.txs
-    //    .getBySafeTxHash(safeTxs.safeTxHash)
-    //    .then((x) => {
-    //      console.log(x);
-    //    })
-    //    .catch((err) => console.log(err));
+    //  Implement some kind of polling
+    //  Also rejecting the transaction
+    //  Causes the app to crash
+    const safeTx = sdk.txs
+      .getBySafeTxHash(safeTxs.safeTxHash)
+      .then((x) => {
+        console.log(x);
+      })
+      .catch((err) => console.log(err));
 
     return safeTxs;
   };
