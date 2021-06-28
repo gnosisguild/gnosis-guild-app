@@ -1,5 +1,8 @@
 import axios from "axios";
 import { Contract, ethers } from "ethers";
+import { SendTransactionsResponse } from "@gnosis.pm/safe-apps-sdk";
+
+import SafeAppsSDK from "@gnosis.pm/safe-apps-sdk";
 
 import { API, IPFS_GATEWAY } from "../constants";
 import GuildFactoryABI from "../contracts/GuildFactory.json";
@@ -39,8 +42,9 @@ export const useGuild = () => {
     ethersProvider: ethers.providers.Web3Provider,
     guildInfo: GuildMetadata,
     creatorAddress: string,
+    sdk: SafeAppsSDK,
     setPrevModal?: (arg0: boolean) => void
-  ): Promise<ethers.providers.TransactionResponse> => {
+  ): Promise<SendTransactionsResponse> => {
     try {
       const network = getNetworkByChainId(chainId);
 
@@ -72,10 +76,30 @@ export const useGuild = () => {
         setPrevModal(false);
       }
       // TODO: Add Guild address here
-      const txResponse = await factoryContract.functions["createGuild(bytes)"](
-        calldata
-      );
-      return txResponse;
+      // const txResponse = await factoryContract.functions["createGuild(bytes)"](
+      //   calldata
+
+      // );
+      const unsignedTransaction =
+        await factoryContract.populateTransaction.createGuild(calldata);
+
+      const txs = [
+        {
+          to: guildInfo.guildAddress,
+          value: "0",
+          data: unsignedTransaction.data as string,
+        },
+      ];
+
+      const safeTxs = await sdk.txs.send({ txs });
+
+      // Address is the guild address
+      //const txs = {
+
+      //}
+
+      //const txs = await appsSdk.txs.send({ txs, params });
+      return safeTxs;
     } catch (error) {
       console.error(`Failed to create guild: ${error}`);
       throw new Error(error);
@@ -108,26 +132,42 @@ export const useGuild = () => {
   const updateMetadataCid = async (
     guildInfo: GuildMetadata,
     ethersProvider: ethers.providers.Web3Provider,
+    sdk: SafeAppsSDK,
     setPrevModal?: (arg0: boolean) => void
-  ): Promise<ethers.providers.TransactionResponse> => {
-    const abiApp = [
-      "function setMetadata(string memory _metadataCID) external ",
-    ];
+  ): Promise<SendTransactionsResponse> => {
+    const metadataCid = await saveMetadata(guildInfo);
+
     const guildContract = new Contract(
       guildInfo.guildAddress,
-      abiApp,
+      GuildAppABI,
       ethersProvider.getSigner()
     );
-
-    const metadataCid = await saveMetadata(guildInfo);
 
     if (setPrevModal) {
       setPrevModal(false);
     }
-    const transaction = await guildContract
-      .setMetadata(metadataCid)
-      .catch((err: Error) => console.error("Failed to set metadata cid"));
-    return transaction;
+    const unsignedTransaction =
+      await guildContract.populateTransaction.setMetadata(metadataCid);
+
+    const txs = [
+      {
+        to: guildInfo.guildAddress,
+        value: "0",
+        data: unsignedTransaction.data as string,
+      },
+    ];
+
+    const safeTxs = await sdk.txs.send({ txs });
+
+    //  ENV information hasn't been synced yet or there was an error during the process
+    //  const safeTx = sdk.txs
+    //    .getBySafeTxHash(safeTxs.safeTxHash)
+    //    .then((x) => {
+    //      console.log(x);
+    //    })
+    //    .catch((err) => console.log(err));
+
+    return safeTxs;
   };
 
   const saveMetadata = async (guildInfo: GuildMetadata): Promise<string> => {
@@ -215,7 +255,7 @@ export const useGuild = () => {
       name: string;
       email: string;
     }
-  ): Promise<void> => {
+  ): Promise<ethers.providers.TransactionResponse> => {
     console.log(
       "Subscribe",
       chainId,
@@ -254,10 +294,11 @@ export const useGuild = () => {
 
     const args = [tokenURI, bnValue.toString(), "0x"];
     console.log("Subscribe args", ...args);
-    await guildContract.subscribe(...args, {
+    const tx = await guildContract.subscribe(...args, {
       value:
         guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0",
     });
+    return tx;
   };
 
   return {

@@ -14,6 +14,7 @@ import {
   Text,
   TextField,
 } from "@gnosis.pm/safe-react-components";
+import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
 
 import AmountInput from "../AmountInput";
 import { useGuildContext } from "../../context/GuildContext";
@@ -56,7 +57,7 @@ const GuildLoaderContainer = styled.div`
 
 const CreateGuildForm: React.FC = () => {
   const { refreshGuild, guildMetadata, setGuildMetadata } = useGuildContext();
-
+  const { sdk } = useSafeAppsSDK();
   const { ethersProvider, account, providerChainId } = useWeb3Context();
   const { createGuild, deactivateGuild, updateMetadataCid } = useGuild();
   const [invalidForm, setInvalidForm] = useState(false);
@@ -178,16 +179,15 @@ const CreateGuildForm: React.FC = () => {
         ethersProvider,
         guildInfo,
         account,
+        sdk,
         setSubmitting
       );
       setSubmitting(true);
       setLoadingTitle("Transaction is processing");
       setLoadingFooter("Processing should be finished in a few minutes!");
 
-      refreshGuild();
-      if (tx) {
-        tx.wait(1);
-      }
+      // TODO: do we need to refresh
+      /* await refreshGuild(); */
 
       setLoadingTitle("");
       setLoadingFooter("");
@@ -218,15 +218,14 @@ const CreateGuildForm: React.FC = () => {
         imageCid: "",
       },
       ethersProvider,
+      sdk,
       setSubmitting
     );
     setSubmitting(true);
 
     setLoadingTitle("Transaction is processing");
     setLoadingFooter("Processing should be finished in a few minutes!");
-    if (tx) {
-      tx.wait(1);
-    }
+    // TODO: do we need to wait
     setLoadingTitle("");
     setLoadingFooter("");
     setSubmitting(false);

@@ -2,8 +2,8 @@
   "name": "@guild-app/monorepo",
   "description": "Gnosis GuildApp monorepo",
   "repository": {
-      "type": "git",
-      "url": "github:raid-guild/gnosis-guild-app"
+    "type": "git",
+    "url": "github:raid-guild/gnosis-guild-app"
   },
   "private": true,
   "npmClient": "yarn",
@@ -23,9 +23,9 @@
   },
   "workspaces": {
     "packages": [
-        "packages/contracts",
-        "packages/gnosis-guild-app",
-        "packages/subgraph"
+      "packages/contracts",
+      "packages/gnosis-guild-app",
+      "packages/subgraph"
     ]
-}
+  }
 }
