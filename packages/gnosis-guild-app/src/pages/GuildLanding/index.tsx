@@ -22,7 +22,8 @@ const Grid = styled.div`
   height: 100%;
   display: grid;
   grid-template:
-    "logo profile wallet" 1fr
+    "logo _ wallet" 1fr
+    "logo profile wallet" 4fr
     "footer footer footer" var(--grid-permission-footer-height)
     / 1fr 2fr 1fr;
 `;
@@ -68,31 +69,52 @@ const GuiildLanding: React.FC = () => {
   const { loading, guild, guildActive } = useGuildByParams();
   const { guildId } = useParams<{ guildId: string }>();
 
+  const disabledGuild = (
+    <GridProfile>
+      <Title size="sm" strong={true}>
+        {guild.name}
+      </Title>
+      <Text size="md" color="error">
+        This creator has ended their subscription service.
+      </Text>
+      <Text size="md">
+        If you've previously subscribed to this creator, connect your account to
+        unsubscribe
+      </Text>
+    </GridProfile>
+  );
+
   return (
     <Grid>
       <GridLogo>
         <GuildLogo />
       </GridLogo>
       {guild.name ? (
-        <GridProfile>
-          <Title size="sm" strong={true}>
-            {guild.name}
-          </Title>
-          <ProfileImage src={URL.createObjectURL(guild.image) || profile} />
-          <TextWrapper>
-            <Text size="md">{guild.description}</Text>
-          </TextWrapper>
-          <TextWrapper>
-            <Text size="md">{guild.externalLink}</Text>
-          </TextWrapper>
-          <ContributeCard>
-            {guild && guildActive && (
-              <ContributeLink to={{ pathname: `/guild/${guildId}/contribute` }}>
-                <ContributeButton>Contibute</ContributeButton>
-              </ContributeLink>
-            )}
-          </ContributeCard>
-        </GridProfile>
+        guild.active ? (
+          <GridProfile>
+            <Title size="sm" strong={true}>
+              {guild.name}
+            </Title>
+            <ProfileImage src={URL.createObjectURL(guild.image) || profile} />
+            <TextWrapper>
+              <Text size="md">{guild.description}</Text>
+            </TextWrapper>
+            <TextWrapper>
+              <Text size="md">{guild.externalLink}</Text>
+            </TextWrapper>
+            <ContributeCard>
+              {guild && guildActive && (
+                <ContributeLink
+                  to={{ pathname: `/guild/${guildId}/contribute` }}
+                >
+                  <ContributeButton>Contibute</ContributeButton>
+                </ContributeLink>
+              )}
+            </ContributeCard>
+          </GridProfile>
+        ) : (
+          disabledGuild
+        )
       ) : (
         <Loading>
           {loading ? (

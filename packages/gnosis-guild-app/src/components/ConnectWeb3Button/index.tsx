@@ -33,7 +33,7 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
     disconnect,
     authenticateCeramic,
     connected,
-    network
+    network,
   } = useWeb3Context();
 
   // set values to 0
@@ -52,8 +52,8 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
     }
   }, [network]);
 
+  // Build unsupported network modal
   if (isUnsupportedNetwork) {
-    // OnClose switch to a supported network
     const body = (
       <WarningContainer>
         <LargeIcon size="md" type="alert" color="rinkeby" />
@@ -69,7 +69,7 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
           enqueueSnackbar("Please change to a supported network!", {
             anchorOrigin: { horizontal: "right", vertical: "top" },
             preventDuplicate: true,
-            variant: "warning"
+            variant: "warning",
           });
         }}
         title={"Unsupported network selected"}
@@ -79,10 +79,11 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
   }
 
   const onClickAction = account
-    ? web3Disconnect
+    ? disconnect
     : async () => {
         connectToWeb3();
       };
+
   useEffect(() => {
     const ceramicAuth = async () => {
       await authenticateCeramic();
@@ -100,9 +101,12 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
   }, [account, connected, isUnsupportedNetwork]);
   return (
     <>
-      <Button size="md" color="secondary" onClick={onClickAction}>
-        {children}
-      </Button>
+      <div>
+        <Button size="md" color="secondary" onClick={onClickAction}>
+          {children}
+        </Button>
+      </div>
+
       {warning}
     </>
   );

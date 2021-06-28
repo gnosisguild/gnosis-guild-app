@@ -59,6 +59,7 @@ export const useGuildByParams = () => {
           guildAddress: metadata.guildAddress,
           imageCid: metadata.imageCid,
           tokenAddress: meta.tokenAddress,
+          active: meta.active,
         };
         setGuildMetadata(data);
         setGuild(data);

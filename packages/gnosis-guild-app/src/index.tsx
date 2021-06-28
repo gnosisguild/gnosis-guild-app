@@ -14,14 +14,14 @@ ReactDOM.render(
   <React.StrictMode>
     <Router>
       <ThemeProvider theme={theme}>
-        <Web3ContextProvider>
-          <GuildProvider>
-            <GlobalStyle />
-            <SnackbarProvider>
-              <Routes />
-            </SnackbarProvider>
-          </GuildProvider>
-        </Web3ContextProvider>
+          <Web3ContextProvider>
+            <GuildProvider>
+              <GlobalStyle />
+              <SnackbarProvider>
+                <Routes />
+              </SnackbarProvider>
+            </GuildProvider>
+          </Web3ContextProvider>
       </ThemeProvider>
     </Router>
   </React.StrictMode>,

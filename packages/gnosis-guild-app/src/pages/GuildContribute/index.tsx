@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Loader, Title } from "@gnosis.pm/safe-react-components";
+import { Loader, Title, Text } from "@gnosis.pm/safe-react-components";
 
 import AmountInput from "../../components/AmountInput";
 import ContributorNameInput from "../../components/ContributorNameInput";
