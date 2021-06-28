@@ -7,7 +7,7 @@ import {
   Card,
   CopyToClipboardBtn,
   Text,
-  Title
+  Title,
 } from "@gnosis.pm/safe-react-components";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
@@ -63,8 +63,14 @@ const GuildStats: React.FC = () => {
         providerChainId
       );
       if (guild) {
-        const guildMainBalance = guild.balances.find(b => b.tokenAddress === guild.tokenAddress);
-        setNumTokens(ethers.utils.formatEther(guildMainBalance ? guildMainBalance.totalSubscriptions : "0"));
+        const guildMainBalance = guild.balances.find(
+          (b) => b.tokenAddress === guild.tokenAddress
+        );
+        setNumTokens(
+          ethers.utils.formatEther(
+            guildMainBalance ? guildMainBalance.totalSubscriptions : "0"
+          )
+        );
         setNumContributors(guild.totalSubscribers);
       }
     };
@@ -110,10 +116,10 @@ const GuildStats: React.FC = () => {
           Embed Code
         </StatsText>
         <CopyToClipboardBtn
-          textToCopy={`<iframe src="${APP_DOMAIN}/guild/${guildMetadata.guildAddress}/contribute/link" />`}
+          textToCopy={`<iframe src="${APP_DOMAIN}/#/guild/${guildMetadata.guildAddress}/contribute/link" />`}
         />
       </StatItemContainer>
-      <Text size="lg">{`<iframe src="${APP_DOMAIN}/guild...`}</Text>
+      <Text size="lg">{`<iframe src="${APP_DOMAIN}/#/guild...`}</Text>
       <StatItemContainer>
         <Card style={{ width: "100%", maxWidth: "16rem" }}>
           <TitleCardContainer>

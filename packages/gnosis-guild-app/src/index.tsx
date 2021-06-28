@@ -7,7 +7,7 @@ import { GuildProvider } from "./context/GuildContext";
 import { Web3ContextProvider } from "./context/Web3Context";
 import GlobalStyle from "./GlobalStyle";
 import Routes from "./Routes";
-import { BrowserRouter as Router } from "react-router-dom";
+import { HashRouter as Router } from "react-router-dom";
 
 ReactDOM.render(
   <React.StrictMode>
