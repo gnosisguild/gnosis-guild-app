@@ -1,4 +1,4 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 import { Guild, GuildBalance, GuildSubscription, Payment, GuildWithdrawal } from "../generated/schema";
 import {
     InitializedGuild,
@@ -7,6 +7,7 @@ import {
     RenewSubscription,
     SubscriptionPriceChanged,
     UpdatedMetadata,
+    Unsubscribed,
     Withdraw } from "../generated/templates/GuildAppTemplate/GuildApp";
 
 export function handleCreatedGuild(event: InitializedGuild): void {
@@ -90,6 +91,7 @@ export function handleNewSubcription(event: NewSubscription): void {
 
         let balanceId = guild.id.concat("-").concat(guild.tokenAddress.toHexString());
         let guildBalance = GuildBalance.load(balanceId);
+        // TODO: update balances based on what's transferred through Recurring Allowances module
         guildBalance.currentBalance = guildBalance.currentBalance.plus(value);
         guildBalance.totalSubscriptions = guildBalance.totalSubscriptions.plus(value);
 
@@ -99,6 +101,7 @@ export function handleNewSubcription(event: NewSubscription): void {
         let subId = guild.id.concat("-").concat(owner.toHexString());
         let subscription = new GuildSubscription(subId);
         subscription.createdAt = event.block.timestamp.toString();
+        subscription.active = true;
         subscription.guild = guild.id;
         subscription.keyId = event.params._tokenId;
         subscription.owner = owner;
@@ -117,7 +120,7 @@ export function handleNewSubcription(event: NewSubscription): void {
         payment.token = guild.tokenAddress;
         payment.value = value;
         // TODO: set signature if sent by a Gnosis Proxy Contract with Allowance module
-        // payment.transferSignature = 
+        payment.transferSignature = event.params._data;
 
         payment.save();
     }
@@ -134,6 +137,7 @@ export function handleRenewSubcription(event: RenewSubscription): void {
 
             let balanceId = guild.id.concat("-").concat(guild.tokenAddress.toHexString());
             let guildBalance = GuildBalance.load(balanceId);
+            // TODO: update balances based on what's transferred through Recurring Allowances module
             guildBalance.currentBalance = guildBalance.currentBalance.plus(value);
             guildBalance.totalSubscriptions = guildBalance.totalSubscriptions.plus(value);
 
@@ -151,9 +155,33 @@ export function handleRenewSubcription(event: RenewSubscription): void {
             payment.subscription = subId;
             payment.token = guild.tokenAddress;
             payment.value = value;
+            // TODO: set signature if sent by a Gnosis Proxy Contract with Allowance module
+            payment.transferSignature = event.params._data;
 
             payment.save();
         }
+    }
+}
+
+export function handleUnsubscription(event: Unsubscribed): void {
+    let guild = Guild.load(event.address.toHex());
+    if (guild != null) {
+        // let value = event.params._value;
+        guild.totalSubscribers = guild.totalSubscribers.minus(BigInt.fromI32(1));
+
+        guild.save();
+
+        let owner = event.transaction.from;
+        let subId = guild.id.concat("-").concat(owner.toHexString());
+        let subscription = GuildSubscription.load(subId);
+        if (subscription != null) {
+            subscription.active = false;
+            subscription.unsubscribedAt = event.block.timestamp.toString();
+            subscription.keyId = BigInt.fromI32(0); // TODO: correct approach?
+
+            subscription.save();
+        }
+
     }
 }
 

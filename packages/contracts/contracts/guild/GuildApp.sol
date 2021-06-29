@@ -53,8 +53,9 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
     event PausedGuild(bool _isPaused);
     event Withdraw(address _tokenAddress, address beneficiary, uint256 _amount);
     event SubscriptionPriceChanged(address _tokenAddress, uint256 _subPrice);
-    event NewSubscription(uint256 _tokenId, uint256 _value, uint256 expiry);
-    event RenewSubscription(uint256 _tokenId, uint256 _value, uint256 expiry);
+    event NewSubscription(uint256 _tokenId, uint256 _value, uint256 expiry, bytes _data);
+    event RenewSubscription(uint256 _tokenId, uint256 _value, uint256 expiry, bytes _data);
+    event Unsubscribed(uint256 _tokenId);
 
     function __GuildApp_init_unchained(address _creator,
                                        string memory baseURI,
@@ -114,7 +115,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         emit SubscriptionPriceChanged(tokenAddress, subPrice);
     }
 
-    function subscribe(string memory _tokenURI, uint256 _value, bytes calldata /*_data*/) public payable override onlyIfActive {
+    function subscribe(string memory _tokenURI, uint256 _value, bytes memory _data) public payable override onlyIfActive {
         address subscriber = _msgSender();
         uint256 value = tokenAddress != address(0) ? _value : msg.value;
         require(value >= subPrice, "GuildApp: Insufficient value sent");
@@ -124,17 +125,30 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
             _safeMint(subscriber, subs.tokenId);
             _setTokenURI(subs.tokenId, string(abi.encodePacked(_tokenURI, "#", subs.tokenId.toString())));
             subs.expirationTimestamp = subscriptionPeriod.add(block.timestamp);
-            emit NewSubscription(subs.tokenId, value, subs.expirationTimestamp);
+            emit NewSubscription(subs.tokenId, value, subs.expirationTimestamp, _data);
         } else {
             // renew or extend subscription
             subs.expirationTimestamp = subs.expirationTimestamp.add(block.timestamp);
-            emit RenewSubscription(subs.tokenId, value, subs.expirationTimestamp);
+            emit RenewSubscription(subs.tokenId, value, subs.expirationTimestamp, _data);
         }
         
-        // Handle payment
-        if (tokenAddress != address(0)) {
+        // Handle payment using EOA allowances
+        if (tokenAddress != address(0) && _data.length == 0) {
             IERC20Upgradeable(tokenAddress).safeTransferFrom(subscriber, address(this), value);
+        } else {
+            // TODO: use gnosis recurring allowance
         }
+    }
+
+    function unsubscribe(uint256 _tokenId) public override {
+        require(_exists(_tokenId), "GuildApp: Subscription does not exist");
+        address subscriber = _msgSender();
+        require(subscriber == ownerOf(_tokenId), "GuildApp: Caller is not the owner of the subscription");
+        _burn(_tokenId);
+        Subscription storage subs = subscriptionByOwner[subscriber];
+        subs.tokenId = 0;
+        subs.expirationTimestamp = 0;
+        emit Unsubscribed(_tokenId);
     }
 
     function guildBalance(address _tokenAddress) public view override returns (uint256) {

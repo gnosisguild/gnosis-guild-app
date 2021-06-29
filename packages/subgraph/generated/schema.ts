@@ -325,6 +325,32 @@ export class GuildSubscription extends Entity {
     this.set("createdAt", Value.fromString(value));
   }
 
+  get active(): boolean {
+    let value = this.get("active");
+    return value.toBoolean();
+  }
+
+  set active(value: boolean) {
+    this.set("active", Value.fromBoolean(value));
+  }
+
+  get unsubscribedAt(): string | null {
+    let value = this.get("unsubscribedAt");
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set unsubscribedAt(value: string | null) {
+    if (value === null) {
+      this.unset("unsubscribedAt");
+    } else {
+      this.set("unsubscribedAt", Value.fromString(value as string));
+    }
+  }
+
   get guild(): string {
     let value = this.get("guild");
     return value.toString();

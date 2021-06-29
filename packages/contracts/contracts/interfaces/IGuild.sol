@@ -30,6 +30,8 @@ interface IGuild is IERC721Upgradeable {
 
     function subscribe(string calldata _tokenURI, uint256 _value, bytes calldata _data) external payable;
 
+    function unsubscribe(uint256 _tokenId) external;
+
     function guildBalance(address _tokenAddress) external view returns (uint256);
 
     function isSubscriptionOwner(uint256 _tokenId, address _holder) external view returns (bool);
