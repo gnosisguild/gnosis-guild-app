@@ -105,6 +105,11 @@ const GuildContribute: React.FC = () => {
     setGuildMinimumAmount("0");
   };
 
+  let name = guild.name;
+  if (name && !guild.active) {
+    name = `${guild.name} (Inactive)`;
+  }
+
   const contributionTx = subscribed ? unsubscribe : submitContributionTx;
   return (
     <Grid>
@@ -114,14 +119,14 @@ const GuildContribute: React.FC = () => {
       {guild.name ? (
         <GridForm>
           <Title size="sm" strong={true}>
-            {guild.name}
+            {name}
           </Title>
           <FormItem>
             <ContributorNameInput
               name={contributorName}
               setContributorName={setContributorName}
               setInvalidForm={setInvalidForm}
-              disabled={subscribed}
+              disabled={subscribed || !guild.active}
             />
           </FormItem>
           <FormItem>
@@ -129,7 +134,7 @@ const GuildContribute: React.FC = () => {
               email={contributorEmail}
               setContributorEmail={setContributorEmail}
               setInvalidForm={setInvalidForm}
-              disabled={subscribed}
+              disabled={subscribed || !guild.active}
             />
           </FormItem>
           <FormItem>
@@ -140,13 +145,18 @@ const GuildContribute: React.FC = () => {
               amount={guildMinimumAmount}
               setAmount={setGuildMinimumAmount}
               dropdown={false}
-              disabled={subscribed}
+              disabled={subscribed || !guild.active}
             />
           </FormItem>
           <ContributeCard>
             <ContributeButton
               onClick={contributionTx}
-              disabled={!providerChainId || contributeLoading || invalidForm}
+              disabled={
+                !providerChainId ||
+                contributeLoading ||
+                invalidForm ||
+                (!subscribed && !guild.active)
+              }
             >
               {!contributeLoading ? contributeText : "Sending Contribution..."}
             </ContributeButton>

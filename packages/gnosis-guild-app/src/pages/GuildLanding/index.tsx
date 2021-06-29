@@ -39,7 +39,7 @@ const GridProfile = styled.div`
   grid-area: profile;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
 `;
 

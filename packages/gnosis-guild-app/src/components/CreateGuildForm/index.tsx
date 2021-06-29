@@ -145,6 +145,7 @@ const CreateGuildForm: React.FC = () => {
         guildAddress: guildAddress,
         imageCid: guildMetadata.imageCid,
         image: input.files[0],
+        active: guildMetadata.active,
       });
     }
   };
@@ -173,21 +174,22 @@ const CreateGuildForm: React.FC = () => {
         amount: guildMinimumAmount,
         guildAddress: guildAddress,
         imageCid: "",
+        active: false,
       };
-      const tx = await createGuild(
+      const tx = (await createGuild(
         providerChainId,
         ethersProvider,
         guildInfo,
         account,
         sdk,
-        setSubmitting
-      );
-      setSubmitting(true);
-      setLoadingTitle("Transaction is processing");
-      setLoadingFooter("Processing should be finished in a few minutes!");
+        setModal
+      )) as any;
 
-      // TODO: do we need to refresh
-      /* await refreshGuild(); */
+      if (tx) {
+        if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
+          await refreshGuild();
+        }
+      }
 
       setLoadingTitle("");
       setLoadingFooter("");
@@ -195,6 +197,18 @@ const CreateGuildForm: React.FC = () => {
       console.error(e);
     }
     setSubmitting(false);
+  };
+
+  const setModal = (isOpen: boolean, title?: string, footer?: string) => {
+    if (isOpen) {
+      setSubmitting(isOpen);
+    }
+    if (title) {
+      setLoadingTitle(title);
+    }
+    if (footer) {
+      setLoadingFooter(footer);
+    }
   };
 
   const updateTx = async (): Promise<void> => {
@@ -205,7 +219,7 @@ const CreateGuildForm: React.FC = () => {
 
     setSubmitting(true);
     setLoadingTitle("Setting up transaction to be sent");
-    const tx = await updateMetadataCid(
+    const tx = (await updateMetadataCid(
       {
         name: guildName,
         description: guildDescription,
@@ -216,16 +230,17 @@ const CreateGuildForm: React.FC = () => {
         amount: guildMinimumAmount,
         guildAddress: guildAddress,
         imageCid: "",
+        active: true,
       },
       ethersProvider,
       sdk,
-      setSubmitting
-    );
-    setSubmitting(true);
-
-    setLoadingTitle("Transaction is processing");
-    setLoadingFooter("Processing should be finished in a few minutes!");
-    // TODO: do we need to wait
+      setModal
+    )) as any;
+    if (tx) {
+      if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
+        await refreshGuild();
+      }
+    }
     setLoadingTitle("");
     setLoadingFooter("");
     setSubmitting(false);
@@ -285,16 +300,41 @@ const CreateGuildForm: React.FC = () => {
     }
   };
 
-  const pauseGuild = (e: MouseEvent<HTMLButtonElement>) => {
+  const pauseGuild = async (e: MouseEvent<HTMLButtonElement>) => {
     if (!ethersProvider) {
       console.error("EthersProvider has not been set yet");
       return;
     }
 
-    deactivateGuild(providerChainId, ethersProvider, account, guildAddress);
+    const tx = (await deactivateGuild(
+      ethersProvider,
+      account,
+      guildAddress,
+      sdk,
+      setModal
+    )) as any;
+    if (tx) {
+      if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
+        setGuildMetadata({
+          name: "",
+          description: "",
+          contentFormat: "",
+          externalLink: "",
+          image: new File([], ""),
+          currency: "ETH",
+          amount: "0",
+          guildAddress: "",
+          imageCid: "",
+          active: false,
+        });
+      }
+    }
+    setLoadingTitle("");
+    setLoadingFooter("");
+    setSubmitting(false);
   };
 
-  const deleteButton = guildMetadata.name && (
+  const deleteButton = guildMetadata.active && (
     <DeleteButton
       size="lg"
       color="error"

@@ -16,7 +16,7 @@ export type GuildMetadata = {
   guildAddress: string;
   imageCid: string;
   tokenAddress?: string;
-  active?: boolean;
+  active: boolean;
 };
 
 const initialGuildMetadata = {
@@ -29,6 +29,7 @@ const initialGuildMetadata = {
   amount: "0",
   guildAddress: "",
   imageCid: "",
+  active: false,
 };
 
 export type GuildContextValue = {
@@ -60,7 +61,15 @@ export const GuildProvider: React.FC = ({ children }) => {
       if (guilds && guilds.length > 0) {
         const guild = guilds[guilds.length - 1];
         let metadata = {
-          ...guildMetadata,
+          name: guildMetadata.name,
+          description: guildMetadata.description,
+          contentFormat: guildMetadata.contentFormat,
+          externalLink: guildMetadata.externalLink,
+          image: guildMetadata.image,
+          currency: guildMetadata.currency,
+          amount: guildMetadata.amount,
+          guildAddress: guildMetadata.guildAddress,
+          imageCid: guildMetadata.imageCid,
         };
         if (guild.metadataURI) {
           const cid = guild.metadataURI.split("/").slice(-1)[0];
@@ -85,6 +94,7 @@ export const GuildProvider: React.FC = ({ children }) => {
           amount: metadata.amount,
           guildAddress: metadata.guildAddress,
           imageCid: metadata.imageCid,
+          active: guild.active,
         });
       }
       setLoading(false);

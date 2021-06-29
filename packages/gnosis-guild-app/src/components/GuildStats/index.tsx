@@ -107,7 +107,7 @@ const GuildStats: React.FC = () => {
           Other Internet Guild Page
         </StatsText>
         <CopyToClipboardBtn
-          textToCopy={`${APP_DOMAIN}/guild/${guildMetadata.guildAddress}`}
+          textToCopy={`${APP_DOMAIN}/#/guild/${guildMetadata.guildAddress}`}
         />
       </StatItemContainer>
       <Text size="lg">{`${APP_DOMAIN}/...`}</Text>

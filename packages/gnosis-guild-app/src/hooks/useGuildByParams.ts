@@ -18,6 +18,7 @@ export const useGuildByParams = () => {
     amount: "0",
     guildAddress: "",
     imageCid: "",
+    active: true,
   });
   const { guildId } = useParams<{ guildId: string }>();
   const [loading, setLoading] = useState(true);
