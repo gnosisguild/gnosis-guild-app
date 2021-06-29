@@ -21,6 +21,10 @@ import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
 import { useGuild } from "../../hooks/useGuild";
 
+type ErrorThemeProps = {
+  visible: boolean;
+};
+
 const GridForm = styled.form`
   grid-area: form;
   margin: 0.4rem;
@@ -36,12 +40,13 @@ const FormItem = styled.div`
 
 const ButtonContainer = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: center;
+  align-items: flex-start;
   margin-top: 1rem;
   margin-bottom: 1rem;
   margin-left: 0.4rem;
   margin-right: 0.4rem;
+  flex-direction: column;
 `;
 
 const DeleteButton = styled(Button)`
@@ -53,6 +58,11 @@ const DeleteButton = styled(Button)`
 const GuildLoaderContainer = styled.div`
   display: flex;
   justify-content: center;
+`;
+
+const ErrorText = styled(Text)<ErrorThemeProps>`
+  margin-top: 0.4rem;
+  visibility: ${(props) => (props.visible ? "visible" : "hidden	")};
 `;
 
 const CreateGuildForm: React.FC = () => {
@@ -97,6 +107,8 @@ const CreateGuildForm: React.FC = () => {
     error: "",
   });
 
+  const [guildImageError, setGuildImageError] = useState(false);
+
   const [guildImage, setGuildImage] = useState(guildMetadata.image);
   const hiddenImageInput = useRef<HTMLInputElement>(null);
 
@@ -115,17 +127,30 @@ const CreateGuildForm: React.FC = () => {
 
   useEffect(() => {
     // Check all fields are valid
+    // Check base cases here
+    let hasImage = false;
+    if (guildImage) {
+      hasImage = guildImage.name ? true : false;
+    }
     const valid =
-      !guildNameMeta.error &&
-      !guildDescriptionMeta.error &&
-      !guildExternalLinkMeta.error &&
-      !guildContentFormatMeta.error;
-    setInvalidForm(!valid);
+      !guildName ||
+      !guildDescription ||
+      !guildExternalLink ||
+      !contentFormat ||
+      !hasImage ||
+      guildMinimumAmount === "0" ||
+      guildImageError;
+    if (valid) {
+      setInvalidForm(true);
+    }
   }, [
-    guildNameMeta,
-    guildDescriptionMeta,
-    guildContentFormatMeta,
-    guildExternalLinkMeta,
+    guildName,
+    guildDescription,
+    guildExternalLink,
+    contentFormat,
+    guildImage,
+    guildMinimumAmount,
+    guildImageError,
   ]);
 
   const uploadImage = (
@@ -133,8 +158,22 @@ const CreateGuildForm: React.FC = () => {
   ) => {
     const target = e.target as HTMLInputElement;
     const input = hiddenImageInput.current as HTMLInputElement;
-    if (target.files && input.files) {
+    let validImage = false;
+    if (input.files) {
+      const file = input.files[0];
+      if (!file) {
+        return;
+      }
+      validImage =
+        file.type === "image/jpeg" ||
+        file.type === "image/png" ||
+        file.type === "image/svg+xml";
+      setGuildImageError(!validImage);
+      setInvalidForm(!validImage);
+    }
+    if (target.files && input.files && validImage) {
       setGuildImage(input.files[0]);
+      setGuildImageError(false);
       setGuildMetadata({
         name: guildName,
         description: guildDescription,
@@ -247,9 +286,8 @@ const CreateGuildForm: React.FC = () => {
   };
 
   // Upload text
-  const imageUploadText = guildMetadata.description
-    ? "Replace Image"
-    : "Upload Image";
+  const imageUploadText =
+    guildImage && guildImage.name ? "Replace Image" : "Upload Image";
   const guildButtonText = guildMetadata.imageCid
     ? "Update Guild"
     : "Create Guild";
@@ -264,6 +302,13 @@ const CreateGuildForm: React.FC = () => {
     setGuildName(val);
     if (val && val.length > 50) {
       setGuildNameMeta({ error: "Name must be less than 50 characters" });
+      setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
+    }
+
+    if (!val) {
+      setInvalidForm(true);
     }
   };
 
@@ -275,6 +320,12 @@ const CreateGuildForm: React.FC = () => {
       setGuildDescriptionMeta({
         error: "Description must be less than 200 characters",
       });
+      setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
+    }
+    if (!val) {
+      setInvalidForm(true);
     }
   };
 
@@ -283,9 +334,15 @@ const CreateGuildForm: React.FC = () => {
     setGuildExternalLinkMeta({ error: "" });
     setGuildExternalLink(val);
     if (val && !isURL(val)) {
+      setInvalidForm(true);
       setGuildExternalLinkMeta({
         error: "Guild external link must be a valid Url",
       });
+    } else {
+      setInvalidForm(false);
+    }
+    if (!val) {
+      setInvalidForm(true);
     }
   };
 
@@ -297,6 +354,12 @@ const CreateGuildForm: React.FC = () => {
       setGuildContentFormatMeta({
         error: "Must be less than 200 characters",
       });
+      setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
+    }
+    if (!val) {
+      setInvalidForm(true);
     }
   };
 
@@ -414,6 +477,9 @@ const CreateGuildForm: React.FC = () => {
           onClick={uploadImage}
           onChange={uploadImage}
         />
+        <ErrorText size="md" color="error" visible={guildImageError}>
+          The uploaded image must be a .png, .svg or .jpeg
+        </ErrorText>
       </ButtonContainer>
       <FormItem>
         <AmountInput
@@ -421,9 +487,7 @@ const CreateGuildForm: React.FC = () => {
           currency={activeCurrency}
           setCurrency={setActiveCurrency}
           amount={guildMinimumAmount}
-          setInvalidForm={(hi: boolean) => {
-            console.log("here");
-          }}
+          setInvalidForm={setInvalidForm}
           setAmount={setGuildMinimumAmount}
         />
       </FormItem>
