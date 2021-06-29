@@ -16,6 +16,7 @@ import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 
 import { useGuildByParams } from "../../hooks/useGuildByParams";
+import { useRiskAgreement } from "../../hooks/useRiskAgreement";
 
 const Grid = styled.div`
   width: 100%;
@@ -68,6 +69,7 @@ const GuiildLanding: React.FC = () => {
   const connectText = getConnectText();
   const { loading, guild, guildActive } = useGuildByParams();
   const { guildId } = useParams<{ guildId: string }>();
+  const { riskAgreement, setRiskAgreement } = useRiskAgreement();
 
   const disabledGuild = (
     <GridProfile>
@@ -129,8 +131,8 @@ const GuiildLanding: React.FC = () => {
       <GridWallet>
         <ConnectWeb3Button>{connectText}</ConnectWeb3Button>
       </GridWallet>
-      <GridAgreementFooter>
-        <RiskAgreement />
+      <GridAgreementFooter visible={!riskAgreement}>
+        <RiskAgreement onClick={setRiskAgreement} />
       </GridAgreementFooter>
     </Grid>
   );

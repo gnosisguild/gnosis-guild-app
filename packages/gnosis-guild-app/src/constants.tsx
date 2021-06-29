@@ -6,3 +6,4 @@ export const CURRENCIES = [
   { id: "ETH", label: "ETH" },
   { id: "DAI", label: "Dai" },
 ];
+export const RISK_AGREEMENT_KEY = "risk_agreement";

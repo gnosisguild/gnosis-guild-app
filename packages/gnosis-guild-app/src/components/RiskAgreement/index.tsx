@@ -2,6 +2,10 @@ import React from "react";
 import styled from "styled-components";
 import { Button, Text } from "@gnosis.pm/safe-react-components";
 
+type Props = {
+  onClick: () => void;
+};
+
 const AgreementButton = styled(Button)`
   margin-right: 1rem;
   opacity: 0.8;
@@ -15,7 +19,7 @@ const AgreementButton = styled(Button)`
   }
 `;
 
-const RiskAgreement: React.FC = () => {
+const RiskAgreement: React.FC<Props> = ({ onClick }) => {
   return (
     <>
       <Text size="lg" color="white">
@@ -23,7 +27,9 @@ const RiskAgreement: React.FC = () => {
         anyone can impersonate creators. Please verify this is the correct link
         provided by creators to which you'd like to contribute.
       </Text>
-      <AgreementButton size="md">I understand the risk</AgreementButton>
+      <AgreementButton size="md" onClick={onClick}>
+        I understand the risk
+      </AgreementButton>
     </>
   );
 };

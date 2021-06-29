@@ -20,6 +20,7 @@ import { useSubscriber } from "../../hooks/useSubscriber";
 import { useContributorProfile } from "../../hooks/useContributorProfile";
 import { useContribute } from "../../hooks/useContribute";
 import { useGuildByParams } from "../../hooks/useGuildByParams";
+import { useRiskAgreement } from "../../hooks/useRiskAgreement";
 
 const Grid = styled.div`
   width: 100%;
@@ -55,6 +56,7 @@ const FormItem = styled.div`
 const GuildContribute: React.FC = () => {
   const { getConnectText, providerChainId } = useWeb3Context();
   const [activeCurrency, setActiveCurrency] = useState("ETH");
+  const { riskAgreement, setRiskAgreement } = useRiskAgreement();
 
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
@@ -155,7 +157,8 @@ const GuildContribute: React.FC = () => {
                 !providerChainId ||
                 contributeLoading ||
                 invalidForm ||
-                (!subscribed && !guild.active)
+                (!subscribed && !guild.active) ||
+                !riskAgreement
               }
             >
               {!contributeLoading ? contributeText : "Sending Contribution..."}
@@ -178,8 +181,8 @@ const GuildContribute: React.FC = () => {
           {connectText}
         </ConnectWeb3Button>
       </GridWallet>
-      <GridAgreementFooter>
-        <RiskAgreement />
+      <GridAgreementFooter visible={!riskAgreement}>
+        <RiskAgreement onClick={setRiskAgreement} />
       </GridAgreementFooter>
     </Grid>
   );
