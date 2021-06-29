@@ -128,6 +128,12 @@
                 "internalType": "uint256",
                 "name": "expiry",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "_data",
+                "type": "bytes"
             }
         ],
         "name": "NewSubscription",
@@ -166,6 +172,12 @@
                 "internalType": "uint256",
                 "name": "expiry",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "_data",
+                "type": "bytes"
             }
         ],
         "name": "RenewSubscription",
@@ -288,6 +300,19 @@
             }
         ],
         "name": "Transfer",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "Unsubscribed",
         "type": "event"
     },
     {
@@ -948,7 +973,7 @@
             },
             {
                 "internalType": "bytes",
-                "name": "",
+                "name": "_data",
                 "type": "bytes"
             }
         ],
@@ -1133,6 +1158,19 @@
             }
         ],
         "name": "transferFrom",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "unsubscribe",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

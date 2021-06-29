@@ -38,6 +38,8 @@ export type Payment = {
 
 export type GraphSubscriber = {
   id: string;
+  active: boolean;
+  unsubscribedAt: string;
   owner: string;
   paymentHistory: Array<Payment>;
 };
@@ -128,6 +130,8 @@ export const fetchSubscriberByGuild = async (
         where: { expires_gte: $date, guild: $guild, owner: $owner }
       ) {
         id
+        active
+        unsubscribedAt
         owner
         paymentHistory(orderBy: purchasedAt, orderDirection: desc) {
           value

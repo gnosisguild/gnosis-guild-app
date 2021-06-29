@@ -20,6 +20,8 @@ describe("GuildApp", () => {
     let bob;
     let carl;
 
+    let activeSubId;
+
     before(async () => {
         [admin, alice, bob, carl] = await ethers.getSigners();
 
@@ -113,6 +115,19 @@ describe("GuildApp", () => {
         const balanceAfter = await guildA.guildBalance(dai.address);
 
         expect(balanceBefore.add(SUBSCRIPTION_PRICE)).to.equal(balanceAfter);
+
+        activeSubId = tokenId;
+    });
+
+    it("Should not allow to unsubscribe if not the subs owner", async () => {
+        await expect(guildA.connect(alice).unsubscribe(activeSubId)).to.be.reverted;
+    });
+
+    it("Should allow to unsubscribe", async () => {
+        await guildA.connect(bob).unsubscribe(activeSubId);
+        const subscription = await guildA.subscriptionByOwner(bob.address);
+        expect(+subscription.tokenId.toString()).to.equal(0);
+        expect(+subscription.expirationTimestamp.toString()).to.equal(0);
     });
 
     it("Should allow to update Guild metadata to guild owner", async () => {
