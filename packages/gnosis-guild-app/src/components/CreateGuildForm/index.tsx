@@ -421,6 +421,9 @@ const CreateGuildForm: React.FC = () => {
           currency={activeCurrency}
           setCurrency={setActiveCurrency}
           amount={guildMinimumAmount}
+          setInvalidForm={(hi: boolean) => {
+            console.log("here");
+          }}
           setAmount={setGuildMinimumAmount}
         />
       </FormItem>

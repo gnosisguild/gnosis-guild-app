@@ -84,12 +84,8 @@ const GuildLogoSmall = styled(GuildLogo)`
 
 // TODO: Abstract out GuildContribute and reuse here
 const GuildContributeLink: React.FC = () => {
-  const {
-    connectToWeb3,
-    account,
-    providerChainId,
-    authenticateCeramic
-  } = useWeb3Context();
+  const { connectToWeb3, account, providerChainId, authenticateCeramic } =
+    useWeb3Context();
   const contractGuild = useGuildContext();
 
   const [activeCurrency, setActiveCurrency] = useState("ETH");
@@ -103,11 +99,8 @@ const GuildContributeLink: React.FC = () => {
 
   const { profileName, profileEmail } = useContributorProfile();
   const { currentMinimumAmount, subscribed } = useSubscriber();
-  const {
-    submitContribution,
-    contributeLoading,
-    setContributeLoading
-  } = useContribute();
+  const { submitContribution, contributeLoading, setContributeLoading } =
+    useContribute();
 
   const web3connect = async () => {
     connectToWeb3();
@@ -165,6 +158,12 @@ const GuildContributeLink: React.FC = () => {
     setGuildMinimumAmount(currentMinimumAmount);
   }, [currentMinimumAmount]);
 
+  useEffect(() => {
+    if (!contributorEmail || !contributorName || guildMinimumAmount === "0") {
+      setInvalidForm(true);
+    }
+  }, [contributorEmail, contributorName, guildMinimumAmount]);
+
   const guildName = guildMetadata
     ? guildMetadata.name
     : contractGuild.guildMetadata.name;
@@ -207,6 +206,7 @@ const GuildContributeLink: React.FC = () => {
               setCurrency={setActiveCurrency}
               amount={guildMinimumAmount}
               setAmount={setGuildMinimumAmount}
+              setInvalidForm={setInvalidForm}
               dropdown={false}
               disabled={subscribed}
             />

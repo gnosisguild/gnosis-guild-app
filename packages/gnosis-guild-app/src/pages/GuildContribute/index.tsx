@@ -101,6 +101,12 @@ const GuildContribute: React.FC = () => {
     );
   };
 
+  useEffect(() => {
+    if (!contributorEmail || !contributorName || guildMinimumAmount === "0") {
+      setInvalidForm(true);
+    }
+  }, [contributorEmail, contributorName, guildMinimumAmount]);
+
   const onDisconnect = () => {
     setContributorName("");
     setContributorEmail("");
@@ -146,6 +152,7 @@ const GuildContribute: React.FC = () => {
               setCurrency={setActiveCurrency}
               amount={guildMinimumAmount}
               setAmount={setGuildMinimumAmount}
+              setInvalidForm={setInvalidForm}
               dropdown={false}
               disabled={subscribed || !guild.active}
             />
