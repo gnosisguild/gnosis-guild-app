@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useState } from "react";
-import { Text, TextField } from "@gnosis.pm/safe-react-components";
+import { Text, TextField, Tooltip } from "@gnosis.pm/safe-react-components";
 import styled from "styled-components";
 import isInt from "validator/lib/isInt";
 import isDecimal from "validator/lib/isDecimal";
@@ -15,6 +15,7 @@ type Props = {
   setInvalidForm: (arg0: boolean) => void;
   dropdown?: boolean;
   disabled?: boolean;
+  minimum?: string;
 };
 
 const CurrencyContainer = styled.div`
@@ -31,6 +32,7 @@ const AmountInput: React.FC<Props> = ({
   setInvalidForm,
   dropdown = true,
   disabled = false,
+  minimum = 0,
 }) => {
   const [meta, setMeta] = useState({});
 
@@ -38,9 +40,16 @@ const AmountInput: React.FC<Props> = ({
     const val = e.target.value;
     setMeta({});
     setAmount(val);
-    if ((!isInt(val) && !isDecimal(val)) || parseFloat(val) <= 0) {
+    if (
+      (!isInt(val) && !isDecimal(val)) ||
+      parseFloat(val) <= 0 ||
+      parseFloat(val) <= minimum
+    ) {
       setInvalidForm(true);
       setMeta({ error: "Must be a valid number" });
+      if (minimum) {
+        setMeta({ error: `Must be a valid number above ${minimum}` });
+      }
     } else {
       setInvalidForm(false);
     }
@@ -53,16 +62,22 @@ const AmountInput: React.FC<Props> = ({
     );
     currencyName = "";
   }
+  let label = `Minimum Amount${currencyName}`;
+  if (minimum) {
+    label = `Minimum Amount to contribute ${minimum} ${currencyName}`;
+  }
 
   return (
     <>
-      <Text size="xl" strong={true}>
-        {title}
-      </Text>
+      <div>
+        <Text size="xl" strong={true}>
+          {title}
+        </Text>
+      </div>
       <CurrencyContainer>
         {currencyIndicator}
         <TextField
-          label={`Minimum Amount${currencyName}`}
+          label={label}
           value={amount}
           meta={meta}
           onChange={updateAmount}

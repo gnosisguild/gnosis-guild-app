@@ -155,6 +155,7 @@ const GuildContribute: React.FC = () => {
               setInvalidForm={setInvalidForm}
               dropdown={false}
               disabled={subscribed || !guild.active}
+              minimum={guild.amount}
             />
           </FormItem>
           <ContributeCard>
