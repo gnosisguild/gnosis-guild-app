@@ -51,6 +51,7 @@ const StatsText = styled(Text)`
 const GuildStats: React.FC = () => {
   const [numTokens, setNumTokens] = useState("0");
   const [numContributors, setNumContributors] = useState(0);
+  const [lastUpdate, setLastUpdate] = useState("");
   const { guildMetadata } = useGuildContext();
   const hiddenAnchor = useRef<HTMLAnchorElement>(null);
   const fileUrl = "";
@@ -71,7 +72,9 @@ const GuildStats: React.FC = () => {
             guildMainBalance ? guildMainBalance.totalSubscriptions : "0"
           )
         );
+        const x = await new Date(guild.lastMetadataUpdate * 1000).toUTCString();
         setNumContributors(guild.totalSubscribers);
+        setLastUpdate(x);
       }
     };
     getTokens();
@@ -90,7 +93,6 @@ const GuildStats: React.FC = () => {
     anchor?.click();
   };
 
-  console.log("stats");
   const imageUrl = guildMetadata.image
     ? URL.createObjectURL(guildMetadata.image)
     : "";
@@ -159,7 +161,7 @@ const GuildStats: React.FC = () => {
           Download
         </a>
       </ButtonContainer>
-      <Text size="sm">Last updated 11 November at 10:46 UTC</Text>
+      <Text size="sm">{`Last updated ${lastUpdate}`}</Text>
     </div>
   );
 };

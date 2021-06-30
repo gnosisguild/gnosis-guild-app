@@ -7,14 +7,14 @@ export type GuildBalance = {
   tokenAddress: string;
   currentBalance: number;
   totalSubscriptions: number;
-}
+};
 
 export type GuildWithdrawal = {
   id: string;
   tokenAddress: string;
   value: number;
   beneficiary: string;
-}
+};
 
 export type GraphGuild = {
   active: boolean;
@@ -26,6 +26,7 @@ export type GraphGuild = {
   subsPeriod: number;
   subscriptions: Array<any>;
   symbol: string;
+  lastMetadataUpdate: number;
   tokenAddress: string;
   totalSubscribers: number;
   balances: Array<GuildBalance>;
@@ -53,6 +54,7 @@ const guildBaseFields = `
     active
     tokenAddress
     currentPrice
+		lastMetadataUpdate
     subsPeriod
     totalSubscribers
     balances {
@@ -81,8 +83,8 @@ export const fetchGuildByAddress = async (
     `;
   const network = getNetworkByChainId(chainId);
   const resp = await request(network.subgraphUrl, fetchGuildQuery, {
-    ownerAddress: address
-  }).catch(e => {
+    ownerAddress: address,
+  }).catch((e) => {
     console.error(e);
     console.error("Failed call");
   });
@@ -108,8 +110,8 @@ export const fetchGuild = async (
     `;
   const network = getNetworkByChainId(chainId);
   const resp = await request(network.subgraphUrl, fetchGuildQuery, {
-    id: guildId.toLowerCase()
-  }).catch(e => {
+    id: guildId.toLowerCase(),
+  }).catch((e) => {
     console.error(e);
     console.error("Failed call");
   });
@@ -142,12 +144,10 @@ export const fetchSubscriberByGuild = async (
 
   const network = getNetworkByChainId(chainId);
   const resp = await request(network.subgraphUrl, fetchGuildQuery, {
-    date: Date.now()
-      .toString()
-      .substr(0, 10),
+    date: Date.now().toString().substr(0, 10),
     guild: guildId,
-    owner: subscriberAddress
-  }).catch(e => {
+    owner: subscriberAddress,
+  }).catch((e) => {
     console.error(e);
     console.error("Failed to fetch subscriber from subgraph");
   });

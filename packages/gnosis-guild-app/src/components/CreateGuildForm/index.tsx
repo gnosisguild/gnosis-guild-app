@@ -40,12 +40,17 @@ const FormItem = styled.div`
 
 const ButtonContainer = styled.div`
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 1rem;
   margin-bottom: 1rem;
   margin-left: 0.4rem;
   margin-right: 0.4rem;
+`;
+
+const UploadButtonContainer = styled(ButtonContainer)`
+  justify-content: center;
+  align-items: flex-start;
   flex-direction: column;
 `;
 
@@ -460,7 +465,7 @@ const CreateGuildForm: React.FC = () => {
           onChange={updateGuildExternalLink}
         />
       </FormItem>
-      <ButtonContainer>
+      <UploadButtonContainer>
         <Button
           color={"secondary"}
           fullWidth={false}
@@ -480,7 +485,7 @@ const CreateGuildForm: React.FC = () => {
         <ErrorText size="md" color="error" visible={guildImageError}>
           The uploaded image must be a .png, .svg or .jpeg
         </ErrorText>
-      </ButtonContainer>
+      </UploadButtonContainer>
       <FormItem>
         <AmountInput
           title="Monthly Contributors"
