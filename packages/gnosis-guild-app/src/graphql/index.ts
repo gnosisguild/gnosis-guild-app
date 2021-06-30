@@ -122,6 +122,46 @@ export const fetchGuild = async (
   return null;
 };
 
+export const fetchSubscription = async (
+  guildId: string,
+  subscriber: string,
+  chainId: number,
+): Promise<any | null> => {
+  const fetchGuildSubscriptionQuery = gql`
+    query getGuildSubscription($id: String) {
+      guildSubscription(id: $id) {
+        id
+        active
+        unsubscribedAt
+        createdAt
+        guild {
+          id
+        }
+        keyId,
+        owner,
+        expires,
+        paymentHistory {
+          id
+          purchasedAt
+          value
+        }
+      }
+    }
+  `;
+  const network = getNetworkByChainId(chainId);
+  const resp = await request(network.subgraphUrl, fetchGuildSubscriptionQuery, {
+    id: `${guildId.toLowerCase()}-${subscriber.toLowerCase()}`
+  }).catch(e => {
+    console.error(e);
+    console.error("Failed call");
+  });
+  if (resp && resp.guildSubscription) {
+    return resp.guildSubscription;
+  }
+  return null;
+
+}
+
 export const fetchSubscriberByGuild = async (
   guildId: string,
   subscriberAddress: string,
