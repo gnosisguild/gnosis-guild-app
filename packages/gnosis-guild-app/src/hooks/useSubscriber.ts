@@ -5,13 +5,24 @@ import { ethers } from "ethers";
 import { useWeb3Context } from "../context/Web3Context";
 import { fetchSubscriberByGuild } from "../graphql";
 
+const initialSubscriber = {
+  id: "",
+  active: false,
+  unsubscribedAt: "",
+  owner: "",
+  paymentHistory: [{}],
+  keyId: 0,
+};
+
 export const useSubscriber = () => {
   const { providerChainId, account } = useWeb3Context();
   const { guildId } = useParams<{ guildId: string }>();
 
   const [subscribed, setSubscribed] = useState(false);
+  const [subscriberMeta, setSubscriberMeta] = useState(initialSubscriber);
   const [currentMinimumAmount, setCurrentMinimumAmount] = useState("0");
   const [id, setId] = useState("");
+
   useEffect(() => {
     const setSubscriber = async (): Promise<void> => {
       if (!guildId || !providerChainId || !account) {
@@ -30,6 +41,7 @@ export const useSubscriber = () => {
         setSubscribed(true);
         const subscriber = subscribers[0];
         setId(subscriber.id);
+        setSubscriberMeta(subscriber);
         if (subscriber.paymentHistory.length > 0) {
           const payment = subscriber.paymentHistory[0];
           setCurrentMinimumAmount(ethers.utils.formatEther(payment.value));
@@ -38,11 +50,13 @@ export const useSubscriber = () => {
         setSubscribed(false);
       }
     };
+
     setSubscriber();
   }, [providerChainId, account, guildId]);
   return {
     subscribed,
     currentMinimumAmount,
     id,
+    subscriber: subscriberMeta,
   };
 };

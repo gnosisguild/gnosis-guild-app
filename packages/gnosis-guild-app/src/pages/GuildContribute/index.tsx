@@ -62,12 +62,15 @@ const GuildContribute: React.FC = () => {
   const [contributorEmail, setContributorEmail] = useState("");
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
   const [invalidForm, setInvalidForm] = useState(false);
+  const [invalidName, setInvalidName] = useState(false);
+  const [invalidEmail, setInvalidEmail] = useState(false);
+  const [invalidAmount, setInvalidAmount] = useState(false);
   const { loading, guild } = useGuildByParams();
 
   const [guildMetadata, setGuildMetadata] = useState<any>();
   const { guildId } = useParams<{ guildId: string }>();
   // console.log("GUILD ID ==>", guildId, providerChainId);
-  const { currentMinimumAmount, subscribed } = useSubscriber();
+  const { currentMinimumAmount, subscribed, subscriber } = useSubscriber();
   const { profileName, profileEmail } = useContributorProfile();
   const {
     submitContribution,
@@ -75,6 +78,8 @@ const GuildContribute: React.FC = () => {
     unsubscribe,
     setContributeLoading,
   } = useContribute();
+  console.log(subscribed);
+  console.log(guild.active);
 
   useEffect(() => {
     setContributorEmail(profileEmail);
@@ -97,8 +102,9 @@ const GuildContribute: React.FC = () => {
     }
 
     setContributeLoading(false);
-    console.log("Unsubscribe");
+    window.location.reload();
   };
+
   const submitContributionTx = async () => {
     if (!guild.tokenAddress) {
       console.error("No token address");
@@ -113,10 +119,26 @@ const GuildContribute: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!contributorEmail || !contributorName || guildMinimumAmount === "0") {
+    if (
+      !contributorEmail ||
+      !contributorName ||
+      guildMinimumAmount === "0" ||
+      invalidName ||
+      invalidEmail ||
+      invalidAmount
+    ) {
       setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
     }
-  }, [contributorEmail, contributorName, guildMinimumAmount]);
+  }, [
+    contributorEmail,
+    contributorName,
+    guildMinimumAmount,
+    invalidName,
+    invalidAmount,
+    invalidEmail,
+  ]);
 
   const onDisconnect = () => {
     setContributorName("");
@@ -144,7 +166,7 @@ const GuildContribute: React.FC = () => {
             <ContributorNameInput
               name={contributorName}
               setContributorName={setContributorName}
-              setInvalidForm={setInvalidForm}
+              setInvalidForm={setInvalidName}
               disabled={subscribed || !guild.active}
             />
           </FormItem>
@@ -152,7 +174,7 @@ const GuildContribute: React.FC = () => {
             <ContributorEmailInput
               email={contributorEmail}
               setContributorEmail={setContributorEmail}
-              setInvalidForm={setInvalidForm}
+              setInvalidForm={setInvalidEmail}
               disabled={subscribed || !guild.active}
             />
           </FormItem>
@@ -163,7 +185,7 @@ const GuildContribute: React.FC = () => {
               setCurrency={setActiveCurrency}
               amount={guildMinimumAmount}
               setAmount={setGuildMinimumAmount}
-              setInvalidForm={setInvalidForm}
+              setInvalidForm={setInvalidAmount}
               dropdown={false}
               disabled={subscribed || !guild.active}
               minimum={guild.amount}

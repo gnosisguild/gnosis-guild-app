@@ -14,7 +14,7 @@ export const useContribute = () => {
   const { subscribe } = useGuild();
   const { guildId } = useParams<{ guildId: string }>();
   const { saveContributorProfile } = useContributorProfile();
-  const { id } = useSubscriber();
+  const { subscriber } = useSubscriber();
 
   const submitContribution = async (
     tokenAddress: string,
@@ -60,7 +60,7 @@ export const useContribute = () => {
       ethersProvider.getSigner()
     );
     const tx = await guildContract
-      .unsubscribe(id)
+      .unsubscribe(subscriber.keyId)
       .catch((err: Error) => console.error(err));
     return tx;
   };

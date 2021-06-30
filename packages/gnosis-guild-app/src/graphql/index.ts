@@ -43,6 +43,7 @@ export type GraphSubscriber = {
   unsubscribedAt: string;
   owner: string;
   paymentHistory: Array<Payment>;
+  keyId: number;
 };
 
 const guildBaseFields = `
@@ -135,6 +136,7 @@ export const fetchSubscriberByGuild = async (
         active
         unsubscribedAt
         owner
+        keyId
         paymentHistory(orderBy: purchasedAt, orderDirection: desc) {
           value
         }
