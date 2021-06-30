@@ -25,7 +25,7 @@ export const useContribute = () => {
 
     setContributeLoading(true);
     try {
-      await subscribe(
+      const tx = await subscribe(
         providerChainId,
         ethersProvider,
         guildId,
@@ -33,9 +33,12 @@ export const useContribute = () => {
         guildMinimumAmount,
         {
           name: contributorName,
-          email: contributorEmail
+          email: contributorEmail,
         }
       );
+      if (tx) {
+        await tx.wait();
+      }
     } catch (error) {
       // TODO: Show an pop-up error
     }
@@ -46,6 +49,6 @@ export const useContribute = () => {
   return {
     submitContribution,
     contributeLoading,
-    setContributeLoading
+    setContributeLoading,
   };
 };

@@ -13,7 +13,7 @@ const ContributorEmailInput: React.FC<Props> = ({
   email,
   setContributorEmail,
   setInvalidForm,
-  disabled
+  disabled,
 }) => {
   const [meta, setMeta] = useState({});
 
@@ -26,6 +26,9 @@ const ContributorEmailInput: React.FC<Props> = ({
       setInvalidForm(true);
     } else {
       setInvalidForm(false);
+    }
+    if (!val) {
+      setInvalidForm(true);
     }
   };
 

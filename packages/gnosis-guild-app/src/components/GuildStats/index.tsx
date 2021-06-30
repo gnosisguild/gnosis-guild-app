@@ -7,7 +7,7 @@ import {
   Card,
   CopyToClipboardBtn,
   Text,
-  Title
+  Title,
 } from "@gnosis.pm/safe-react-components";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
@@ -51,6 +51,7 @@ const StatsText = styled(Text)`
 const GuildStats: React.FC = () => {
   const [numTokens, setNumTokens] = useState("0");
   const [numContributors, setNumContributors] = useState(0);
+  const [lastUpdate, setLastUpdate] = useState("");
   const { guildMetadata } = useGuildContext();
   const hiddenAnchor = useRef<HTMLAnchorElement>(null);
   const fileUrl = "";
@@ -63,9 +64,17 @@ const GuildStats: React.FC = () => {
         providerChainId
       );
       if (guild) {
-        const guildMainBalance = guild.balances.find(b => b.tokenAddress === guild.tokenAddress);
-        setNumTokens(ethers.utils.formatEther(guildMainBalance ? guildMainBalance.totalSubscriptions : "0"));
+        const guildMainBalance = guild.balances.find(
+          (b) => b.tokenAddress === guild.tokenAddress
+        );
+        setNumTokens(
+          ethers.utils.formatEther(
+            guildMainBalance ? guildMainBalance.totalSubscriptions : "0"
+          )
+        );
+        const x = await new Date(guild.lastMetadataUpdate * 1000).toUTCString();
         setNumContributors(guild.totalSubscribers);
+        setLastUpdate(x);
       }
     };
     getTokens();
@@ -84,7 +93,6 @@ const GuildStats: React.FC = () => {
     anchor?.click();
   };
 
-  console.log("stats");
   const imageUrl = guildMetadata.image
     ? URL.createObjectURL(guildMetadata.image)
     : "";
@@ -101,7 +109,7 @@ const GuildStats: React.FC = () => {
           Other Internet Guild Page
         </StatsText>
         <CopyToClipboardBtn
-          textToCopy={`${APP_DOMAIN}/guild/${guildMetadata.guildAddress}`}
+          textToCopy={`${APP_DOMAIN}/#/guild/${guildMetadata.guildAddress}`}
         />
       </StatItemContainer>
       <Text size="lg">{`${APP_DOMAIN}/...`}</Text>
@@ -110,10 +118,10 @@ const GuildStats: React.FC = () => {
           Embed Code
         </StatsText>
         <CopyToClipboardBtn
-          textToCopy={`<iframe src="${APP_DOMAIN}/guild/${guildMetadata.guildAddress}/contribute/link" />`}
+          textToCopy={`<iframe src="${APP_DOMAIN}/#/guild/${guildMetadata.guildAddress}/contribute/link" />`}
         />
       </StatItemContainer>
-      <Text size="lg">{`<iframe src="${APP_DOMAIN}/guild...`}</Text>
+      <Text size="lg">{`<iframe src="${APP_DOMAIN}/#/guild...`}</Text>
       <StatItemContainer>
         <Card style={{ width: "100%", maxWidth: "16rem" }}>
           <TitleCardContainer>
@@ -153,7 +161,7 @@ const GuildStats: React.FC = () => {
           Download
         </a>
       </ButtonContainer>
-      <Text size="sm">Last updated 11 November at 10:46 UTC</Text>
+      <Text size="sm">{`Last updated ${lastUpdate}`}</Text>
     </div>
   );
 };

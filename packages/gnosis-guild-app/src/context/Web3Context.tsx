@@ -5,6 +5,7 @@ import { EthereumAuthProvider, ThreeIdConnect } from "@3id/connect";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ethers } from "ethers";
 import type { CeramicApi } from "@ceramicnetwork/common";
+import type { Network } from "@ethersproject/providers";
 import Ceramic from "@ceramicnetwork/http-client";
 import { IDX } from "@ceramicstudio/idx";
 import type { IDX as IDXApi } from "@ceramicstudio/idx";
@@ -13,7 +14,7 @@ import { Resolver } from "did-resolver";
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import KeyDidResolver from "key-did-resolver";
 
-import { networks } from "../constants";
+import { networks } from "../lib/networks";
 
 export type Web3ContextValue = {
   connectToWeb3: () => void;
@@ -26,6 +27,7 @@ export type Web3ContextValue = {
   connected: boolean;
   idx?: IDXApi;
   did?: DID;
+  network?: Network;
 };
 
 type Web3State = {
@@ -57,7 +59,6 @@ const providerOptions = {
     package: WalletConnectProvider,
     options: {
       rpc: {
-        1: networks[1].rpc_url,
         4: networks[4].rpc_url,
       },
     },
@@ -79,11 +80,13 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const [idx, setIdx] = useState<IDXApi | null>(null);
   const [did, setDid] = useState<DID | null>(null);
+  const [network, setNetwork] = useState<Network | null>(null);
   const setWeb3Provider = useCallback(
     async (initialProvider: any): Promise<void> => {
       try {
         const provider = new ethers.providers.Web3Provider(initialProvider);
         const chainId = initialProvider.chainId;
+        const currentNetwork = await provider.getNetwork();
 
         const signer = provider.getSigner();
         const gotAccount = await signer.getAddress();
@@ -92,6 +95,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
           ethersProvider: provider,
           providerChainId: chainId,
         });
+        setNetwork(currentNetwork);
       } catch (error) {
         console.error(error);
       }
@@ -108,9 +112,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         ..._provider,
         account: accounts[0],
       }));
+      window.location.reload();
     });
     modalProvider.on("chainChanged", () => {
       setWeb3Provider(modalProvider);
+      window.location.reload();
     });
     setConnected(true);
   }, [setWeb3Provider]);
@@ -189,6 +195,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     providerChainId,
     getConnectText,
     connected,
+    network,
   } as Web3ContextValue;
   if (idx) {
     values = { idx: idx, ...values };

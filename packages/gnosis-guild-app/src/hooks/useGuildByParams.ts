@@ -18,6 +18,7 @@ export const useGuildByParams = () => {
     amount: "0",
     guildAddress: "",
     imageCid: "",
+    active: true,
   });
   const { guildId } = useParams<{ guildId: string }>();
   const [loading, setLoading] = useState(true);
@@ -58,7 +59,8 @@ export const useGuildByParams = () => {
           amount: metadata.amount,
           guildAddress: metadata.guildAddress,
           imageCid: metadata.imageCid,
-          tokenAddress: metadata.tokenAddress,
+          tokenAddress: meta.tokenAddress,
+          active: meta.active,
         };
         setGuildMetadata(data);
         setGuild(data);

@@ -14,11 +14,16 @@ import {
   Text,
   TextField,
 } from "@gnosis.pm/safe-react-components";
+import { useSafeAppsSDK } from "@gnosis.pm/safe-apps-react-sdk";
 
 import AmountInput from "../AmountInput";
 import { useGuildContext } from "../../context/GuildContext";
 import { useWeb3Context } from "../../context/Web3Context";
 import { useGuild } from "../../hooks/useGuild";
+
+type ErrorThemeProps = {
+  visible: boolean;
+};
 
 const GridForm = styled.form`
   grid-area: form;
@@ -43,6 +48,12 @@ const ButtonContainer = styled.div`
   margin-right: 0.4rem;
 `;
 
+const UploadButtonContainer = styled(ButtonContainer)`
+  justify-content: center;
+  align-items: flex-start;
+  flex-direction: column;
+`;
+
 const DeleteButton = styled(Button)`
   &&& {
     min-width: 0rem;
@@ -54,9 +65,14 @@ const GuildLoaderContainer = styled.div`
   justify-content: center;
 `;
 
+const ErrorText = styled(Text)<ErrorThemeProps>`
+  margin-top: 0.4rem;
+  visibility: ${(props) => (props.visible ? "visible" : "hidden	")};
+`;
+
 const CreateGuildForm: React.FC = () => {
   const { refreshGuild, guildMetadata, setGuildMetadata } = useGuildContext();
-
+  const { sdk } = useSafeAppsSDK();
   const { ethersProvider, account, providerChainId } = useWeb3Context();
   const { createGuild, deactivateGuild, updateMetadataCid } = useGuild();
   const [invalidForm, setInvalidForm] = useState(false);
@@ -96,6 +112,8 @@ const CreateGuildForm: React.FC = () => {
     error: "",
   });
 
+  const [guildImageError, setGuildImageError] = useState(false);
+
   const [guildImage, setGuildImage] = useState(guildMetadata.image);
   const hiddenImageInput = useRef<HTMLInputElement>(null);
 
@@ -114,17 +132,30 @@ const CreateGuildForm: React.FC = () => {
 
   useEffect(() => {
     // Check all fields are valid
+    // Check base cases here
+    let hasImage = false;
+    if (guildImage) {
+      hasImage = guildImage.name ? true : false;
+    }
     const valid =
-      !guildNameMeta.error &&
-      !guildDescriptionMeta.error &&
-      !guildExternalLinkMeta.error &&
-      !guildContentFormatMeta.error;
-    setInvalidForm(!valid);
+      !guildName ||
+      !guildDescription ||
+      !guildExternalLink ||
+      !contentFormat ||
+      !hasImage ||
+      guildMinimumAmount === "0" ||
+      guildImageError;
+    if (valid) {
+      setInvalidForm(true);
+    }
   }, [
-    guildNameMeta,
-    guildDescriptionMeta,
-    guildContentFormatMeta,
-    guildExternalLinkMeta,
+    guildName,
+    guildDescription,
+    guildExternalLink,
+    contentFormat,
+    guildImage,
+    guildMinimumAmount,
+    guildImageError,
   ]);
 
   const uploadImage = (
@@ -132,8 +163,22 @@ const CreateGuildForm: React.FC = () => {
   ) => {
     const target = e.target as HTMLInputElement;
     const input = hiddenImageInput.current as HTMLInputElement;
-    if (target.files && input.files) {
+    let validImage = false;
+    if (input.files) {
+      const file = input.files[0];
+      if (!file) {
+        return;
+      }
+      validImage =
+        file.type === "image/jpeg" ||
+        file.type === "image/png" ||
+        file.type === "image/svg+xml";
+      setGuildImageError(!validImage);
+      setInvalidForm(!validImage);
+    }
+    if (target.files && input.files && validImage) {
       setGuildImage(input.files[0]);
+      setGuildImageError(false);
       setGuildMetadata({
         name: guildName,
         description: guildDescription,
@@ -144,6 +189,7 @@ const CreateGuildForm: React.FC = () => {
         guildAddress: guildAddress,
         imageCid: guildMetadata.imageCid,
         image: input.files[0],
+        active: guildMetadata.active,
       });
     }
   };
@@ -172,21 +218,21 @@ const CreateGuildForm: React.FC = () => {
         amount: guildMinimumAmount,
         guildAddress: guildAddress,
         imageCid: "",
+        active: false,
       };
-      const tx = await createGuild(
+      const tx = (await createGuild(
         providerChainId,
         ethersProvider,
         guildInfo,
         account,
-        setSubmitting
-      );
-      setSubmitting(true);
-      setLoadingTitle("Transaction is processing");
-      setLoadingFooter("Processing should be finished in a few minutes!");
+        sdk,
+        setModal
+      )) as any;
 
-      refreshGuild();
       if (tx) {
-        tx.wait(1);
+        if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
+          await refreshGuild();
+        }
       }
 
       setLoadingTitle("");
@@ -197,6 +243,18 @@ const CreateGuildForm: React.FC = () => {
     setSubmitting(false);
   };
 
+  const setModal = (isOpen: boolean, title?: string, footer?: string) => {
+    if (isOpen) {
+      setSubmitting(isOpen);
+    }
+    if (title) {
+      setLoadingTitle(title);
+    }
+    if (footer) {
+      setLoadingFooter(footer);
+    }
+  };
+
   const updateTx = async (): Promise<void> => {
     if (!ethersProvider) {
       console.error("EthersProvider has not been set yet");
@@ -205,7 +263,7 @@ const CreateGuildForm: React.FC = () => {
 
     setSubmitting(true);
     setLoadingTitle("Setting up transaction to be sent");
-    const tx = await updateMetadataCid(
+    const tx = (await updateMetadataCid(
       {
         name: guildName,
         description: guildDescription,
@@ -216,16 +274,16 @@ const CreateGuildForm: React.FC = () => {
         amount: guildMinimumAmount,
         guildAddress: guildAddress,
         imageCid: "",
+        active: true,
       },
       ethersProvider,
-      setSubmitting
-    );
-    setSubmitting(true);
-
-    setLoadingTitle("Transaction is processing");
-    setLoadingFooter("Processing should be finished in a few minutes!");
+      sdk,
+      setModal
+    )) as any;
     if (tx) {
-      tx.wait(1);
+      if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
+        await refreshGuild();
+      }
     }
     setLoadingTitle("");
     setLoadingFooter("");
@@ -233,9 +291,8 @@ const CreateGuildForm: React.FC = () => {
   };
 
   // Upload text
-  const imageUploadText = guildMetadata.description
-    ? "Replace Image"
-    : "Upload Image";
+  const imageUploadText =
+    guildImage && guildImage.name ? "Replace Image" : "Upload Image";
   const guildButtonText = guildMetadata.imageCid
     ? "Update Guild"
     : "Create Guild";
@@ -250,6 +307,13 @@ const CreateGuildForm: React.FC = () => {
     setGuildName(val);
     if (val && val.length > 50) {
       setGuildNameMeta({ error: "Name must be less than 50 characters" });
+      setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
+    }
+
+    if (!val) {
+      setInvalidForm(true);
     }
   };
 
@@ -261,6 +325,12 @@ const CreateGuildForm: React.FC = () => {
       setGuildDescriptionMeta({
         error: "Description must be less than 200 characters",
       });
+      setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
+    }
+    if (!val) {
+      setInvalidForm(true);
     }
   };
 
@@ -269,9 +339,15 @@ const CreateGuildForm: React.FC = () => {
     setGuildExternalLinkMeta({ error: "" });
     setGuildExternalLink(val);
     if (val && !isURL(val)) {
+      setInvalidForm(true);
       setGuildExternalLinkMeta({
         error: "Guild external link must be a valid Url",
       });
+    } else {
+      setInvalidForm(false);
+    }
+    if (!val) {
+      setInvalidForm(true);
     }
   };
 
@@ -283,19 +359,50 @@ const CreateGuildForm: React.FC = () => {
       setGuildContentFormatMeta({
         error: "Must be less than 200 characters",
       });
+      setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
+    }
+    if (!val) {
+      setInvalidForm(true);
     }
   };
 
-  const pauseGuild = (e: MouseEvent<HTMLButtonElement>) => {
+  const pauseGuild = async (e: MouseEvent<HTMLButtonElement>) => {
     if (!ethersProvider) {
       console.error("EthersProvider has not been set yet");
       return;
     }
 
-    deactivateGuild(providerChainId, ethersProvider, account, guildAddress);
+    const tx = (await deactivateGuild(
+      ethersProvider,
+      account,
+      guildAddress,
+      sdk,
+      setModal
+    )) as any;
+    if (tx) {
+      if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
+        setGuildMetadata({
+          name: "",
+          description: "",
+          contentFormat: "",
+          externalLink: "",
+          image: new File([], ""),
+          currency: "ETH",
+          amount: "0",
+          guildAddress: "",
+          imageCid: "",
+          active: false,
+        });
+      }
+    }
+    setLoadingTitle("");
+    setLoadingFooter("");
+    setSubmitting(false);
   };
 
-  const deleteButton = guildMetadata.name && (
+  const deleteButton = guildMetadata.active && (
     <DeleteButton
       size="lg"
       color="error"
@@ -358,7 +465,7 @@ const CreateGuildForm: React.FC = () => {
           onChange={updateGuildExternalLink}
         />
       </FormItem>
-      <ButtonContainer>
+      <UploadButtonContainer>
         <Button
           color={"secondary"}
           fullWidth={false}
@@ -375,13 +482,17 @@ const CreateGuildForm: React.FC = () => {
           onClick={uploadImage}
           onChange={uploadImage}
         />
-      </ButtonContainer>
+        <ErrorText size="md" color="error" visible={guildImageError}>
+          The uploaded image must be a .png, .svg or .jpeg
+        </ErrorText>
+      </UploadButtonContainer>
       <FormItem>
         <AmountInput
           title="Monthly Contributors"
           currency={activeCurrency}
           setCurrency={setActiveCurrency}
           amount={guildMinimumAmount}
+          setInvalidForm={setInvalidForm}
           setAmount={setGuildMinimumAmount}
         />
       </FormItem>

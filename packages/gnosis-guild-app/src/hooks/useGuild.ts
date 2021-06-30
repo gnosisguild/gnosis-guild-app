@@ -1,5 +1,11 @@
 import axios from "axios";
 import { Contract, ethers } from "ethers";
+import {
+  SendTransactionsResponse,
+  GatewayTransactionDetails,
+} from "@gnosis.pm/safe-apps-sdk";
+
+import SafeAppsSDK from "@gnosis.pm/safe-apps-sdk";
 
 import { API, IPFS_GATEWAY } from "../constants";
 import GuildFactoryABI from "../contracts/GuildFactory.json";
@@ -7,6 +13,38 @@ import GuildAppABI from "../contracts/GuildApp.json";
 import { getNetworkByChainId } from "../lib/networks";
 
 import { GuildMetadata, useGuildContext } from "../context/GuildContext";
+
+function timeout(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const pollSafeTx = async (
+  safeTxs: SendTransactionsResponse,
+  sdk: SafeAppsSDK
+): Promise<GatewayTransactionDetails> => {
+  let retries = 0;
+  let safeTx = undefined;
+  let waitForConfrimation = true;
+  while (retries <= 15 && waitForConfrimation) {
+    const results = await Promise.all([
+      sdk.txs.getBySafeTxHash(safeTxs.safeTxHash),
+      timeout(1000),
+    ]).catch((err) => console.error(err));
+    if (results && results.slice(0)) {
+      [safeTx] = results as any;
+      console.log("HWERE");
+      console.log(safeTx);
+      waitForConfrimation =
+        safeTx.detailedExecutionInfo.confirmationsRequired === 1 ? true : false;
+      if (waitForConfrimation === true && retries <= 300) {
+        waitForConfrimation = safeTx.txStatus === "SUCCESS" ? false : true;
+      }
+    }
+    retries++;
+    console.log(safeTx);
+  }
+  return safeTx;
+};
 
 export const useGuild = () => {
   const { refreshGuild, guildMetadata } = useGuildContext();
@@ -39,8 +77,9 @@ export const useGuild = () => {
     ethersProvider: ethers.providers.Web3Provider,
     guildInfo: GuildMetadata,
     creatorAddress: string,
-    setPrevModal?: (arg0: boolean) => void
-  ): Promise<ethers.providers.TransactionResponse> => {
+    sdk: SafeAppsSDK,
+    setPrevModal?: (arg0: boolean, arg1?: string, arg2?: string) => void
+  ): Promise<GatewayTransactionDetails> => {
     try {
       const network = getNetworkByChainId(chainId);
 
@@ -72,10 +111,30 @@ export const useGuild = () => {
         setPrevModal(false);
       }
       // TODO: Add Guild address here
-      const txResponse = await factoryContract.functions["createGuild(bytes)"](
-        calldata
-      );
-      return txResponse;
+      const unsignedTransaction = await factoryContract.populateTransaction[
+        "createGuild(bytes)"
+      ](calldata);
+
+      console.log(unsignedTransaction);
+      const txs = [
+        {
+          to: network.guildFactory,
+          value: "0",
+          data: unsignedTransaction.data as string,
+        },
+      ];
+      if (setPrevModal) {
+        setPrevModal(
+          true,
+          "Transaction is proccessing",
+          "Processing should finished in a few minutes!"
+        );
+      }
+
+      const safeTxs = await sdk.txs.send({ txs });
+      const safeTx = await pollSafeTx(safeTxs, sdk);
+
+      return safeTx;
     } catch (error) {
       console.error(`Failed to create guild: ${error}`);
       throw new Error(error);
@@ -83,12 +142,12 @@ export const useGuild = () => {
   };
 
   const deactivateGuild = async (
-    chainId: number,
     ethersProvider: ethers.providers.Web3Provider,
     ownerAddress: string,
-    guildAddress: string
-  ): Promise<void> => {
-    const network = getNetworkByChainId(chainId);
+    guildAddress: string,
+    sdk: SafeAppsSDK,
+    setPrevModal?: (arg0: boolean, arg1?: string, arg2?: string) => void
+  ): Promise<GatewayTransactionDetails | undefined> => {
     if (!guildAddress) {
       return;
     }
@@ -98,36 +157,67 @@ export const useGuild = () => {
       abiApp,
       ethersProvider.getSigner()
     );
-    await guildContract
-      .pauseGuild(true)
-      .catch((err: Error) => console.error(`Failed to pause ${err}`));
+    const unsignedTransaction =
+      await guildContract.populateTransaction.pauseGuild(true);
 
-    refreshGuild();
+    const txs = [
+      {
+        to: guildAddress,
+        value: "0",
+        data: unsignedTransaction.data as string,
+      },
+    ];
+
+    const safeTxs = await sdk.txs.send({ txs });
+    if (setPrevModal) {
+      setPrevModal(
+        true,
+        "Transaction is proccessing",
+        "Processing should finished in a few minutes!"
+      );
+    }
+    const safeTx = await pollSafeTx(safeTxs, sdk);
+    return safeTx;
   };
 
   const updateMetadataCid = async (
     guildInfo: GuildMetadata,
     ethersProvider: ethers.providers.Web3Provider,
-    setPrevModal?: (arg0: boolean) => void
-  ): Promise<ethers.providers.TransactionResponse> => {
-    const abiApp = [
-      "function setMetadata(string memory _metadataCID) external ",
-    ];
+    sdk: SafeAppsSDK,
+    setPrevModal?: (arg0: boolean, arg1?: string, arg2?: string) => void
+  ): Promise<GatewayTransactionDetails> => {
+    const metadataCid = await saveMetadata(guildInfo);
+
     const guildContract = new Contract(
       guildInfo.guildAddress,
-      abiApp,
+      GuildAppABI,
       ethersProvider.getSigner()
     );
-
-    const metadataCid = await saveMetadata(guildInfo);
 
     if (setPrevModal) {
       setPrevModal(false);
     }
-    const transaction = await guildContract
-      .setMetadata(metadataCid)
-      .catch((err: Error) => console.error("Failed to set metadata cid"));
-    return transaction;
+    const unsignedTransaction =
+      await guildContract.populateTransaction.setMetadata(metadataCid);
+
+    const txs = [
+      {
+        to: guildInfo.guildAddress,
+        value: "0",
+        data: unsignedTransaction.data as string,
+      },
+    ];
+
+    const safeTxs = await sdk.txs.send({ txs });
+    if (setPrevModal) {
+      setPrevModal(
+        true,
+        "Transaction is proccessing",
+        "Processing should finished in a few minutes!"
+      );
+    }
+    const safeTx = await pollSafeTx(safeTxs, sdk);
+    return safeTx;
   };
 
   const saveMetadata = async (guildInfo: GuildMetadata): Promise<string> => {
@@ -215,7 +305,7 @@ export const useGuild = () => {
       name: string;
       email: string;
     }
-  ): Promise<void> => {
+  ): Promise<ethers.providers.TransactionResponse> => {
     console.log(
       "Subscribe",
       chainId,
@@ -254,10 +344,11 @@ export const useGuild = () => {
 
     const args = [tokenURI, bnValue.toString(), "0x"];
     console.log("Subscribe args", ...args);
-    await guildContract.subscribe(...args, {
+    const tx = await guildContract.subscribe(...args, {
       value:
         guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0",
     });
+    return tx;
   };
 
   return {

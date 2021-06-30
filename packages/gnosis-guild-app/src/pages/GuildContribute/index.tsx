@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Loader, Title } from "@gnosis.pm/safe-react-components";
+import { Loader, Title, Text } from "@gnosis.pm/safe-react-components";
 
 import AmountInput from "../../components/AmountInput";
 import ContributorNameInput from "../../components/ContributorNameInput";
@@ -20,6 +20,7 @@ import { useSubscriber } from "../../hooks/useSubscriber";
 import { useContributorProfile } from "../../hooks/useContributorProfile";
 import { useContribute } from "../../hooks/useContribute";
 import { useGuildByParams } from "../../hooks/useGuildByParams";
+import { useRiskAgreement } from "../../hooks/useRiskAgreement";
 
 const Grid = styled.div`
   width: 100%;
@@ -55,6 +56,7 @@ const FormItem = styled.div`
 const GuildContribute: React.FC = () => {
   const { getConnectText, providerChainId } = useWeb3Context();
   const [activeCurrency, setActiveCurrency] = useState("ETH");
+  const { riskAgreement, setRiskAgreement } = useRiskAgreement();
 
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
@@ -99,11 +101,22 @@ const GuildContribute: React.FC = () => {
     );
   };
 
+  useEffect(() => {
+    if (!contributorEmail || !contributorName || guildMinimumAmount === "0") {
+      setInvalidForm(true);
+    }
+  }, [contributorEmail, contributorName, guildMinimumAmount]);
+
   const onDisconnect = () => {
     setContributorName("");
     setContributorEmail("");
     setGuildMinimumAmount("0");
   };
+
+  let name = guild.name;
+  if (name && !guild.active) {
+    name = `${guild.name} (Inactive)`;
+  }
 
   const contributionTx = subscribed ? unsubscribe : submitContributionTx;
   return (
@@ -114,14 +127,14 @@ const GuildContribute: React.FC = () => {
       {guild.name ? (
         <GridForm>
           <Title size="sm" strong={true}>
-            {guild.name}
+            {name}
           </Title>
           <FormItem>
             <ContributorNameInput
               name={contributorName}
               setContributorName={setContributorName}
               setInvalidForm={setInvalidForm}
-              disabled={subscribed}
+              disabled={subscribed || !guild.active}
             />
           </FormItem>
           <FormItem>
@@ -129,7 +142,7 @@ const GuildContribute: React.FC = () => {
               email={contributorEmail}
               setContributorEmail={setContributorEmail}
               setInvalidForm={setInvalidForm}
-              disabled={subscribed}
+              disabled={subscribed || !guild.active}
             />
           </FormItem>
           <FormItem>
@@ -139,14 +152,22 @@ const GuildContribute: React.FC = () => {
               setCurrency={setActiveCurrency}
               amount={guildMinimumAmount}
               setAmount={setGuildMinimumAmount}
+              setInvalidForm={setInvalidForm}
               dropdown={false}
-              disabled={subscribed}
+              disabled={subscribed || !guild.active}
+              minimum={guild.amount}
             />
           </FormItem>
           <ContributeCard>
             <ContributeButton
               onClick={contributionTx}
-              disabled={!providerChainId || contributeLoading || invalidForm}
+              disabled={
+                !providerChainId ||
+                contributeLoading ||
+                invalidForm ||
+                (!subscribed && !guild.active) ||
+                !riskAgreement
+              }
             >
               {!contributeLoading ? contributeText : "Sending Contribution..."}
             </ContributeButton>
@@ -168,8 +189,8 @@ const GuildContribute: React.FC = () => {
           {connectText}
         </ConnectWeb3Button>
       </GridWallet>
-      <GridAgreementFooter>
-        <RiskAgreement />
+      <GridAgreementFooter visible={!riskAgreement}>
+        <RiskAgreement onClick={setRiskAgreement} />
       </GridAgreementFooter>
     </Grid>
   );

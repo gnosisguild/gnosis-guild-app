@@ -45,14 +45,16 @@ const GuildApp: React.FC = () => {
   const [displayPanel, setDisplayPanel] = useState(<GuildAppInstructions />);
 
   useEffect(() => {
-    const fetchGuild = async () => {
-      const guild = guildMetadata.guildAddress ? true : false;
+    const fetchGuild = () => {
+      const guild = guildMetadata.active ? true : false;
       if (guild) {
         setDisplayPanel(<GuildStats />);
+      } else {
+        setDisplayPanel(<GuildAppInstructions />);
       }
     };
     fetchGuild();
-  }, [guildMetadata.guildAddress]);
+  }, [guildMetadata.active]);
 
   // Get reference to image
   console.log("Inspect", loading, guildMetadata);

@@ -26,6 +26,9 @@ const ContributorNameInput: React.FC<Props> = ({
     } else {
       setInvalidForm(false);
     }
+		if (!val) {
+      setInvalidForm(true);
+		}
   };
 
   return (

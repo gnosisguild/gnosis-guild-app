@@ -16,13 +16,15 @@ import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 
 import { useGuildByParams } from "../../hooks/useGuildByParams";
+import { useRiskAgreement } from "../../hooks/useRiskAgreement";
 
 const Grid = styled.div`
   width: 100%;
   height: 100%;
   display: grid;
   grid-template:
-    "logo profile wallet" 1fr
+    "logo _ wallet" 1fr
+    "logo profile wallet" 4fr
     "footer footer footer" var(--grid-permission-footer-height)
     / 1fr 2fr 1fr;
 `;
@@ -38,7 +40,7 @@ const GridProfile = styled.div`
   grid-area: profile;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
 `;
 
@@ -67,6 +69,22 @@ const GuiildLanding: React.FC = () => {
   const connectText = getConnectText();
   const { loading, guild, guildActive } = useGuildByParams();
   const { guildId } = useParams<{ guildId: string }>();
+  const { riskAgreement, setRiskAgreement } = useRiskAgreement();
+
+  const disabledGuild = (
+    <GridProfile>
+      <Title size="sm" strong={true}>
+        {guild.name}
+      </Title>
+      <Text size="md" color="error">
+        This creator has ended their subscription service.
+      </Text>
+      <Text size="md">
+        If you've previously subscribed to this creator, connect your account to
+        unsubscribe
+      </Text>
+    </GridProfile>
+  );
 
   return (
     <Grid>
@@ -74,25 +92,31 @@ const GuiildLanding: React.FC = () => {
         <GuildLogo />
       </GridLogo>
       {guild.name ? (
-        <GridProfile>
-          <Title size="sm" strong={true}>
-            {guild.name}
-          </Title>
-          <ProfileImage src={URL.createObjectURL(guild.image) || profile} />
-          <TextWrapper>
-            <Text size="md">{guild.description}</Text>
-          </TextWrapper>
-          <TextWrapper>
-            <Text size="md">{guild.externalLink}</Text>
-          </TextWrapper>
-          <ContributeCard>
-            {guild && guildActive && (
-              <ContributeLink to={{ pathname: `/guild/${guildId}/contribute` }}>
-                <ContributeButton>Contibute</ContributeButton>
-              </ContributeLink>
-            )}
-          </ContributeCard>
-        </GridProfile>
+        guild.active ? (
+          <GridProfile>
+            <Title size="sm" strong={true}>
+              {guild.name}
+            </Title>
+            <ProfileImage src={URL.createObjectURL(guild.image) || profile} />
+            <TextWrapper>
+              <Text size="md">{guild.description}</Text>
+            </TextWrapper>
+            <TextWrapper>
+              <Text size="md">{guild.externalLink}</Text>
+            </TextWrapper>
+            <ContributeCard>
+              {guild && guildActive && (
+                <ContributeLink
+                  to={{ pathname: `/guild/${guildId}/contribute` }}
+                >
+                  <ContributeButton>Contibute</ContributeButton>
+                </ContributeLink>
+              )}
+            </ContributeCard>
+          </GridProfile>
+        ) : (
+          disabledGuild
+        )
       ) : (
         <Loading>
           {loading ? (
@@ -107,8 +131,8 @@ const GuiildLanding: React.FC = () => {
       <GridWallet>
         <ConnectWeb3Button>{connectText}</ConnectWeb3Button>
       </GridWallet>
-      <GridAgreementFooter>
-        <RiskAgreement />
+      <GridAgreementFooter visible={!riskAgreement}>
+        <RiskAgreement onClick={setRiskAgreement} />
       </GridAgreementFooter>
     </Grid>
   );
