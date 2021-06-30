@@ -112,9 +112,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         ..._provider,
         account: accounts[0],
       }));
+      window.location.reload();
     });
     modalProvider.on("chainChanged", () => {
       setWeb3Provider(modalProvider);
+      window.location.reload();
     });
     setConnected(true);
   }, [setWeb3Provider]);
