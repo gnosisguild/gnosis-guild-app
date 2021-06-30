@@ -111,7 +111,10 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 
       const isSafeApp = await web3Modal.isSafeApp();
       const ethLibAdapter = !isSafeApp ? new EthersAdapter({ ethers, signer }) : null;
-      const cpkInstance = process.env.REACT_APP_USE_CPK === 'true' && ethLibAdapter ? await CPK.create({ ethLibAdapter }) : undefined;
+      const cpkInstance =
+        process.env.REACT_APP_USE_CPK === 'true' && ethLibAdapter 
+          ? await CPK.create({ ethLibAdapter, ownerAccount: await signer.getAddress() })
+          : undefined;
       console.log('Use CPK?', process.env.REACT_APP_USE_CPK, cpkInstance);
 
       setWeb3State({
@@ -270,10 +273,13 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     );
     console.log('hasAllowanceModule', hasAllowanceModule);
 
+    // TODO: change delegate to Guild Contract
+    const delegate = await signer.getAddress();
+
     console.log('STEP: 2: Check if owner is a delegate');
     const allowanceModule = new ethers.Contract(gnosisConfig.allowanceModule, AllowanceModuleAbi, signer);
     const delegates = await allowanceModule.getDelegates(cpk.address, 0, 10);
-    const isDelegate = delegates.results.includes(await signer.getAddress());
+    const isDelegate = delegates.results.includes(delegate);
     console.log('Delegates', delegates, isDelegate);
 
     const currentDate = new Date();
@@ -283,7 +289,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     console.log(block.timestamp, (currentPeriod.getTime() / 1000).toFixed(0));
 
     console.log('STEP 3: Check allowance');
-    const allowance = await allowanceModule.allowances(cpk.address, await signer.getAddress(), tokenAddress);
+    const allowance = await allowanceModule.allowances(cpk.address, delegate, tokenAddress);
     console.log('Current Allowance', allowance, allowance.amount.toString());
     const allowanceAmount = (allowance.amount as ethers.BigNumber).add(ethers.BigNumber.from(deposit)).toString();
 
@@ -298,14 +304,14 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         operation: CPK.Call,
         to: gnosisConfig.allowanceModule,
         value: 0,
-        data: allowanceModule.interface.encodeFunctionData("addDelegate", [await signer.getAddress()]),
+        data: allowanceModule.interface.encodeFunctionData("addDelegate", [delegate]),
       },
       {
         operation: CPK.Call,
         to: gnosisConfig.allowanceModule,
         value: 0,
         data: allowanceModule.interface.encodeFunctionData("setAllowance", [
-          await signer.getAddress(),
+          delegate,
           tokenAddress,
           allowanceAmount,
           60 * 24 * 30, // TODO: 30 days by default. Get time in minutes
@@ -343,7 +349,10 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     const signer = ethersProvider.getSigner();
     const allowanceModule = new ethers.Contract(gnosisConfig.allowanceModule, AllowanceModuleAbi, signer);
 
-    const allowance = await allowanceModule.allowances(cpk.address, await signer.getAddress(), tokenAddress);
+    // TODO: set Guild as delegate
+    const delegate = await signer.getAddress();
+
+    const allowance = await allowanceModule.allowances(cpk.address, delegate, tokenAddress);
 
     console.log('Signature params',
       cpk.address,
@@ -384,7 +393,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       console.log('Exec...');
       try {
         const cpkTxRs = await cpk.execTransactions(txs);
-        console.log('Waiting for confirmation...');
         return cpkTxRs.transactionResponse as ethers.providers.TransactionResponse;
       } catch (error) {
         console.error('Something wrong happened', error);
