@@ -29,6 +29,8 @@ type GuildBalance @entity {
 type GuildSubscription @entity {
   id: ID!
   createdAt: String!
+  active: Boolean!
+  unsubscribedAt: String
   guild: Guild!
   keyId: BigInt!
   owner: Bytes!

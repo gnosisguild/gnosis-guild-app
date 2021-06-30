@@ -138,6 +138,10 @@ export class NewSubscription__Params {
   get expiry(): BigInt {
     return this._event.parameters[2].value.toBigInt();
   }
+
+  get _data(): Bytes {
+    return this._event.parameters[3].value.toBytes();
+  }
 }
 
 export class PausedGuild extends ethereum.Event {
@@ -181,6 +185,10 @@ export class RenewSubscription__Params {
 
   get expiry(): BigInt {
     return this._event.parameters[2].value.toBigInt();
+  }
+
+  get _data(): Bytes {
+    return this._event.parameters[3].value.toBytes();
   }
 }
 
@@ -307,6 +315,24 @@ export class Transfer__Params {
 
   get tokenId(): BigInt {
     return this._event.parameters[2].value.toBigInt();
+  }
+}
+
+export class Unsubscribed extends ethereum.Event {
+  get params(): Unsubscribed__Params {
+    return new Unsubscribed__Params(this);
+  }
+}
+
+export class Unsubscribed__Params {
+  _event: Unsubscribed;
+
+  constructor(event: Unsubscribed) {
+    this._event = event;
+  }
+
+  get _tokenId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
   }
 }
 
@@ -1424,7 +1450,7 @@ export class SubscribeCall__Inputs {
     return this._call.inputValues[1].value.toBigInt();
   }
 
-  get value2(): Bytes {
+  get _data(): Bytes {
     return this._call.inputValues[2].value.toBytes();
   }
 }
@@ -1471,6 +1497,36 @@ export class TransferFromCall__Outputs {
   _call: TransferFromCall;
 
   constructor(call: TransferFromCall) {
+    this._call = call;
+  }
+}
+
+export class UnsubscribeCall extends ethereum.Call {
+  get inputs(): UnsubscribeCall__Inputs {
+    return new UnsubscribeCall__Inputs(this);
+  }
+
+  get outputs(): UnsubscribeCall__Outputs {
+    return new UnsubscribeCall__Outputs(this);
+  }
+}
+
+export class UnsubscribeCall__Inputs {
+  _call: UnsubscribeCall;
+
+  constructor(call: UnsubscribeCall) {
+    this._call = call;
+  }
+
+  get _tokenId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class UnsubscribeCall__Outputs {
+  _call: UnsubscribeCall;
+
+  constructor(call: UnsubscribeCall) {
     this._call = call;
   }
 }
