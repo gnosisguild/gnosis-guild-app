@@ -31,10 +31,6 @@ export const useContribute = () => {
         guildId,
         tokenAddress,
         guildMinimumAmount,
-        {
-          name: contributorName,
-          email: contributorEmail
-        },
       );
       if (tx) {
         await tx.wait();

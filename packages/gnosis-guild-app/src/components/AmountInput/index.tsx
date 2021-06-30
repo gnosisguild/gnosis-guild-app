@@ -43,12 +43,12 @@ const AmountInput: React.FC<Props> = ({
     if (
       (!isInt(val) && !isDecimal(val)) ||
       parseFloat(val) <= 0 ||
-      parseFloat(val) <= minimum
+      parseFloat(val) < minimum
     ) {
       setInvalidForm(true);
       setMeta({ error: "Must be a valid number" });
       if (minimum) {
-        setMeta({ error: `Must be a valid number above ${minimum}` });
+        setMeta({ error: `Must be a valid amount (>= ${minimum})` });
       }
     } else {
       setInvalidForm(false);

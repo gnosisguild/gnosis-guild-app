@@ -2,7 +2,11 @@ import { BigNumber, utils } from "ethers";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Loader, Title, Text } from "@gnosis.pm/safe-react-components";
+import {
+  GenericModal,
+  Loader,
+  Title,
+} from "@gnosis.pm/safe-react-components";
 
 import AmountInput from "../../components/AmountInput";
 import ContributorNameInput from "../../components/ContributorNameInput";
@@ -54,6 +58,17 @@ const FormItem = styled.div`
   width: 100%;
 `;
 
+const GuildLoaderContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+const TransactionLoader = (
+  <GuildLoaderContainer>
+    <Loader size="lg" />
+  </GuildLoaderContainer>
+);
+
 const GuildContribute: React.FC = () => {
   const {
     account,
@@ -74,6 +89,9 @@ const GuildContribute: React.FC = () => {
 
   const [guildMetadata, setGuildMetadata] = useState<any>();
   const [subscription, setSubscription] = useState<any>();
+  const [ submit, toggleSubmit ] = useState(false);
+  const [ footerMsg, setFooterMsg ] = useState("");
+  // const [ contributeText, setContributeText ] = useState("");
   const { guildId } = useParams<{ guildId: string }>();
   // console.log("GUILD ID ==>", guildId, providerChainId);
   const { currentMinimumAmount, subscribed } = useSubscriber();
@@ -93,15 +111,13 @@ const GuildContribute: React.FC = () => {
     _fetchGuild();
   }, []);
 
-  // TODO: Check how it work when a user is already subscribed
+  const _fetchSubscription = async () => {
+    console.log('Using Guild owner =>', cpk?.address || account);
+    const _subscription = await fetchSubscription(guildId, cpk?.address || account, providerChainId || 4);
+    console.log('Subscription exists?', _subscription);
+    setSubscription(_subscription);
+  }
   useEffect(() => {
-    console.log('useEffect', guildMetadata, cpk);
-    const _fetchSubscription = async () => {
-      console.log('Using Guild owner =>', cpk?.address || account);
-      const _subscription = await fetchSubscription(guildId, cpk?.address || account, providerChainId || 4);
-      console.log('Subscription exists?', _subscription);
-      setSubscription(_subscription);
-    }
     if (guildMetadata) {
       _fetchSubscription();
     }
@@ -118,13 +134,24 @@ const GuildContribute: React.FC = () => {
 
   const connectText = getConnectText();
   const contributeText = subscribed ? "Cancel Contribution" : "Contibute";
+  // useEffect(() => {
+  //   setContributeText(subscribed ? "Cancel Contribution" : "Contibute");
+  // }, [subscription, subscribed]);
+  
 
   // TODO: implement unsubscribe
   const unsubscribe = () => {
-    console.log("Unsubscribe");
+    setFooterMsg("Cancelling Subscription...");
+    toggleSubmit(true);
+    // TODO:
+    toggleSubmit(false);
   };
   const submitContributionTx = async () => {
-    console.log('Guild', guildMetadata);
+    setFooterMsg(
+      cpk 
+        ? "Creating Subscription using a Proxy..."
+        : "Approving tokens & creating subscription...");
+    toggleSubmit(true);
 
     const bnValue = utils.parseEther(guildMinimumAmount);
     const proxyBalance = cpk?.address
@@ -145,12 +172,12 @@ const GuildContribute: React.FC = () => {
       contributorName,
       contributorEmail,
     );
+    _fetchSubscription();
+    toggleSubmit(false);
   };
 
   useEffect(() => {
-    if (!contributorEmail || !contributorName || guildMinimumAmount === "0") {
-      setInvalidForm(true);
-    }
+    setInvalidForm(!contributorEmail || !contributorName || guildMinimumAmount === "0");
   }, [contributorEmail, contributorName, guildMinimumAmount]);
 
   const onDisconnect = () => {
@@ -194,7 +221,7 @@ const GuildContribute: React.FC = () => {
           <FormItem>
             <AmountInput
               title="Monthly Contribution"
-              currency={activeCurrency}
+              currency={guild?.currency || activeCurrency}
               setCurrency={setActiveCurrency}
               amount={guildMinimumAmount}
               setAmount={setGuildMinimumAmount}
@@ -238,6 +265,14 @@ const GuildContribute: React.FC = () => {
       <GridAgreementFooter visible={!riskAgreement}>
         <RiskAgreement onClick={setRiskAgreement} />
       </GridAgreementFooter>
+      {submit && (
+      <GenericModal
+        onClose={() => toggleSubmit(!submit)}
+        title="Executing Transaction"
+        body={TransactionLoader}
+        footer={footerMsg}
+      />
+    )}
     </Grid>
   );
 };

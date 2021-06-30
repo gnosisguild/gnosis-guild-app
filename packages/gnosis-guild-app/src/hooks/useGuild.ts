@@ -311,10 +311,6 @@ export const useGuild = () => {
     guildAddress: string,
     guildToken: string,
     value: string,
-    metadata: {
-      name: string;
-      email: string;
-    }
   ): Promise<ethers.providers.TransactionResponse | null> => {
     const signer = ethersProvider.getSigner();
     console.log(
@@ -324,7 +320,6 @@ export const useGuild = () => {
       guildAddress,
       guildToken,
       value,
-      metadata
     );
 
     const guildContract = new Contract(
@@ -333,8 +328,6 @@ export const useGuild = () => {
       signer
     );
 
-    // TODO: save metadata on the GuildApp Space (e.g. 3box or 3ID?)
-    console.log("Metadata to be saved", metadata);
     // TODO:  generate tokenURI
     const tokenURI = "";
     const bnValue = ethers.utils.parseEther(value);
@@ -343,7 +336,6 @@ export const useGuild = () => {
       // Contribute using CPK proxy
       console.log('Using CPK');
       const balance = await getProxyBalance(guildToken);
-      console.log('Asset balance', balance.toString());
       if (balance.lt(bnValue)) {
         console.log("STEP 0: Fund Proxy");
         // TODO: user should opt in to fund the proxy and specify the deposit value
@@ -356,7 +348,6 @@ export const useGuild = () => {
       // TODO: delegate signature should be from Guild contract
       const transferSignature = await signTransfer(guildAddress, guildToken, bnValue.toString());
       const args = [tokenURI, bnValue.toString(), transferSignature];
-      console.log('Submit TX with CPK', args);
       
       const tx = await submitCPKTx([
         ...cpkModuleTxs,
@@ -372,8 +363,6 @@ export const useGuild = () => {
       // Contribute using injected EOA wallet
       console.log('Using EOA');
       if (guildToken !== ethers.constants.AddressZero) {
-        console.log('Should send Token...');
-        
         const tokenContract = new Contract(
           guildToken,
           ERC20Abi,
@@ -382,9 +371,7 @@ export const useGuild = () => {
         const tx = await tokenContract.approve(guildAddress, bnValue.toString());
         await tx.wait(1);
       }
-
       const args = [tokenURI, bnValue.toString(), "0x"];
-      console.log('subscribe params', args);
       const tx = await guildContract.subscribe(...args, {
         value:
           guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0",
