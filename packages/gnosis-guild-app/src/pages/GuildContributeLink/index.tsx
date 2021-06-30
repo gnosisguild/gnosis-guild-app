@@ -129,12 +129,13 @@ const GuildContributeLink: React.FC = () => {
     _fetchGuild();
   }, []);
 
+  // TODO: Should send the same Txs as in GuildContribute
   const submitContributionTx = async () => {
     await submitContribution(
       guildMetadata.tokenAddress,
       guildMinimumAmount,
       contributorName,
-      contributorEmail
+      contributorEmail,
     );
   };
 

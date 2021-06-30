@@ -1,7 +1,12 @@
+import { BigNumber, utils } from "ethers";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Loader, Title, Text } from "@gnosis.pm/safe-react-components";
+import {
+  GenericModal,
+  Loader,
+  Title,
+} from "@gnosis.pm/safe-react-components";
 
 import AmountInput from "../../components/AmountInput";
 import ContributorNameInput from "../../components/ContributorNameInput";
@@ -15,7 +20,7 @@ import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
 import { useWeb3Context } from "../../context/Web3Context";
-import { fetchGuild } from "../../graphql";
+import { fetchGuild, fetchSubscription } from "../../graphql";
 import { useSubscriber } from "../../hooks/useSubscriber";
 import { useContributorProfile } from "../../hooks/useContributorProfile";
 import { useContribute } from "../../hooks/useContribute";
@@ -53,8 +58,26 @@ const FormItem = styled.div`
   width: 100%;
 `;
 
+const GuildLoaderContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+const TransactionLoader = (
+  <GuildLoaderContainer>
+    <Loader size="lg" />
+  </GuildLoaderContainer>
+);
+
 const GuildContribute: React.FC = () => {
-  const { getConnectText, providerChainId } = useWeb3Context();
+  const {
+    account,
+    getBalanceOf,
+    getConnectText,
+    getProxyBalance,
+    providerChainId,
+    cpk,
+  } = useWeb3Context();
   const [activeCurrency, setActiveCurrency] = useState("ETH");
   const { riskAgreement, setRiskAgreement } = useRiskAgreement();
 
@@ -65,12 +88,40 @@ const GuildContribute: React.FC = () => {
   const { loading, guild } = useGuildByParams();
 
   const [guildMetadata, setGuildMetadata] = useState<any>();
+  const [subscription, setSubscription] = useState<any>();
+  const [ submit, toggleSubmit ] = useState(false);
+  const [ footerMsg, setFooterMsg ] = useState("");
+  // const [ contributeText, setContributeText ] = useState("");
   const { guildId } = useParams<{ guildId: string }>();
   // console.log("GUILD ID ==>", guildId, providerChainId);
   const { currentMinimumAmount, subscribed } = useSubscriber();
   const { profileName, profileEmail } = useContributorProfile();
   const { submitContribution, contributeLoading, setContributeLoading } =
     useContribute();
+
+  useEffect(() => {
+    setContributeLoading(true);
+    const _fetchGuild = async () => {
+      const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
+      if (meta) {
+        setGuildMetadata(meta);
+      }
+      setContributeLoading(false);
+    };
+    _fetchGuild();
+  }, []);
+
+  const _fetchSubscription = async () => {
+    console.log('Using Guild owner =>', cpk?.address || account);
+    const _subscription = await fetchSubscription(guildId, cpk?.address || account, providerChainId || 4);
+    console.log('Subscription exists?', _subscription);
+    setSubscription(_subscription);
+  }
+  useEffect(() => {
+    if (guildMetadata) {
+      _fetchSubscription();
+    }
+  }, [guildMetadata, cpk]);
 
   useEffect(() => {
     setContributorEmail(profileEmail);
@@ -83,28 +134,50 @@ const GuildContribute: React.FC = () => {
 
   const connectText = getConnectText();
   const contributeText = subscribed ? "Cancel Contribution" : "Contibute";
+  // useEffect(() => {
+  //   setContributeText(subscribed ? "Cancel Contribution" : "Contibute");
+  // }, [subscription, subscribed]);
+  
 
   // TODO: implement unsubscribe
   const unsubscribe = () => {
-    console.log("Unsubscribe");
+    setFooterMsg("Cancelling Subscription...");
+    toggleSubmit(true);
+    // TODO:
+    toggleSubmit(false);
   };
   const submitContributionTx = async () => {
-    if (!guild.tokenAddress) {
-      console.error("No token address");
+    setFooterMsg(
+      cpk 
+        ? "Creating Subscription using a Proxy..."
+        : "Approving tokens & creating subscription...");
+    toggleSubmit(true);
+
+    const bnValue = utils.parseEther(guildMinimumAmount);
+    const proxyBalance = cpk?.address
+      ? await getProxyBalance(guildMetadata.tokenAddress)
+      : BigNumber.from("0");
+    const balance = 
+      await getBalanceOf(account, guildMetadata.tokenAddress);
+
+    if (balance.lt(bnValue) || (cpk?.address && proxyBalance.lt(bnValue))) {
+      // TODO: popup error
+      console.error("Not Enough balance");
       return;
     }
+
     await submitContribution(
-      guild.tokenAddress,
+      guildMetadata.tokenAddress,
       guildMinimumAmount,
       contributorName,
-      contributorEmail
+      contributorEmail,
     );
+    _fetchSubscription();
+    toggleSubmit(false);
   };
 
   useEffect(() => {
-    if (!contributorEmail || !contributorName || guildMinimumAmount === "0") {
-      setInvalidForm(true);
-    }
+    setInvalidForm(!contributorEmail || !contributorName || guildMinimumAmount === "0");
   }, [contributorEmail, contributorName, guildMinimumAmount]);
 
   const onDisconnect = () => {
@@ -148,7 +221,7 @@ const GuildContribute: React.FC = () => {
           <FormItem>
             <AmountInput
               title="Monthly Contribution"
-              currency={activeCurrency}
+              currency={guild?.currency || activeCurrency}
               setCurrency={setActiveCurrency}
               amount={guildMinimumAmount}
               setAmount={setGuildMinimumAmount}
@@ -192,6 +265,14 @@ const GuildContribute: React.FC = () => {
       <GridAgreementFooter visible={!riskAgreement}>
         <RiskAgreement onClick={setRiskAgreement} />
       </GridAgreementFooter>
+      {submit && (
+      <GenericModal
+        onClose={() => toggleSubmit(!submit)}
+        title="Executing Transaction"
+        body={TransactionLoader}
+        footer={footerMsg}
+      />
+    )}
     </Grid>
   );
 };
