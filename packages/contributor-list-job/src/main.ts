@@ -36,9 +36,7 @@ const BATCH_SIZE = 100;
 const SUBGRAPH_URL = process.env.SUBGRAPH_URL;
 let lastGuildID = "";
 let lastContributorID = "";
-const DATE = Date.now()
-  .toString()
-  .substr(0, 10);
+const DATE = Date.now().toString().substr(0, 10);
 
 const fetchGuilds = async () => {
   const fetchGuildQuery = graphqlRequest.gql`
@@ -51,7 +49,7 @@ const fetchGuilds = async () => {
     `;
   try {
     const resp = await graphqlRequest.request(SUBGRAPH_URL, fetchGuildQuery, {
-      lastID: lastGuildID
+      lastID: lastGuildID,
     });
     if (resp && resp.guilds && resp.guilds.length > 0) {
       return resp.guilds;
@@ -82,7 +80,7 @@ const fetchContributors = async (
     const resp = await graphqlRequest.request(SUBGRAPH_URL, fetchContributors, {
       lastID: lastContributorID,
       date: DATE,
-      guild: guild
+      guild: guild,
     });
     if (resp && resp.guildSubscriptions && resp.guildSubscriptions.length > 0) {
       return resp.guildSubscriptions;
@@ -97,7 +95,7 @@ const setupCeramic = async () => {
   const ceramic = new Ceramic("https://ceramic-clay.3boxlabs.com");
   const resolver = {
     ...KeyDidResolver.getResolver(),
-    ...ThreeIdResolver.getResolver(ceramic)
+    ...ThreeIdResolver.getResolver(ceramic),
   };
   const seed = process.env.NODE_WALLET_SEED?.split(",");
   if (!seed) {
@@ -149,10 +147,17 @@ const main = async () => {
     contributorCSV:
       "kjzl6cwe1jw14agavukkr2w9qtay6eaxddurgvelnrnf7m74z1s2hofxp15dfea",
     guildCSVMapping:
-      "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t"
+      "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t",
   };
   const idx = new IDX({ ceramic, aliases });
-  const data = fs.readFileSync("./last_run.json");
+  let data = "";
+  try {
+    let data = fs
+      .readFileSync("./last_run.json")
+      .catch((err: Error) => console.log(err));
+  } catch {
+    data = "";
+  }
   if (data) {
     const deserializedData = JSON.parse(data) as LastRun;
     lastContributorID = deserializedData.lastContributorID;
@@ -194,7 +199,7 @@ const main = async () => {
           email: profile?.email,
           address: profile?.address,
           amount: paymentAmount,
-          currency: currency
+          currency: currency,
         });
       }
 
@@ -208,12 +213,12 @@ const main = async () => {
     if (contributors.length > 0) {
       const csv = parse(contributors);
       const encryptedCSV = await ceramic.did?.createDagJWE({ csvString: csv }, [
-        ceramic.did?.id
+        ceramic.did?.id,
       ]);
       const record = await idx.set("contributorCSV", { csv: encryptedCSV });
       await ceramic.pin.add(record);
       const merged = await idx.merge("guildCSVMapping", {
-        [guild.id]: record.toString()
+        [guild.id]: record.toString(),
       });
       await ceramic.pin.add(merged);
     }

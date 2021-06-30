@@ -69,8 +69,12 @@ const GuildContribute: React.FC = () => {
   // console.log("GUILD ID ==>", guildId, providerChainId);
   const { currentMinimumAmount, subscribed } = useSubscriber();
   const { profileName, profileEmail } = useContributorProfile();
-  const { submitContribution, contributeLoading, setContributeLoading } =
-    useContribute();
+  const {
+    submitContribution,
+    contributeLoading,
+    unsubscribe,
+    setContributeLoading,
+  } = useContribute();
 
   useEffect(() => {
     setContributorEmail(profileEmail);
@@ -82,10 +86,17 @@ const GuildContribute: React.FC = () => {
   }, [currentMinimumAmount]);
 
   const connectText = getConnectText();
-  const contributeText = subscribed ? "Cancel Contribution" : "Contibute";
+  const contributeText = subscribed ? "Cancel Contribution" : "Contribute";
 
   // TODO: implement unsubscribe
-  const unsubscribe = () => {
+  const unsubscribeTx = async () => {
+    const tx = await unsubscribe(guild.guildAddress);
+    setContributeLoading(true);
+    if (tx) {
+      await tx.wait();
+    }
+
+    setContributeLoading(false);
     console.log("Unsubscribe");
   };
   const submitContributionTx = async () => {
@@ -118,7 +129,7 @@ const GuildContribute: React.FC = () => {
     name = `${guild.name} (Inactive)`;
   }
 
-  const contributionTx = subscribed ? unsubscribe : submitContributionTx;
+  const contributionTx = subscribed ? unsubscribeTx : submitContributionTx;
   return (
     <Grid>
       <GridLogo>

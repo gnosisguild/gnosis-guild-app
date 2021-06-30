@@ -11,6 +11,7 @@ export const useSubscriber = () => {
 
   const [subscribed, setSubscribed] = useState(false);
   const [currentMinimumAmount, setCurrentMinimumAmount] = useState("0");
+  const [id, setId] = useState("");
   useEffect(() => {
     const setSubscriber = async (): Promise<void> => {
       if (!guildId || !providerChainId || !account) {
@@ -28,6 +29,7 @@ export const useSubscriber = () => {
       if (subscribers.length > 0) {
         setSubscribed(true);
         const subscriber = subscribers[0];
+        setId(subscriber.id);
         if (subscriber.paymentHistory.length > 0) {
           const payment = subscriber.paymentHistory[0];
           setCurrentMinimumAmount(ethers.utils.formatEther(payment.value));
@@ -40,6 +42,7 @@ export const useSubscriber = () => {
   }, [providerChainId, account, guildId]);
   return {
     subscribed,
-    currentMinimumAmount
+    currentMinimumAmount,
+    id,
   };
 };
