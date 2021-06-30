@@ -1,10 +1,10 @@
+import CPK, { EthersAdapter, Transaction } from 'contract-proxy-kit';
 import React, { useContext, useCallback, useEffect, useState } from "react";
 import { SafeAppWeb3Modal as Web3Modal } from "@gnosis.pm/safe-apps-web3modal";
 
 import { EthereumAuthProvider, ThreeIdConnect } from "@3id/connect";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { ethers } from "ethers";
-import type { CeramicApi } from "@ceramicnetwork/common";
+import { BigNumber, ethers } from "ethers";
 import type { Network } from "@ethersproject/providers";
 import Ceramic from "@ceramicnetwork/http-client";
 import { IDX } from "@ceramicstudio/idx";
@@ -14,26 +14,36 @@ import { Resolver } from "did-resolver";
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import KeyDidResolver from "key-did-resolver";
 
-import { networks } from "../lib/networks";
+import { getNetworkByChainId } from "../lib/networks";
+import AllowanceModuleAbi from "../contracts/gnosis/AllowanceModule.json";
+import ERC20Abi from "../contracts/ERC20.json";
 
 export type Web3ContextValue = {
   connectToWeb3: () => void;
   authenticateCeramic: () => Promise<string>;
   disconnect: () => void;
   getConnectText: () => string;
-  ethersProvider?: ethers.providers.Web3Provider;
+  getBalanceOf: (account: string, tokenAddress: string) => Promise<BigNumber>;
+  getProxyBalance: (tokenAddress: string) => Promise<BigNumber>;
+  fundProxy: (tokenAddress: string, value: string) => Promise<void>;
+  setupCPKModules: (tokenAddress: string, deposit: string) => Promise<Array<Transaction>>;
+  signTransfer: (guildAddress: string, tokenAddress: string, contributionValue: string) => Promise<string>;
+  submitCPKTx: (txs: Array<Transaction>) => Promise<ethers.providers.TransactionResponse | null>;
+  ethersProvider: ethers.providers.Web3Provider;
   account: string;
   providerChainId: number;
   connected: boolean;
   idx?: IDXApi;
   did?: DID;
   network?: Network;
+  cpk: CPK | null;
 };
 
 type Web3State = {
   account: string;
   providerChainId: number;
   ethersProvider?: ethers.providers.Web3Provider;
+  cpk?: CPK;
 };
 
 const newProvider = () => {
@@ -45,9 +55,17 @@ const initialWeb3Context = {
   authenticateCeramic: async () => "",
   disconnect: () => {},
   getConnectText: () => "",
+  getBalanceOf: async (account: string, tokenAddress: string) => BigNumber.from("0"),
+  getProxyBalance: async (tokenAddress: string) => BigNumber.from("0"),
+  fundProxy: async (tokenAddress: string, value: string) => {},
+  setupCPKModules: async (tokenAddress: string, deposit: string) => [],
+  signTransfer: async (guildAddress: string, tokenAddress: string, contributionValue: string) => "",
+  submitCPKTx: async (txs: Array<Transaction>) => null,
+  ethersProvider: new ethers.providers.Web3Provider(window.ethereum),
   account: "",
   providerChainId: 0,
   connected: false,
+  cpk: null,
 };
 
 export const Web3Context =
@@ -59,7 +77,7 @@ const providerOptions = {
     package: WalletConnectProvider,
     options: {
       rpc: {
-        4: networks[4].rpc_url,
+        4: getNetworkByChainId(4).rpc_url,
       },
     },
   },
@@ -75,7 +93,7 @@ const initialWeb3State = {
 };
 
 export const Web3ContextProvider: React.FC = ({ children }) => {
-  const [{ providerChainId, ethersProvider, account }, setWeb3State] =
+  const [{ providerChainId, ethersProvider, account, cpk }, setWeb3State] =
     useState<Web3State>(initialWeb3State);
   const [connected, setConnected] = useState(false);
   const [idx, setIdx] = useState<IDXApi | null>(null);
@@ -83,25 +101,30 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   const [network, setNetwork] = useState<Network | null>(null);
   const setWeb3Provider = useCallback(
     async (initialProvider: any): Promise<void> => {
-      try {
-        const provider = new ethers.providers.Web3Provider(initialProvider);
-        const chainId = initialProvider.chainId;
-        const currentNetwork = await provider.getNetwork();
+    try {
+      const provider = new ethers.providers.Web3Provider(initialProvider);
+      const chainId = initialProvider.chainId;
+      const currentNetwork = await provider.getNetwork();
 
-        const signer = provider.getSigner();
-        const gotAccount = await signer.getAddress();
-        setWeb3State({
-          account: gotAccount,
-          ethersProvider: provider,
-          providerChainId: chainId,
-        });
-        setNetwork(currentNetwork);
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    []
-  );
+      const signer = provider.getSigner();
+      const gotAccount = await signer.getAddress();
+
+      const isSafeApp = await web3Modal.isSafeApp();
+      const ethLibAdapter = !isSafeApp ? new EthersAdapter({ ethers, signer }) : null;
+      const cpkInstance = process.env.REACT_APP_USE_CPK === 'true' && ethLibAdapter ? await CPK.create({ ethLibAdapter }) : undefined;
+      console.log('Use CPK?', process.env.REACT_APP_USE_CPK, cpkInstance);
+
+      setWeb3State({
+        account: gotAccount,
+        ethersProvider: provider,
+        providerChainId: chainId,
+        cpk: cpkInstance,
+      });
+      setNetwork(currentNetwork);
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
 
   const connectToWeb3 = useCallback(async () => {
     web3Modal.clearCachedProvider();
@@ -178,6 +201,200 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     return genIdx.id;
   };
 
+  const getBalanceOf = async (account: string, tokenAddress: string): Promise<BigNumber> => {
+    if (!ethersProvider) {
+      throw new Error("Provider is not setup!");
+    }
+    if (tokenAddress === ethers.constants.AddressZero) {
+      return await ethersProvider.getBalance(account);
+    }
+    // const signer = ethersProvider.getSigner();
+    const erc20 = new ethers.Contract(tokenAddress, ERC20Abi, ethersProvider);
+    return BigNumber.from((await erc20.balanceOf(account)).toString());
+  }
+
+  const getProxyBalance = async (tokenAddress: string): Promise<BigNumber> => {
+    if (!ethersProvider || !cpk) {
+      throw new Error("Provider is not setup!");
+    }
+
+    if (tokenAddress === ethers.constants.AddressZero) {
+      const balance = await cpk.getBalance();
+      return balance.toString() === "NaN" ? BigNumber.from("0") : BigNumber.from(balance.toString());
+    }
+
+    const signer = ethersProvider.getSigner();
+    const erc20 = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+    const balance = await erc20.balanceOf(cpk.address);
+    return BigNumber.from(balance.toString());
+  }
+
+  const fundProxy = async (tokenAddress: string, value: string): Promise<void> => {
+    if (!ethersProvider || !cpk) {
+      throw new Error("Provider is not setup!");
+    }
+    if (tokenAddress === ethers.constants.AddressZero) {
+      return;
+    }
+    const signer = ethersProvider.getSigner();
+    const erc20 = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+    const rs = await erc20.transfer(cpk.address, value);
+    console.log('Waiting for confirmation...');
+    await rs.wait(1);
+  }
+
+  const setupCPKModules = async(tokenAddress: string, deposit: string): Promise<Array<Transaction>> => {
+    if (!ethersProvider || !cpk) {
+      throw new Error("Provider is not setup!");
+    }
+
+    const { gnosisConfig } = getNetworkByChainId(providerChainId);
+    const iErc20 = new ethers.utils.Interface(ERC20Abi);
+
+    const signer = ethersProvider.getSigner();
+    const isDeployed = await cpk.isProxyDeployed();
+
+    if (isDeployed) {
+      const safeVersion = await cpk.getContractVersion();
+      const balance = await cpk.getBalance();
+      const modules = await cpk.getModules();
+      const owner = await cpk.getOwnerAccount()
+      console.log('CPK', cpk, cpk?.address, isDeployed, owner, safeVersion, balance.toString(10), modules);
+    }
+
+    console.log('STEP 1: Check for AllowanceModule');
+    const hasAllowanceModule = isDeployed && (
+      await cpk.getContractVersion() !== '1.1.1'
+        ? await cpk.isModuleEnabled(gnosisConfig.allowanceModule)
+        : (await cpk.getModules()).includes(gnosisConfig.allowanceModule)
+    );
+    console.log('hasAllowanceModule', hasAllowanceModule);
+
+    console.log('STEP: 2: Check if owner is a delegate');
+    const allowanceModule = new ethers.Contract(gnosisConfig.allowanceModule, AllowanceModuleAbi, signer);
+    const delegates = await allowanceModule.getDelegates(cpk.address, 0, 10);
+    const isDelegate = delegates.results.includes(await signer.getAddress());
+    console.log('Delegates', delegates, isDelegate);
+
+    const currentDate = new Date();
+    const currentPeriod = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const blockNo = await ethersProvider.getBlockNumber();
+    const block = await ethersProvider.getBlock(blockNo);
+    console.log(block.timestamp, (currentPeriod.getTime() / 1000).toFixed(0));
+
+    console.log('STEP 3: Check allowance');
+    const allowance = await allowanceModule.allowances(cpk.address, await signer.getAddress(), tokenAddress);
+    console.log('Current Allowance', allowance, allowance.amount.toString());
+    const allowanceAmount = (allowance.amount as ethers.BigNumber).add(ethers.BigNumber.from(deposit)).toString();
+
+    const txs = [
+      !hasAllowanceModule && {
+        operation: CPK.Call,
+        to: cpk?.address!,
+        value: 0,
+        data: await cpk.contractManager?.versionUtils?.encodeEnableModule(gnosisConfig.allowanceModule),
+      },
+      !isDelegate && {
+        operation: CPK.Call,
+        to: gnosisConfig.allowanceModule,
+        value: 0,
+        data: allowanceModule.interface.encodeFunctionData("addDelegate", [await signer.getAddress()]),
+      },
+      {
+        operation: CPK.Call,
+        to: gnosisConfig.allowanceModule,
+        value: 0,
+        data: allowanceModule.interface.encodeFunctionData("setAllowance", [
+          await signer.getAddress(),
+          tokenAddress,
+          allowanceAmount,
+          60 * 24 * 30, // TODO: 30 days by default. Get time in minutes
+          ((currentPeriod.getTime() / 1000) / 60).toFixed(0) // First day of current Period. Get time in minutes
+        ]),
+      },
+    ].filter(t => t) as Array<Transaction>;
+
+    console.log('Txs to be included', txs.length, txs);
+
+    return txs;
+  }
+
+  const signTransfer = async (guildAddress: string, tokenAddress: string, contributionValue: string): Promise<string> => {
+    if (!ethersProvider || !cpk) {
+      throw new Error("Provider is not setup!");
+    }
+    const { gnosisConfig } = getNetworkByChainId(providerChainId);
+    const domain = {
+      chainId: providerChainId,
+      verifyingContract: gnosisConfig.allowanceModule,
+    }
+    const types = {
+      "AllowanceTransfer": [
+          { "type": "address", "name": "safe" },
+          { "type": "address", "name": "token" },
+          { "type": "address", "name": "to" },
+          { "type": "uint96", "name": "amount" },
+          { "type": "address", "name": "paymentToken" },
+          { "type": "uint96", "name": "payment" },
+          { "type": "uint16", "name": "nonce" },
+      ]
+    };
+    
+    const signer = ethersProvider.getSigner();
+    const allowanceModule = new ethers.Contract(gnosisConfig.allowanceModule, AllowanceModuleAbi, signer);
+
+    const allowance = await allowanceModule.allowances(cpk.address, await signer.getAddress(), tokenAddress);
+
+    console.log('Signature params',
+      cpk.address,
+      tokenAddress,
+      guildAddress,
+      contributionValue,
+      ethers.constants.AddressZero, 0,
+      allowance.nonce,
+    );
+    const transferHash = await allowanceModule.generateTransferHash(
+      cpk.address,
+      tokenAddress,
+      guildAddress,
+      contributionValue,
+      ethers.constants.AddressZero, 0,
+      allowance.nonce,
+    );
+    console.log('TransferHash', transferHash);
+
+    // TODO: Fix bug with EIP712 signature
+    // const signature = await signer._signTypedData(domain, types, transferHash);
+    const signature = await signer.signMessage(transferHash);
+    console.log('STEP 4: Store this Signature **IMPORTANT**', signature);
+
+    // const recoveredAddress = ethers.utils.verifyTypedData(domain, types, transferHash, signature);
+    // console.log('EQUAL ?', recoveredAddress === await signer.getAddress());
+
+    return signature;
+  }
+
+  const submitCPKTx = async (txs: Array<Transaction>):
+    Promise<ethers.providers.TransactionResponse | null> => {
+    if (!cpk) {
+      throw new Error("CPK was not setup!");
+    }
+    console.log('submitCPKTx', txs.length, txs);
+    if (txs.length > 0) {
+      console.log('Exec...');
+      try {
+        const cpkTxRs = await cpk.execTransactions(txs);
+        console.log('Waiting for confirmation...');
+        return cpkTxRs.transactionResponse as ethers.providers.TransactionResponse;
+      } catch (error) {
+        console.error('Something wrong happened', error);
+      }
+    } else {
+      console.error('No batch Txs sent', txs);
+    }
+    return null;
+  };
+
   useEffect(() => {
     (async (): Promise<void> => {
       if (await web3Modal.isSafeApp()) {
@@ -186,24 +403,34 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     })();
   }, [connectToWeb3]);
 
-  let values = {
+	let values = {
     connectToWeb3,
     authenticateCeramic,
     disconnect,
+    getBalanceOf,
+    getProxyBalance,
+    fundProxy,
+    setupCPKModules,
+    signTransfer,
+    submitCPKTx,
     ethersProvider,
+    cpk,
     account,
     providerChainId,
     getConnectText,
     connected,
     network,
   } as Web3ContextValue;
-  if (idx) {
-    values = { idx: idx, ...values };
-  }
 
-  if (did) {
-    values = { did: did, ...values };
-  }
+	if (idx) {
+		values = {idx: idx, ...values}
+	}
 
-  return <Web3Context.Provider value={values}>{children}</Web3Context.Provider>;
+ if (did) {
+	 values = {did: did, ...values}
+	}
+
+  return (
+    <Web3Context.Provider value={values}>{children}</Web3Context.Provider>
+  );
 };
