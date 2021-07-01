@@ -55,8 +55,8 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "serve-dev": "node ./server/server.js",
-    "serve": "yarn build && node ./server/server.js",
+    "serve-dev": "node ./server.js",
+    "serve": "yarn build && node ./server.js",
     "ceramic": "ceramic daemon",
     "deploy-schema": "node ./scripts/build_schema.js"
   },
