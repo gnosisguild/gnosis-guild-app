@@ -20,7 +20,7 @@ export const useContribute = () => {
     tokenAddress: string,
     guildMinimumAmount: string,
     contributorName: string,
-    contributorEmail: string,
+    contributorEmail: string
   ): Promise<void> => {
     if (!ethersProvider) {
       console.error("EthersProvider has not been set yet");
@@ -34,7 +34,7 @@ export const useContribute = () => {
         ethersProvider,
         guildId,
         tokenAddress,
-        guildMinimumAmount,
+        guildMinimumAmount
       );
       if (tx) {
         await tx.wait();

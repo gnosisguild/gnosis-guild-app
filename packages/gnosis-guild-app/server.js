@@ -27,7 +27,7 @@ const exampleGuild = {
   externalLink: "https://otherinter.net",
   image:
     "https://lh6.googleusercontent.com/TG1QkKg9QXRyobmLPoJW5Di6Wdl3bZ7eRDwPbWL-fevr1mtoyuHQkhbmVMOgvtUys43uw4H2-ikPyLfMo7S0tmypEyiCSMT1ToGu6aS1FZcskr8M8kwna3u3zgu46AIBPaS7ofYZ",
-  contributions: "ETH"
+  contributions: "ETH",
 };
 
 var storage = multer.memoryStorage();
@@ -36,7 +36,7 @@ var upload = multer({ storage });
 // TODO: Restrict to certain origins
 var corsOptions = {
   origin: "*",
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
 app.use(express.json()); // for parsing application/json
@@ -50,7 +50,7 @@ const ceramicAuth = async () => {
   const ceramic = new Ceramic("https://ceramic-clay.3boxlabs.com");
   const resolver = {
     ...keyResolver.getResolver(),
-    ...threeIdResolver.getResolver(ceramic)
+    ...threeIdResolver.getResolver(ceramic),
   };
   const seed = process.env.NODE_WALLET_SEED.split(",");
 
@@ -64,14 +64,14 @@ const ceramicAuth = async () => {
   return ceramic;
 };
 
-const idxSetup = ceramic => {
+const idxSetup = (ceramic) => {
   const aliases = {
     contributorProfile:
       "kjzl6cwe1jw14946qcgwbeixkh2ou9hwn29zv331akhfr61a44klf9ukg9jxz8g",
     contributorCSV:
       "kjzl6cwe1jw14agavukkr2w9qtay6eaxddurgvelnrnf7m74z1s2hofxp15dfea",
     guildCSVMapping:
-      "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t"
+      "kjzl6cwe1jw148kqr4ie3icw225t9d8dvupd6rtl0h8ringvw7evmjr5mgf626t",
   };
   const idx = new ceramicIdx.IDX({ ceramic, aliases });
   return idx;
@@ -90,7 +90,7 @@ const getGuildCsvMapping = async () => {
 };
 
 getGuildCsvMapping();
-setInterval(function() {
+setInterval(function () {
   getGuildCsvMapping();
 }, 3600000); // 1 hour
 
@@ -125,7 +125,7 @@ app.post("/api/v1/guild", upload.single("image"), async (req, res) => {
   if (req.file) {
     imageCid = await client
       .storeBlob(req.file.buffer)
-      .catch(err => console.error("Failed"));
+      .catch((err) => console.error("Failed"));
   }
   const metadata = {
     name: data.name,
@@ -134,11 +134,11 @@ app.post("/api/v1/guild", upload.single("image"), async (req, res) => {
     externalLink: data.externalLink,
     currency: data.currency,
     amount: data.amount,
-    contentFormat: data.contentFormat
+    contentFormat: data.contentFormat,
   };
   const metadataCid = await client
     .storeBlob(new Blob([Buffer.from(JSON.stringify(metadata))]))
-    .catch(err => console.error(`Failed: ${err}`));
+    .catch((err) => console.error(`Failed: ${err}`));
   res.send({ metadataCid });
 });
 
