@@ -34,11 +34,7 @@ export const useContribute = () => {
         ethersProvider,
         guildId,
         tokenAddress,
-        guildMinimumAmount,
-        {
-          name: contributorName,
-          email: contributorEmail,
-        }
+        guildMinimumAmount
       );
       if (tx) {
         await tx.wait();

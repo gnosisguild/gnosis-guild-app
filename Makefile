@@ -20,8 +20,8 @@ run:
                $(PROJECT_NAME):$(TAG) $(cmd)
 
 publish_server:
-		$(MAKE) build_server PROJECT_NAME=$(REGISTRY_NAME)/gnosis/node-server TAG=$(TAG)
-    docker push $(REGISTRY_NAME)/gnosis/node-server:$(TAG)
+		$(MAKE) build_server PROJECT_NAME=$(REGISTRY_NAME)/gnosis TAG=$(TAG)
+		docker push $(REGISTRY_NAME)/gnosis/node-server:$(TAG)
 
 
 publish_contributor_list:

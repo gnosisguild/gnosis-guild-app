@@ -2172,12 +2172,12 @@
     "@ethersproject/properties" "^5.1.0"
     "@ethersproject/strings" "^5.1.0"
 
-"@gnosis.pm/safe-apps-provider@0.5.0", "@gnosis.pm/safe-apps-provider@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-provider/-/safe-apps-provider-0.5.0.tgz#e0121553ef22c1458eb95cf0afed14e8c2570ae3"
-  integrity sha512-c4OuKV+cIW2aDmv0DZfLOelmyNNZz5Dr3OG5TvnCfmYhZtHyOd1x6bd2xnROCuiZU+QAUGJsm65mBe6iy8NAVQ==
+"@gnosis.pm/safe-apps-provider@0.6.0", "@gnosis.pm/safe-apps-provider@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-provider/-/safe-apps-provider-0.6.0.tgz#07cc78df57ca4d0fa9c24c4040ea6322ac759a23"
+  integrity sha512-xtB3lbEqJocYUhg6CVXJVBIah6hZCfRSUXw1e7VHe7QkZlwNIhuom4bF5ZIQlmNPzXF/XjC/Bl4//1R88rjs+w==
   dependencies:
-    "@gnosis.pm/safe-apps-sdk" "3.0.0"
+    "@gnosis.pm/safe-apps-sdk" "4.0.0"
     events "^3.3.0"
 
 "@gnosis.pm/safe-apps-react-sdk@4.0.0":
@@ -2186,11 +2186,6 @@
   integrity sha512-1+UoqdWUJOZ5cM+1hAosCMx2zHBNMC6YVm3vKYBfG8Er/z4VTimR27QldjVN241s/INA4Lw/LYmL5jFlynhOLw==
   dependencies:
     "@gnosis.pm/safe-apps-sdk" "4.0.0"
-
-"@gnosis.pm/safe-apps-sdk@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-sdk/-/safe-apps-sdk-3.0.0.tgz#0f90185c3693f2683322d275e796e61ff99ce87d"
-  integrity sha512-dLCSlniYnxEqCglx4XdhByvi7KKuSYRWJKm1lVXAc4oJqwwVkoCwp0bFIejLZ/dnf7cQSBUUVsTGWhvSda511w==
 
 "@gnosis.pm/safe-apps-sdk@4.0.0":
   version "4.0.0"
@@ -2205,12 +2200,12 @@
     semver "^7.3.2"
     web3-core "^1.3.0"
 
-"@gnosis.pm/safe-apps-web3modal@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-web3modal/-/safe-apps-web3modal-0.5.0.tgz#c00d6d941e9b42303aebf203a51ed8801568f1cf"
-  integrity sha512-fauF+BHWP77oGWCSe44de7TH2z6OmJHaHcgbrau5bayXqH52E4yDcX5k5lla2bTV07QU/9UwLiQUvS3OWPNaaQ==
+"@gnosis.pm/safe-apps-web3modal@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-apps-web3modal/-/safe-apps-web3modal-0.6.0.tgz#0940908087d1a6d3aa40f8de50f3dad43a822fe8"
+  integrity sha512-GRySH+t6RXGlqkNmI0J3vJUwW6DyTGPKVfL3kGt4y07hLFUUhbuB3HzR+hkOSWywMysiUO5JsmSUUpPBqLD7iw==
   dependencies:
-    "@gnosis.pm/safe-apps-provider" "0.5.0"
+    "@gnosis.pm/safe-apps-provider" "0.6.0"
 
 "@gnosis.pm/safe-react-components@^0.6.0":
   version "0.6.0"
