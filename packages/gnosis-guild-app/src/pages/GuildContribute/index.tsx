@@ -87,10 +87,8 @@ const GuildContribute: React.FC = () => {
   const { loading, guild } = useGuildByParams();
 
   const [guildMetadata, setGuildMetadata] = useState<any>();
-  const [subscription, setSubscription] = useState<any>();
-  const [submit, toggleSubmit] = useState(false);
-  const [footerMsg, setFooterMsg] = useState("");
-  // const [ contributeText, setContributeText ] = useState("");
+  const [ submit, toggleSubmit ] = useState(false);
+  const [ footerMsg, setFooterMsg ] = useState("");
   const { guildId } = useParams<{ guildId: string }>();
   // console.log("GUILD ID ==>", guildId, providerChainId);
   const { currentMinimumAmount, subscribed, subscriber } = useSubscriber();
@@ -115,22 +113,6 @@ const GuildContribute: React.FC = () => {
     };
     _fetchGuild();
   }, []);
-
-  const _fetchSubscription = async () => {
-    console.log("Using Guild owner =>", cpk?.address || account);
-    const _subscription = await fetchSubscription(
-      guildId,
-      cpk?.address || account,
-      providerChainId || 4
-    );
-    console.log("Subscription exists?", _subscription);
-    setSubscription(_subscription);
-  };
-  useEffect(() => {
-    if (guildMetadata) {
-      _fetchSubscription();
-    }
-  }, [guildMetadata, cpk]);
 
   useEffect(() => {
     setContributorEmail(profileEmail);
@@ -173,9 +155,10 @@ const GuildContribute: React.FC = () => {
       : BigNumber.from("0");
     const balance = await getBalanceOf(account, guildMetadata.tokenAddress);
 
-    if (balance.lt(bnValue) || (cpk?.address && proxyBalance.lt(bnValue))) {
+    if (balance.lt(bnValue) && (cpk?.address && proxyBalance.lt(bnValue))) {
       // TODO: popup error
       console.error("Not Enough balance");
+      setFooterMsg("Tx Failed. Not Enough Balance!");
       return;
     }
 
@@ -185,7 +168,6 @@ const GuildContribute: React.FC = () => {
       contributorName,
       contributorEmail
     );
-    _fetchSubscription();
     toggleSubmit(false);
   };
 

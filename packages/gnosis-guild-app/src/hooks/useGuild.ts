@@ -352,7 +352,7 @@ export const useGuild = () => {
       const tx = await submitCPKTx([
         ...cpkModuleTxs,
         {
-          operation: 0, // TODO: CPK.Call
+          // operation: 0, // TODO: CPK.Call by default
           to: guildAddress,
           value: guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0",
           data: guildContract.interface.encodeFunctionData("subscribe", args),

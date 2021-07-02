@@ -15,7 +15,7 @@ const initialSubscriber = {
 };
 
 export const useSubscriber = () => {
-  const { providerChainId, account } = useWeb3Context();
+  const { providerChainId, account, cpk } = useWeb3Context();
   const { guildId } = useParams<{ guildId: string }>();
 
   const [subscribed, setSubscribed] = useState(false);
@@ -30,6 +30,8 @@ export const useSubscriber = () => {
       }
       const subscribers = await fetchSubscriberByGuild(
         guildId,
+        // TODO: should subscriber be the CPK or the owner?
+        // cpk?.address || account,
         account,
         providerChainId
       );
