@@ -109,7 +109,7 @@ const GuiildLanding: React.FC = () => {
                 <ContributeLink
                   to={{ pathname: `/guild/${guildId}/contribute` }}
                 >
-                  <ContributeButton>Contibute</ContributeButton>
+                  <ContributeButton>Contribute</ContributeButton>
                 </ContributeLink>
               )}
             </ContributeCard>

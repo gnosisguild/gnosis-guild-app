@@ -231,7 +231,7 @@ const CreateGuildForm: React.FC = () => {
 
       if (tx) {
         if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
-          await refreshGuild();
+          window.location.reload();
         }
       }
 
