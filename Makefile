@@ -9,7 +9,7 @@ build_server:
 		docker build -t $(PROJECT_NAME)/node-server:$(TAG)  ./packages/gnosis-guild-app 
 
 build_contributor_list:
-		docker build -t $(PROJECT_NAME):$(TAG)  ./packages/contributor-list-job
+		docker build -t $(PROJECT_NAME)/contributor-list-job:$(TAG)  ./packages/contributor-list-job
 
 
 run:
@@ -25,5 +25,5 @@ publish_server:
 
 
 publish_contributor_list:
-		$(MAKE) build_contributor_list PROJECT_NAME=$(REGISTRY_NAME)/gnosis/contributor-list-job TAG=$(TAG)
+		$(MAKE) build_contributor_list PROJECT_NAME=$(REGISTRY_NAME)/gnosis TAG=$(TAG)
 		docker push $(REGISTRY_NAME)/gnosis/contributor-list-job:$(TAG)
