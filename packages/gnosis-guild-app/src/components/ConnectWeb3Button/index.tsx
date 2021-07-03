@@ -3,7 +3,7 @@ import styled from "styled-components";
 import React, { useEffect, useState } from "react";
 import { Button, GenericModal, Icon } from "@gnosis.pm/safe-react-components";
 import { useWeb3Context } from "../../context/Web3Context";
-import { getNetworkByChainId } from "../../lib/networks";
+import { getNetworkByChainId, getIsValidChain } from "../../lib/networks";
 import { useSnackbar } from "notistack";
 
 type Props = {
@@ -48,7 +48,7 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
 
   useEffect(() => {
     if (network) {
-      setIsUnsupportedNetwork(getNetworkByChainId(network.chainId) ? false : true);
+      setIsUnsupportedNetwork(getIsValidChain(network.chainId) ? false : true);
     }
   }, [network]);
 

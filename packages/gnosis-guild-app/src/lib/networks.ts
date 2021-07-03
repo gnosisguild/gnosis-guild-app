@@ -26,7 +26,7 @@ const Default = {
   rpc_url: `https://rinkeby.infura.io/v3/${API_KEY}`,
   gnosisConfig: {
     allowanceModule: "0xCFbFaC74C26F8647cBDb8c5caf80BB5b32E43134",
-  }
+  },
 };
 
 const networks: Networks = {
@@ -56,4 +56,9 @@ const networks: Networks = {
 export const getNetworkByChainId = (chainId: number): Network => {
   const network = networks[chainId];
   return network ? network : Default;
+};
+
+export const getIsValidChain = (chainId: number): Network => {
+  const network = networks[chainId];
+  return network;
 };
