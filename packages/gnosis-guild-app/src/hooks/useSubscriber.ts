@@ -60,5 +60,6 @@ export const useSubscriber = () => {
     currentMinimumAmount,
     id,
     subscriber: subscriberMeta,
+    setSubscribed,
   };
 };
