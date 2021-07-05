@@ -70,8 +70,7 @@ const GuildContribute: React.FC = () => {
       setClear(false);
     }
   }, [connected]);
-  // Add a set disbled
-  // Add set form fields
+
   return (
     <Grid>
       <GridLogo>
@@ -88,7 +87,7 @@ const GuildContribute: React.FC = () => {
               onClick={contributionTx}
               disabled={!riskAgreement || invalidForm}
             >
-              {!contributeLoading ? contributeText : "Sending Contribution..."}
+              {contributeText}
             </ContributeButton>
           </ContributeCard>
         </ContributeForm>

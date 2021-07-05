@@ -132,9 +132,12 @@ export const useContribute = () => {
     setSubscribed(false);
     await setSubscriber();
   };
-
+  const loadingText = subscribed
+    ? "Cancelling Contribution..."
+    : "Sending Contribution...";
+  const staticText = subscribed ? "Cancel Contribution" : "Contribute";
+  const contributeText = !contributeLoading ? staticText : loadingText;
   const contributionTx = subscribed ? unsubscribeTx : submitContributionTx;
-  const contributeText = subscribed ? "Cancel Contribution" : "Contribute";
 
   return {
     submitContribution,

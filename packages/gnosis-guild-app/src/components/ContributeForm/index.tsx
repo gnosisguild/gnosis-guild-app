@@ -22,6 +22,7 @@ type Props = {
   setInvalid: (arg0: boolean) => void;
   toggleSubmit: (arg0: boolean) => void;
   clear?: boolean;
+  children?: React.ReactNode;
 };
 
 const GridForm = styled.div`
