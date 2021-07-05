@@ -9,6 +9,10 @@ import GridWallet from "../../components/GridWallet";
 import GuildLogo from "../../components/GuildLogo";
 import RiskAgreement from "../../components/RiskAgreement";
 import ConnectWeb3Button from "../../components/ConnectWeb3Button";
+import ContributeButton from "../../components/ContributeButton";
+import ContributeCard from "../../components/ContributeCard";
+
+import { useContribute } from "../../hooks/useContribute";
 import { useWeb3Context } from "../../context/Web3Context";
 import { useGuildByParams } from "../../hooks/useGuildByParams";
 import { useRiskAgreement } from "../../hooks/useRiskAgreement";
@@ -44,12 +48,18 @@ const TransactionLoader = (
 const GuildContribute: React.FC = () => {
   const { getConnectText, connected } = useWeb3Context();
   const { riskAgreement, setRiskAgreement } = useRiskAgreement();
+  const {
+    contributeLoading,
+    setContributeLoading,
+    contributionTx,
+    contributeText,
+    modalFooter,
+  } = useContribute();
 
   const { loading, guild } = useGuildByParams();
   const [submit, toggleSubmit] = useState(false);
   const [clear, setClear] = useState(false);
-
-  const [footerMsg, setFooterMsg] = useState("");
+  const [invalidForm, setInvalidForm] = useState(false);
 
   const connectText = getConnectText();
   const onDisconnect = () => {
@@ -60,6 +70,8 @@ const GuildContribute: React.FC = () => {
       setClear(false);
     }
   }, [connected]);
+  // Add a set disbled
+  // Add set form fields
   return (
     <Grid>
       <GridLogo>
@@ -67,11 +79,19 @@ const GuildContribute: React.FC = () => {
       </GridLogo>
       {guild.name ? (
         <ContributeForm
-          disabled={!riskAgreement}
-          setModalFooter={setFooterMsg}
+          setInvalid={setInvalidForm}
           toggleSubmit={toggleSubmit}
           clear={clear}
-        />
+        >
+          <ContributeCard>
+            <ContributeButton
+              onClick={contributionTx}
+              disabled={!riskAgreement || invalidForm}
+            >
+              {!contributeLoading ? contributeText : "Sending Contribution..."}
+            </ContributeButton>
+          </ContributeCard>
+        </ContributeForm>
       ) : (
         <Loading>
           {loading ? (
@@ -91,12 +111,12 @@ const GuildContribute: React.FC = () => {
       <GridAgreementFooter visible={!riskAgreement}>
         <RiskAgreement onClick={setRiskAgreement} />
       </GridAgreementFooter>
-      {submit && (
+      {contributeLoading && (
         <GenericModal
-          onClose={() => toggleSubmit(!submit)}
+          onClose={() => setContributeLoading(!submit)}
           title="Executing Transaction"
           body={TransactionLoader}
-          footer={footerMsg}
+          footer={modalFooter}
         />
       )}
     </Grid>

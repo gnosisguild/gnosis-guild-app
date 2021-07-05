@@ -6,8 +6,6 @@ import styled from "styled-components";
 import { Title } from "@gnosis.pm/safe-react-components";
 
 import AmountInput from "../../components/AmountInput";
-import ContributeButton from "../../components/ContributeButton";
-import ContributeCard from "../../components/ContributeCard";
 import ContributorNameInput from "../../components/ContributorNameInput";
 import ContributorEmailInput from "../../components/ContributorEmailInput";
 
@@ -15,13 +13,13 @@ import { useContribute } from "../../hooks/useContribute";
 import { useContributorProfile } from "../../hooks/useContributorProfile";
 import { useGuildByParams } from "../../hooks/useGuildByParams";
 import { useSubscriber } from "../../hooks/useSubscriber";
+import { useContributorContext } from "../../context/ContributorContext";
 import { useWeb3Context } from "../../context/Web3Context";
 
 import { fetchGuild } from "../../graphql";
 
 type Props = {
-  disabled: boolean;
-  setModalFooter: (arg0: string) => void;
+  setInvalid: (arg0: boolean) => void;
   toggleSubmit: (arg0: boolean) => void;
   clear?: boolean;
 };
@@ -41,25 +39,13 @@ const FormItem = styled.div`
 `;
 
 const ContributeForm: React.FC<Props> = ({
-  disabled,
-  setModalFooter,
+  setInvalid,
   toggleSubmit,
   clear,
+  children,
 }) => {
-  const {
-    account,
-    getBalanceOf,
-    getProxyBalance,
-    providerChainId,
-    cpk,
-    connected,
-  } = useWeb3Context();
-  const {
-    submitContribution,
-    contributeLoading,
-    unsubscribe,
-    setContributeLoading,
-  } = useContribute();
+  const { providerChainId, connected } = useWeb3Context();
+  const { setContributor } = useContributorContext();
 
   const { profileName, profileEmail } = useContributorProfile();
 
@@ -67,8 +53,9 @@ const ContributeForm: React.FC<Props> = ({
   const [contributorName, setContributorName] = useState("");
   const [contributorEmail, setContributorEmail] = useState("");
   const [invalidForm, setInvalidForm] = useState(false);
+  const [disabled, setDisabled] = useState(false);
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
-  const [guildMetadata, setGuildMetadata] = useState<any>();
+  const [_, setGuildMetadata] = useState<any>();
 
   const { guildId } = useParams<{ guildId: string }>();
 
@@ -78,58 +65,13 @@ const ContributeForm: React.FC<Props> = ({
   const [invalidAmount, setInvalidAmount] = useState(false);
 
   const { currentMinimumAmount, subscribed, setSubscribed } = useSubscriber();
+  const { contributeLoading, setContributeLoading } = useContribute();
   const { guild } = useGuildByParams();
 
   let name = guild.name;
   if (name && !guild.active) {
     name = `${guild.name} (Inactive)`;
   }
-
-  const submitContributionTx = async () => {
-    setModalFooter(
-      cpk
-        ? "Creating Subscription using a Proxy..."
-        : "Approving tokens & creating subscription..."
-    );
-    toggleSubmit(true);
-
-    const bnValue = utils.parseEther(guildMinimumAmount);
-    const proxyBalance = cpk?.address
-      ? await getProxyBalance(guildMetadata.tokenAddress)
-      : BigNumber.from("0");
-    const balance = await getBalanceOf(account, guildMetadata.tokenAddress);
-
-    if (balance.lt(bnValue) && cpk?.address && proxyBalance.lt(bnValue)) {
-      // TODO: popup error
-      console.error("Not Enough balance");
-      setModalFooter("Tx Failed. Not Enough Balance!");
-      return;
-    }
-
-    await submitContribution(
-      guildMetadata.tokenAddress,
-      guildMinimumAmount,
-      contributorName,
-      contributorEmail
-    );
-    toggleSubmit(false);
-    setSubscribed(true);
-  };
-
-  const unsubscribeTx = async () => {
-    setModalFooter("Cancelling Subscription...");
-    toggleSubmit(true);
-    const tx = await unsubscribe(guild.guildAddress);
-    setContributeLoading(true);
-    if (tx) {
-      await tx.wait();
-    }
-    toggleSubmit(false);
-  };
-
-  const contributionTx = subscribed ? unsubscribeTx : submitContributionTx;
-  const contributeText = subscribed ? "Cancel Contribution" : "Contribute";
-
   useEffect(() => {
     setContributeLoading(true);
     const _fetchGuild = async () => {
@@ -146,22 +88,23 @@ const ContributeForm: React.FC<Props> = ({
     if (connected) {
       setContributorEmail(profileEmail);
       setContributorName(profileName);
-    }
-  }, [profileName, profileEmail, connected]);
-
-  useEffect(() => {
-    console.log("Conencted");
-    console.log(connected);
-    if (connected) {
       setGuildMinimumAmount(currentMinimumAmount);
     }
-  }, [currentMinimumAmount, connected]);
+  }, [profileName, profileEmail, currentMinimumAmount, connected]);
+
+  useEffect(() => {
+    console.log("SettingContributor");
+    console.log(contributorName);
+    console.log(contributorEmail);
+    setContributor(contributorName, contributorEmail, guildMinimumAmount);
+  }, [contributorName, contributorEmail, guildMinimumAmount]);
 
   useEffect(() => {
     if (clear) {
       setContributorName("");
       setContributorEmail("");
       setGuildMinimumAmount("0");
+      console.log("Hit clear path");
       setSubscribed(false);
     }
   }, [clear]);
@@ -189,6 +132,29 @@ const ContributeForm: React.FC<Props> = ({
     invalidEmail,
   ]);
 
+  useEffect(() => {
+    setInvalid(
+      !providerChainId ||
+        contributeLoading ||
+        invalidForm ||
+        (!subscribed && !guild.active)
+    );
+  }, [
+    providerChainId,
+    contributeLoading,
+    invalidForm,
+    subscribed,
+    guild.active,
+  ]);
+
+  useEffect(() => {
+    // setDisabled
+    setDisabled(subscribed || !guild.active);
+  }, [subscribed, guild.active]);
+
+  console.log("Subscribed");
+  console.log(subscribed);
+
   return (
     <GridForm>
       <Title size="sm" strong={true}>
@@ -199,7 +165,7 @@ const ContributeForm: React.FC<Props> = ({
           name={contributorName}
           setContributorName={setContributorName}
           setInvalidForm={setInvalidName}
-          disabled={subscribed || !guild.active}
+          disabled={disabled}
         />
       </FormItem>
       <FormItem>
@@ -207,7 +173,7 @@ const ContributeForm: React.FC<Props> = ({
           email={contributorEmail}
           setContributorEmail={setContributorEmail}
           setInvalidForm={setInvalidEmail}
-          disabled={subscribed || !guild.active}
+          disabled={disabled}
         />
       </FormItem>
       <FormItem>
@@ -219,24 +185,11 @@ const ContributeForm: React.FC<Props> = ({
           setAmount={setGuildMinimumAmount}
           setInvalidForm={setInvalidAmount}
           dropdown={false}
-          disabled={subscribed || !guild.active}
+          disabled={disabled}
           minimum={guild.amount}
         />
       </FormItem>
-      <ContributeCard>
-        <ContributeButton
-          onClick={contributionTx}
-          disabled={
-            disabled ||
-            !providerChainId ||
-            contributeLoading ||
-            invalidForm ||
-            (!subscribed && !guild.active)
-          }
-        >
-          {!contributeLoading ? contributeText : "Sending Contribution..."}
-        </ContributeButton>
-      </ContributeCard>
+      {children}
     </GridForm>
   );
 };

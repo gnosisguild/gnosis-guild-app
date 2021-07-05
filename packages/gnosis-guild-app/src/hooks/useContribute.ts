@@ -1,26 +1,49 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Contract, ethers } from "ethers";
+import { BigNumber, Contract, utils } from "ethers";
 import { useWeb3Context } from "../context/Web3Context";
+import { useContributorContext } from "../context/ContributorContext";
 
 import { useGuild } from "../hooks/useGuild";
 import { useContributorProfile } from "../hooks/useContributorProfile";
 import { useSubscriber } from "../hooks/useSubscriber";
 import GuildAppABI from "../contracts/GuildApp.json";
+import { fetchGuild } from "../graphql";
 
 export const useContribute = () => {
   const [contributeLoading, setContributeLoading] = useState(false);
-  const { providerChainId, ethersProvider } = useWeb3Context();
+  const [modalFooter, setModalFooter] = useState("");
+  const { subscribed, setSubscribed, setSubscriber } = useSubscriber();
+  const {
+    account,
+    providerChainId,
+    ethersProvider,
+    cpk,
+    getProxyBalance,
+    getBalanceOf,
+  } = useWeb3Context();
+  const { name, email, guildMinimumAmount } = useContributorContext();
   const { subscribe } = useGuild();
   const { guildId } = useParams<{ guildId: string }>();
   const { saveContributorProfile } = useContributorProfile();
   const { subscriber } = useSubscriber();
+  const [guildMetadata, setGuildMetadata] = useState<any>();
+
+  useEffect(() => {
+    const _fetchGuild = async () => {
+      const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
+      if (meta) {
+        setGuildMetadata(meta);
+      }
+    };
+    _fetchGuild();
+  }, []);
 
   const submitContribution = async (
     tokenAddress: string,
-    guildMinimumAmount: string,
     contributorName: string,
-    contributorEmail: string
+    contributorEmail: string,
+    guildMinimumAmount: string
   ): Promise<void> => {
     if (!ethersProvider) {
       console.error("EthersProvider has not been set yet");
@@ -42,6 +65,9 @@ export const useContribute = () => {
     } catch (error) {
       // TODO: Show an pop-up error
     }
+    console.log("Saving Contributor");
+    console.log(contributorName);
+    console.log(contributorEmail);
     await saveContributorProfile(contributorName, contributorEmail);
     setContributeLoading(false);
   };
@@ -61,10 +87,62 @@ export const useContribute = () => {
     return tx;
   };
 
+  const submitContributionTx = async () => {
+    setModalFooter(
+      cpk
+        ? "Creating Subscription using a Proxy..."
+        : "Approving tokens & creating subscription..."
+    );
+    setContributeLoading(true);
+
+    const bnValue = utils.parseEther(guildMinimumAmount);
+    const proxyBalance = cpk?.address
+      ? await getProxyBalance(guildMetadata.tokenAddress)
+      : BigNumber.from("0");
+    const balance = await getBalanceOf(account, guildMetadata.tokenAddress);
+
+    if (balance.lt(bnValue) && cpk?.address && proxyBalance.lt(bnValue)) {
+      // TODO: popup error
+      console.error("Not Enough balance");
+      setModalFooter("Tx Failed. Not Enough Balance!");
+      return;
+    }
+
+    await submitContribution(
+      guildMetadata.tokenAddress,
+      name,
+      email,
+      guildMinimumAmount
+    );
+    setContributeLoading(false);
+    setSubscribed(true);
+    await setSubscriber();
+  };
+
+  const unsubscribeTx = async () => {
+    setModalFooter("Cancelling Subscription...");
+    setContributeLoading(true);
+    const tx = await unsubscribe(guildMetadata.id);
+    setContributeLoading(true);
+    if (tx) {
+      await tx.wait();
+    }
+
+    setContributeLoading(false);
+    setSubscribed(false);
+    await setSubscriber();
+  };
+
+  const contributionTx = subscribed ? unsubscribeTx : submitContributionTx;
+  const contributeText = subscribed ? "Cancel Contribution" : "Contribute";
+
   return {
     submitContribution,
+    contributionTx,
+    contributeText,
     contributeLoading,
     setContributeLoading,
     unsubscribe,
+    modalFooter,
   };
 };

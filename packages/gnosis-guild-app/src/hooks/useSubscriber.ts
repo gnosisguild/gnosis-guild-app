@@ -3,63 +3,62 @@ import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 
 import { useWeb3Context } from "../context/Web3Context";
+import { useContributorContext } from "../context/ContributorContext";
 import { fetchSubscriberByGuild } from "../graphql";
-
-const initialSubscriber = {
-  id: "",
-  active: false,
-  unsubscribedAt: "",
-  owner: "",
-  paymentHistory: [{}],
-  keyId: 0,
-};
 
 export const useSubscriber = () => {
   const { providerChainId, account, cpk } = useWeb3Context();
   const { guildId } = useParams<{ guildId: string }>();
+  const { subscribed, setSubscribed, subscriber, setSubscriber } =
+    useContributorContext();
 
-  const [subscribed, setSubscribed] = useState(false);
-  const [subscriberMeta, setSubscriberMeta] = useState(initialSubscriber);
   const [currentMinimumAmount, setCurrentMinimumAmount] = useState("0");
   const [id, setId] = useState("");
 
-  useEffect(() => {
-    const setSubscriber = async (): Promise<void> => {
-      if (!guildId || !providerChainId || !account) {
-        return;
-      }
-      const subscribers = await fetchSubscriberByGuild(
-        guildId,
-        // TODO: should subscriber be the CPK or the owner?
-        // cpk?.address || account,
-        account,
-        providerChainId
-      );
-      if (!subscribers) {
-        setSubscribed(false);
-        return;
-      }
-      if (subscribers.length > 0) {
+  const wrappedSetSubscriber = async (): Promise<void> => {
+    if (!guildId || !providerChainId || !account) {
+      return;
+    }
+    const subscribers = await fetchSubscriberByGuild(
+      guildId,
+      // TODO: should subscriber be the CPK or the owner?
+      // cpk?.address || account,
+      account,
+      providerChainId
+    );
+    if (!subscribers) {
+      console.log("Still False");
+      setSubscribed(false);
+      return;
+    }
+    if (subscribers.length > 0) {
+      console.log("subscriber True");
+      const subscriber = subscribers[0];
+      setSubscriber(subscriber);
+      if (subscriber.active) {
         setSubscribed(true);
-        const subscriber = subscribers[0];
-        setId(subscriber.id);
-        setSubscriberMeta(subscriber);
-        if (subscriber.paymentHistory.length > 0) {
-          const payment = subscriber.paymentHistory[0];
-          setCurrentMinimumAmount(ethers.utils.formatEther(payment.value));
-        }
       } else {
         setSubscribed(false);
       }
-    };
+      setId(subscriber.id);
+      if (subscriber.paymentHistory.length > 0) {
+        const payment = subscriber.paymentHistory[0];
+        setCurrentMinimumAmount(ethers.utils.formatEther(payment.value));
+      }
+      console.log("Subscriber");
+      console.log(subscriber);
+    }
+  };
 
-    setSubscriber();
+  useEffect(() => {
+    wrappedSetSubscriber();
   }, [providerChainId, account, guildId]);
   return {
     subscribed,
     currentMinimumAmount,
     id,
-    subscriber: subscriberMeta,
+    subscriber: subscriber,
     setSubscribed,
+    setSubscriber: wrappedSetSubscriber,
   };
 };

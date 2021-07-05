@@ -11,21 +11,23 @@ export const useContributorProfile = () => {
   const saveContributorProfile = async (name: string, email: string) => {
     const recipients = [
       did?.id as string,
-      "did:key:z6MkuCGtjBKamt3RaLSjGYcViKYRrmaH7BAavD6o6CESoQBo" // Server DID
+      "did:key:z6MkuCGtjBKamt3RaLSjGYcViKYRrmaH7BAavD6o6CESoQBo", // Server DID
     ];
     const record = await did?.createDagJWE(
       {
         name: name,
         email: email,
-        address: account
+        address: account,
       },
       recipients
     );
 
     if (record) {
-      const r = await idx
+      await idx
         ?.set("contributorProfile", { profile: record })
-        .catch(err => console.error(`Failed to save: ${err}`));
+        .catch((err) =>
+          console.error(`Failed to save contributorProfile: ${err}`)
+        );
       setProfileName(name);
       setProfileEmail(email);
     }
@@ -39,13 +41,10 @@ export const useContributorProfile = () => {
     if (!encryptedProfile) {
       return;
     }
-    console.log(idx);
-    console.log("Profile");
     const profile = (await did?.decryptDagJWE(
       encryptedProfile.profile
     )) as ContributorProfile;
 
-    console.log(profile);
     if (profile) {
       if (!profileName) {
         setProfileName(profile.name);
@@ -69,6 +68,6 @@ export const useContributorProfile = () => {
   return {
     profileName,
     profileEmail,
-    saveContributorProfile
+    saveContributorProfile,
   };
 };

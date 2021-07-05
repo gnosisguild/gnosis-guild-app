@@ -135,7 +135,7 @@ const GuildContributeLink: React.FC = () => {
       guildMetadata.tokenAddress,
       guildMinimumAmount,
       contributorName,
-      contributorEmail,
+      contributorEmail
     );
   };
 
