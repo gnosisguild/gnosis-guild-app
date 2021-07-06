@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import { ethers } from "ethers";
+import { useSnackbar } from "notistack";
 import {
   Button,
   Card,
@@ -56,6 +57,7 @@ const GuildStats: React.FC = () => {
   const hiddenAnchor = useRef<HTMLAnchorElement>(null);
   const fileUrl = "";
   const { account, ethersProvider, providerChainId } = useWeb3Context();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   useEffect(() => {
     const getTokens = async () => {
@@ -81,9 +83,24 @@ const GuildStats: React.FC = () => {
   }, [providerChainId, fetchGuild, guildMetadata.guildAddress]);
 
   const downloadContributors = async () => {
-    const resp = await axios.get(
-      `${API}/api/v1/contributorList?guildAddress=${guildMetadata.guildAddress}`
-    );
+    const resp = await axios
+      .get(
+        `${API}/api/v1/contributorList?guildAddress=${guildMetadata.guildAddress}`
+      )
+      .catch((err) => {
+        enqueueSnackbar("Failed to fetch CSV", {
+          key: "failed-csv-notification-178",
+          anchorOrigin: { horizontal: "right", vertical: "top" },
+          preventDuplicate: true,
+          variant: "error",
+          onClick: () => {
+            closeSnackbar("failed-csv-notification-178");
+          },
+        });
+      });
+    if (!resp) {
+      return;
+    }
     const data = new Blob([resp.data]);
     const url = URL.createObjectURL(data);
     const anchor = hiddenAnchor?.current;

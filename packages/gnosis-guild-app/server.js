@@ -96,7 +96,7 @@ setInterval(function () {
 
 app.get("/api/v1/contributorList", async (req, res) => {
   const ceramicInst = await ceramicAuth();
-  console.debug(`Incoming query string ${req.query}`);
+  console.debug(`Incoming query string ${JSON.stringify(req.query)}`);
 
   const guildAddress = req.query.guildAddress;
   if (!guildAddress) {
@@ -105,7 +105,7 @@ app.get("/api/v1/contributorList", async (req, res) => {
   const csvDid = CsvMapping[guildAddress];
   if (!csvDid) {
     res.attachment("contributors.csv");
-    res.status(404).send("No csv found for provided guildAddress");
+    res.status(200).send("name,email,address,amount,currency");
     return;
   }
   // Does this work with multiple guilds
