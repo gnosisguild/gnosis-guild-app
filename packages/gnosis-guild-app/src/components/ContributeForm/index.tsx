@@ -20,7 +20,6 @@ import { fetchGuild } from "../../graphql";
 
 type Props = {
   setInvalid: (arg0: boolean) => void;
-  toggleSubmit: (arg0: boolean) => void;
   clear?: boolean;
   children?: React.ReactNode;
 };
@@ -39,12 +38,7 @@ const FormItem = styled.div`
   width: 100%;
 `;
 
-const ContributeForm: React.FC<Props> = ({
-  setInvalid,
-  toggleSubmit,
-  clear,
-  children,
-}) => {
+const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
   const { providerChainId, connected } = useWeb3Context();
   const { setContributor } = useContributorContext();
 

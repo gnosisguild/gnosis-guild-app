@@ -73,8 +73,6 @@ const GuildContributeLink: React.FC = () => {
   const { contributionTx, contributeText, contributeLoading } = useContribute();
 
   const [disabledButton, setDisabledButton] = useState(false);
-  const [submit, toggleSubmit] = useState(false);
-  const [clear, setClear] = useState(false);
   const [invalidForm, setInvalidForm] = useState(false);
   const { guild } = useGuildByParams();
 
@@ -117,11 +115,7 @@ const GuildContributeLink: React.FC = () => {
         </GridLogo>
       </GridHeader>
       {guild.name ? (
-        <ContributeForm
-          setInvalid={setInvalidForm}
-          toggleSubmit={toggleSubmit}
-          clear={clear}
-        />
+        <ContributeForm setInvalid={setInvalidForm} clear={false} />
       ) : (
         <Loading>
           {contributeLoading ? (

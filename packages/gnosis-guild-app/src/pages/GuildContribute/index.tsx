@@ -57,7 +57,6 @@ const GuildContribute: React.FC = () => {
   } = useContribute();
 
   const { loading, guild } = useGuildByParams();
-  const [submit, toggleSubmit] = useState(false);
   const [clear, setClear] = useState(false);
   const [invalidForm, setInvalidForm] = useState(false);
 
@@ -77,11 +76,7 @@ const GuildContribute: React.FC = () => {
         <GuildLogo />
       </GridLogo>
       {guild.name ? (
-        <ContributeForm
-          setInvalid={setInvalidForm}
-          toggleSubmit={toggleSubmit}
-          clear={clear}
-        >
+        <ContributeForm setInvalid={setInvalidForm} clear={clear}>
           <ContributeCard>
             <ContributeButton
               onClick={contributionTx}
@@ -112,7 +107,7 @@ const GuildContribute: React.FC = () => {
       </GridAgreementFooter>
       {contributeLoading && (
         <GenericModal
-          onClose={() => setContributeLoading(!submit)}
+          onClose={() => setContributeLoading(!contributeLoading)}
           title="Executing Transaction"
           body={TransactionLoader}
           footer={modalFooter}
