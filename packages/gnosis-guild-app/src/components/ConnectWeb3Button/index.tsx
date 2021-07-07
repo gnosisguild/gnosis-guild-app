@@ -3,11 +3,11 @@ import styled from "styled-components";
 import React, { useEffect, useState } from "react";
 import { Button, GenericModal, Icon } from "@gnosis.pm/safe-react-components";
 import { useWeb3Context } from "../../context/Web3Context";
-import { getNetworkByChainId } from "../../lib/networks";
+import { getIsValidChain } from "../../lib/networks";
 import { useSnackbar } from "notistack";
 
 type Props = {
-  disconnectAction?: () => void;
+  onDisconnect?: () => void;
 };
 
 const WarningContainer = styled.div`
@@ -23,7 +23,7 @@ const LargeIcon = styled(Icon)`
   }
 `;
 
-const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
+const ConnectWeb3Button: React.FC<Props> = ({ children, onDisconnect }) => {
   const [currentAccount, setCurrentAccount] = useState("");
   const [isUnsupportedNetwork, setIsUnsupportedNetwork] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
@@ -36,19 +36,11 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
     network,
   } = useWeb3Context();
 
-  // set values to 0
-  const web3Disconnect = async () => {
-    if (disconnectAction) {
-      disconnectAction();
-    }
-    await disconnect();
-  };
-
   let warning;
 
   useEffect(() => {
     if (network) {
-      setIsUnsupportedNetwork(getNetworkByChainId(network.chainId) ? false : true);
+      setIsUnsupportedNetwork(getIsValidChain(network.chainId) ? false : true);
     }
   }, [network]);
 
@@ -78,8 +70,15 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
     );
   }
 
+  const web3disconnect = () => {
+    if (onDisconnect) {
+      onDisconnect();
+    }
+    disconnect();
+  };
+
   const onClickAction = account
-    ? disconnect
+    ? web3disconnect
     : async () => {
         connectToWeb3();
       };
@@ -92,7 +91,6 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, disconnectAction }) => {
     if (account && currentAccount && account !== currentAccount) {
       setCurrentAccount("");
       connectedIn = false;
-      web3Disconnect();
     }
     if (account && connectedIn && !isUnsupportedNetwork) {
       setCurrentAccount(account);

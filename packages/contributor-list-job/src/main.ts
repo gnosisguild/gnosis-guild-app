@@ -4,6 +4,8 @@ import KeyDidResolver from "key-did-resolver";
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import Ceramic from "@ceramicnetwork/http-client";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
+import { TileDocument } from "@ceramicnetwork/stream-tile";
+import { StreamID } from "@ceramicnetwork/streamid";
 import { IDX } from "@ceramicstudio/idx";
 import { ethers } from "ethers";
 
@@ -66,7 +68,7 @@ const fetchContributors = async (
   // TODO: Should expires be same day
   const fetchContributors = graphqlRequest.gql`
 	    query getContributors($lastID: String, $date: String, $guild: String) {
-				guildSubscriptions(first: ${BATCH_SIZE}, where: { id_gt: $lastID, expires_gte: $date, guild: $guild }) {
+				guildSubscriptions(first: ${BATCH_SIZE}, where: { id_gt: $lastID, expires_gte: $date, guild: $guild, active: true }) {
 					id,
           owner
 					paymentHistory {
@@ -210,15 +212,25 @@ const main = async () => {
         `Contributor ${contributor.id} has been added to guild ${guild.id}`
       );
     }
-    if (contributors.length > 0) {
+    if (contributors.length > 0 && ceramic.did) {
       const csv = parse(contributors);
       const encryptedCSV = await ceramic.did?.createDagJWE({ csvString: csv }, [
         ceramic.did?.id,
       ]);
-      const record = await idx.set("contributorCSV", { csv: encryptedCSV });
-      await ceramic.pin.add(record);
+
+      const record = await TileDocument.create(
+        ceramic,
+        { csv: encryptedCSV },
+        {
+          controllers: [ceramic.did?.id],
+          family: "ContributorCSV",
+          schema:
+            "ceramic://k3y52l7qbv1frxli9be7tgqhymexl50ah5xgdfkltu2skoqrjpp4kgat5v9qif9q8",
+        }
+      );
+      await ceramic.pin.add(record.id);
       const merged = await idx.merge("guildCSVMapping", {
-        [guild.id]: record.toString(),
+        [guild.id]: record.id.toString(),
       });
       await ceramic.pin.add(merged);
     }

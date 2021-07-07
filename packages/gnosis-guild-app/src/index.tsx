@@ -6,6 +6,7 @@ import { SnackbarProvider } from "notistack";
 
 import { GuildProvider } from "./context/GuildContext";
 import { Web3ContextProvider } from "./context/Web3Context";
+import { ContributorProvider } from "./context/ContributorContext";
 import GlobalStyle from "./GlobalStyle";
 import Routes from "./Routes";
 import { HashRouter as Router } from "react-router-dom";
@@ -14,6 +15,7 @@ ReactDOM.render(
   <React.StrictMode>
     <Router>
       <ThemeProvider theme={theme}>
+        <ContributorProvider>
           <Web3ContextProvider>
             <GuildProvider>
               <GlobalStyle />
@@ -22,6 +24,7 @@ ReactDOM.render(
               </SnackbarProvider>
             </GuildProvider>
           </Web3ContextProvider>
+        </ContributorProvider>
       </ThemeProvider>
     </Router>
   </React.StrictMode>,
