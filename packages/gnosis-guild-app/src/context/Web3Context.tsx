@@ -14,6 +14,7 @@ import { Resolver } from "did-resolver";
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import KeyDidResolver from "key-did-resolver";
 
+import { SUBSCRIPTION_PERIOD_DEFAULT } from "../constants";
 import { getNetworkByChainId } from "../lib/networks";
 import AllowanceModuleAbi from "../contracts/gnosis/AllowanceModule.json";
 import ERC20Abi from "../contracts/ERC20.json";
@@ -374,8 +375,8 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
           delegate,
           tokenAddress,
           allowanceAmount,
-          60 * 24 * 30, // TODO: 30 days by default. Get time in minutes
-          (currentPeriod.getTime() / 1000 / 60).toFixed(0), // First day of current Period. Get time in minutes
+          SUBSCRIPTION_PERIOD_DEFAULT, // Get time in minutes
+          ((currentPeriod.getTime() / 1000) / 60).toFixed(0) // First day of current Period. Get time in minutes
         ]),
       },
     ].filter((t) => t) as Array<Transaction>;
