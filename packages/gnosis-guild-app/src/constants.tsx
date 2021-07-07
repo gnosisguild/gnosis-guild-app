@@ -7,3 +7,4 @@ export const CURRENCIES = [
   { id: "DAI", label: "Dai" },
 ];
 export const RISK_AGREEMENT_KEY = "risk_agreement";
+export const SUBSCRIPTION_PERIOD_DEFAULT = 30 * 24 * 60; // 30 days in MINUTES
