@@ -4,9 +4,9 @@ import { BigNumber, Contract, utils } from "ethers";
 import { useWeb3Context } from "../context/Web3Context";
 import { useContributorContext } from "../context/ContributorContext";
 
-import { useGuild } from "../hooks/useGuild";
-import { useContributorProfile } from "../hooks/useContributorProfile";
-import { useSubscriber } from "../hooks/useSubscriber";
+import { useGuild } from "./useGuild";
+import { useContributorProfile } from "./useContributorProfile";
+import { useSubscriber } from "./useSubscriber";
 import GuildAppABI from "../contracts/GuildApp.json";
 import { fetchGuild } from "../graphql";
 

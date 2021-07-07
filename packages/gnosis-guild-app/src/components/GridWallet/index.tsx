@@ -9,8 +9,6 @@ const Wallet = styled.div`
   margin-right: 1rem;
 `;
 
-const GridWallet: React.FC = ({ children }) => {
-  return <Wallet>{children}</Wallet>;
-};
+const GridWallet: React.FC = ({ children }) => <Wallet>{children}</Wallet>;
 
 export default GridWallet;

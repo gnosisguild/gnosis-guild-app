@@ -68,14 +68,14 @@ export const ContributorProvider: React.FC = ({ children }) => {
   return (
     <ContributorContext.Provider
       value={{
-        name: name,
-        email: email,
+        name,
+        email,
         subscribed,
         subscriber,
         guildMinimumAmount: guildMinimum,
-        setContributor: setContributor,
-        setSubscriber: setSubscriber,
-        setSubscribed: setSubscribed,
+        setContributor,
+        setSubscriber,
+        setSubscribed,
       }}
     >
       {children}

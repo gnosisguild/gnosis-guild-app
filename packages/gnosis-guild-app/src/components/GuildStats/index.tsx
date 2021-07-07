@@ -118,11 +118,11 @@ const GuildStats: React.FC = () => {
   return (
     <div style={{ width: "100%" }}>
       <ProfileImage src={imageUrl || profile} alt="Guild profile" />
-      <Title size="md" strong={true}>
+      <Title size="md" strong>
         Guild Stats
       </Title>
       <StatItemContainer>
-        <StatsText size="xl" strong={true}>
+        <StatsText size="xl" strong>
           Other Internet Guild Page
         </StatsText>
         <CopyToClipboardBtn
@@ -131,7 +131,7 @@ const GuildStats: React.FC = () => {
       </StatItemContainer>
       <Text size="lg">{`${APP_DOMAIN}/...`}</Text>
       <StatItemContainer>
-        <StatsText size="xl" strong={true}>
+        <StatsText size="xl" strong>
           Embed Code
         </StatsText>
         <CopyToClipboardBtn
@@ -142,18 +142,18 @@ const GuildStats: React.FC = () => {
       <StatItemContainer>
         <Card style={{ width: "100%", maxWidth: "16rem" }}>
           <TitleCardContainer>
-            <Text size="lg" color="primary" strong={true}>
+            <Text size="lg" color="primary" strong>
               {numContributors}
             </Text>
-            <Text size="lg" strong={true}>
+            <Text size="lg" strong>
               Contributors
             </Text>
           </TitleCardContainer>
           <CardContainer>
-            <Text size="lg" color="primary" strong={true}>
+            <Text size="lg" color="primary" strong>
               {numTokens}
             </Text>
-            <Text size="lg" strong={true}>
+            <Text size="lg" strong>
               ETH
             </Text>
           </CardContainer>

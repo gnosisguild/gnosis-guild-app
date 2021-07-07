@@ -135,7 +135,7 @@ const CreateGuildForm: React.FC = () => {
     // Check base cases here
     let hasImage = false;
     if (guildImage) {
-      hasImage = guildImage.name ? true : false;
+      hasImage = !!guildImage.name;
     }
     const valid =
       !guildName ||
@@ -182,11 +182,11 @@ const CreateGuildForm: React.FC = () => {
       setGuildMetadata({
         name: guildName,
         description: guildDescription,
-        contentFormat: contentFormat,
+        contentFormat,
         externalLink: guildExternalLink,
         currency: activeCurrency,
         amount: guildMinimumAmount,
-        guildAddress: guildAddress,
+        guildAddress,
         imageCid: guildMetadata.imageCid,
         image: input.files[0],
         active: guildMetadata.active,
@@ -211,12 +211,12 @@ const CreateGuildForm: React.FC = () => {
       const guildInfo = {
         name: guildName,
         description: guildDescription,
-        contentFormat: contentFormat,
+        contentFormat,
         externalLink: guildExternalLink,
         image: guildImage,
         currency: activeCurrency,
         amount: guildMinimumAmount,
-        guildAddress: guildAddress,
+        guildAddress,
         imageCid: "",
         active: false,
       };
@@ -267,12 +267,12 @@ const CreateGuildForm: React.FC = () => {
       {
         name: guildName,
         description: guildDescription,
-        contentFormat: contentFormat,
+        contentFormat,
         externalLink: guildExternalLink,
         image: guildImage,
         currency: activeCurrency,
         amount: guildMinimumAmount,
-        guildAddress: guildAddress,
+        guildAddress,
         imageCid: "",
         active: true,
       },
@@ -422,7 +422,7 @@ const CreateGuildForm: React.FC = () => {
   return (
     <GridForm noValidate>
       <FormItem>
-        <Text size="xl" strong={true}>
+        <Text size="xl" strong>
           Guild Name
         </Text>
         <TextField
@@ -433,7 +433,7 @@ const CreateGuildForm: React.FC = () => {
         />
       </FormItem>
       <FormItem>
-        <Text size="xl" strong={true}>
+        <Text size="xl" strong>
           Guild Description
         </Text>
         <TextField
@@ -444,7 +444,7 @@ const CreateGuildForm: React.FC = () => {
         />
       </FormItem>
       <FormItem>
-        <Text size="xl" strong={true}>
+        <Text size="xl" strong>
           Content Format for Contributors
         </Text>
         <TextField
@@ -455,7 +455,7 @@ const CreateGuildForm: React.FC = () => {
         />
       </FormItem>
       <FormItem>
-        <Text size="xl" strong={true}>
+        <Text size="xl" strong>
           Guild External Link
         </Text>
         <TextField
@@ -467,7 +467,7 @@ const CreateGuildForm: React.FC = () => {
       </FormItem>
       <UploadButtonContainer>
         <Button
-          color={"secondary"}
+          color="secondary"
           fullWidth={false}
           size="md"
           variant="contained"

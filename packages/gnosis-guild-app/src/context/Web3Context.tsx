@@ -38,7 +38,7 @@ export type Web3ContextValue = {
   submitCPKTx: (
     txs: Array<Transaction>
   ) => Promise<ethers.providers.TransactionResponse | null>;
-  ethersProvider: ethers.providers.Web3Provider;
+  ethersProvider?: ethers.providers.Web3Provider;
   account: string;
   providerChainId: number;
   connected: boolean;
@@ -53,10 +53,6 @@ type Web3State = {
   providerChainId: number;
   ethersProvider?: ethers.providers.Web3Provider;
   cpk?: CPK;
-};
-
-const newProvider = () => {
-  return new ethers.providers.Web3Provider(window.ethereum);
 };
 
 const initialWeb3Context = {
@@ -75,7 +71,6 @@ const initialWeb3Context = {
     contributionValue: string
   ) => "",
   submitCPKTx: async (txs: Array<Transaction>) => null,
-  ethersProvider: new ethers.providers.Web3Provider(window.ethereum),
   account: "",
   providerChainId: 0,
   connected: false,
@@ -98,7 +93,7 @@ const providerOptions = {
 };
 const web3Modal = new Web3Modal({
   cacheProvider: false,
-  providerOptions: providerOptions,
+  providerOptions,
 });
 
 const initialWeb3State = {
@@ -117,7 +112,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     async (initialProvider: any): Promise<void> => {
       try {
         const provider = new ethers.providers.Web3Provider(initialProvider);
-        const chainId = initialProvider.chainId;
+        const { chainId } = initialProvider;
         const currentNetwork = await provider.getNetwork();
         setNetwork(currentNetwork);
 
@@ -175,11 +170,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     setConnected(false);
   };
 
-  const getConnectText = useCallback(() => {
-    return account
-      ? `${account.substr(0, 5)}... Connected`
-      : "Connect to a Wallet";
-  }, [account]);
+  const getConnectText = useCallback(
+    () =>
+      account ? `${account.substr(0, 5)}... Connected` : "Connect to a Wallet",
+    [account]
+  );
 
   const get3IdProvider = async () => {
     const authProvider = new EthereumAuthProvider(window.ethereum, account);
@@ -507,11 +502,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   } as Web3ContextValue;
 
   if (idx) {
-    values = { idx: idx, ...values };
+    values = { idx, ...values };
   }
 
   if (did) {
-    values = { did: did, ...values };
+    values = { did, ...values };
   }
 
   return <Web3Context.Provider value={values}>{children}</Web3Context.Provider>;

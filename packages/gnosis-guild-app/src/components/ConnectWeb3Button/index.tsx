@@ -40,7 +40,7 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, onDisconnect }) => {
 
   useEffect(() => {
     if (network) {
-      setIsUnsupportedNetwork(getIsValidChain(network.chainId) ? false : true);
+      setIsUnsupportedNetwork(!getIsValidChain(network.chainId));
     }
   }, [network]);
 
@@ -64,7 +64,7 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, onDisconnect }) => {
             variant: "warning",
           });
         }}
-        title={"Unsupported network selected"}
+        title="Unsupported network selected"
         body={body}
       />
     );

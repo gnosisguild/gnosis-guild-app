@@ -91,7 +91,7 @@ const GuildContribute: React.FC = () => {
           {loading ? (
             <Loader size="md" />
           ) : (
-            <Title size="sm" strong={true}>
+            <Title size="sm" strong>
               404: Guild not found
             </Title>
           )}

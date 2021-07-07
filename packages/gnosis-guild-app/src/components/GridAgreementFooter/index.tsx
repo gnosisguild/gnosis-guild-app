@@ -15,8 +15,8 @@ const Footer = styled.div<Props>`
   visibility: ${(props) => (props.visible ? "visible" : "hidden	")};
 `;
 
-const GridFooter: React.FC<Props> = ({ visible, children }) => {
-  return <Footer visible={visible}>{children}</Footer>;
-};
+const GridFooter: React.FC<Props> = ({ visible, children }) => (
+  <Footer visible={visible}>{children}</Footer>
+);
 
 export default GridFooter;

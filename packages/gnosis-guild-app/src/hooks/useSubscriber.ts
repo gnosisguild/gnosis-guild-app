@@ -57,7 +57,7 @@ export const useSubscriber = () => {
     subscribed,
     currentMinimumAmount,
     id,
-    subscriber: subscriber,
+    subscriber,
     setSubscribed,
     setSubscriber: wrappedSetSubscriber,
   };

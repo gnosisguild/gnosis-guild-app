@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
-import { BigNumber, utils } from "ethers";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 
 import { Title } from "@gnosis.pm/safe-react-components";
 
-import AmountInput from "../../components/AmountInput";
-import ContributorNameInput from "../../components/ContributorNameInput";
-import ContributorEmailInput from "../../components/ContributorEmailInput";
+import AmountInput from "../AmountInput";
+import ContributorNameInput from "../ContributorNameInput";
+import ContributorEmailInput from "../ContributorEmailInput";
 
 import { useContribute } from "../../hooks/useContribute";
 import { useContributorProfile } from "../../hooks/useContributorProfile";
@@ -63,7 +62,7 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
   const { contributeLoading, setContributeLoading } = useContribute();
   const { guild } = useGuildByParams();
 
-  let name = guild.name;
+  let { name } = guild;
   if (name && !guild.active) {
     name = `${guild.name} (Inactive)`;
   }
@@ -152,7 +151,7 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
 
   return (
     <GridForm>
-      <Title size="sm" strong={true}>
+      <Title size="sm" strong>
         {name}
       </Title>
       <FormItem>

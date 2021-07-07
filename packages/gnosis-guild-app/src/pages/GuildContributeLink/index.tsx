@@ -107,7 +107,7 @@ const GuildContributeLink: React.FC = () => {
         target="_blank"
         href={`${APP_DOMAIN}/#/guild/${guild.guildAddress}`}
       >
-        <Text size="xl" strong={true} color="white">
+        <Text size="xl" strong color="white">
           Contribute to {guildName} with crypto today
         </Text>
         <GridLogo>
@@ -121,7 +121,7 @@ const GuildContributeLink: React.FC = () => {
           {contributeLoading ? (
             <Loader size="md" />
           ) : (
-            <Title size="sm" strong={true}>
+            <Title size="sm" strong>
               404: Guild not found
             </Title>
           )}

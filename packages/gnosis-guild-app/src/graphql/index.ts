@@ -125,7 +125,7 @@ export const fetchGuild = async (
 export const fetchSubscription = async (
   guildId: string,
   subscriber: string,
-  chainId: number,
+  chainId: number
 ): Promise<any | null> => {
   const fetchGuildSubscriptionQuery = gql`
     query getGuildSubscription($id: String) {
@@ -137,9 +137,9 @@ export const fetchSubscription = async (
         guild {
           id
         }
-        keyId,
-        owner,
-        expires,
+        keyId
+        owner
+        expires
         paymentHistory {
           id
           purchasedAt
@@ -150,8 +150,8 @@ export const fetchSubscription = async (
   `;
   const network = getNetworkByChainId(chainId);
   const resp = await request(network.subgraphUrl, fetchGuildSubscriptionQuery, {
-    id: `${guildId.toLowerCase()}-${subscriber.toLowerCase()}`
-  }).catch(e => {
+    id: `${guildId.toLowerCase()}-${subscriber.toLowerCase()}`,
+  }).catch((e) => {
     console.error(e);
     console.error("Failed call");
   });
@@ -159,8 +159,7 @@ export const fetchSubscription = async (
     return resp.guildSubscription;
   }
   return null;
-
-}
+};
 
 export const fetchSubscriberByGuild = async (
   guildId: string,

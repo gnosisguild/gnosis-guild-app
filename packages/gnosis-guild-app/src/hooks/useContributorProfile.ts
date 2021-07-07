@@ -15,8 +15,8 @@ export const useContributorProfile = () => {
     ];
     const record = await did?.createDagJWE(
       {
-        name: name,
-        email: email,
+        name,
+        email,
         address: account,
       },
       recipients

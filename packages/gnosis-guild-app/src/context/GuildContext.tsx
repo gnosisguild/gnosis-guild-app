@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 
 import { useGuild } from "../hooks/useGuild";
-import { useWeb3Context } from "../context/Web3Context";
+import { useWeb3Context } from "./Web3Context";
 import { IPFS_GATEWAY } from "../constants";
 import { fetchGuildByAddress } from "../graphql";
 
@@ -77,8 +77,10 @@ export const GuildProvider: React.FC = ({ children }) => {
         }
         let blob = new Blob();
         if (metadata.imageCid) {
-          let resp = await fetch(`${IPFS_GATEWAY}/${metadata.imageCid}`).catch(
-            (err: Error) => console.error("Failed to fetch metadata image")
+          const resp = await fetch(
+            `${IPFS_GATEWAY}/${metadata.imageCid}`
+          ).catch((err: Error) =>
+            console.error("Failed to fetch metadata image")
           );
           if (resp) {
             blob = await resp.blob();

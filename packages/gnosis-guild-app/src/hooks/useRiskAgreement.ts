@@ -9,8 +9,8 @@ export const useRiskAgreement = () => {
     if (val) {
       setRiskAgreement(val === "true");
     } else {
-			setRiskAgreement(false)
-		}
+      setRiskAgreement(false);
+    }
   }, []);
 
   const storeRiskAgreement = () => {
@@ -22,7 +22,7 @@ export const useRiskAgreement = () => {
   };
 
   return {
-    riskAgreement: riskAgreement,
+    riskAgreement,
     setRiskAgreement: storeRiskAgreement,
   };
 };

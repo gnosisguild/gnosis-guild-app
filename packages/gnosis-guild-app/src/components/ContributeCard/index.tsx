@@ -1,3 +1,4 @@
+import React from "react";
 import styled from "styled-components";
 import { Text } from "@gnosis.pm/safe-react-components";
 
@@ -24,7 +25,7 @@ const ContributeCard: React.FC = ({ children }) => {
       <InfoCard>
         <Text
           size="lg"
-          strong={true}
+          strong
         >{`${guildMetadata.name} Contributors Receive`}</Text>
         <Text size="md">{guildMetadata.contentFormat}</Text>
       </InfoCard>

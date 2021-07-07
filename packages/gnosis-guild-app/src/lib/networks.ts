@@ -55,7 +55,7 @@ const networks: Networks = {
 
 export const getNetworkByChainId = (chainId: number): Network => {
   const network = networks[chainId];
-  return network ? network : Default;
+  return network || Default;
 };
 
 export const getIsValidChain = (chainId: number): Network => {

@@ -73,7 +73,7 @@ const GuiildLanding: React.FC = () => {
 
   const disabledGuild = (
     <GridProfile>
-      <Title size="sm" strong={true}>
+      <Title size="sm" strong>
         {guild.name}
       </Title>
       <Text size="md" color="error">
@@ -94,7 +94,7 @@ const GuiildLanding: React.FC = () => {
       {guild.name ? (
         guild.active ? (
           <GridProfile>
-            <Title size="sm" strong={true}>
+            <Title size="sm" strong>
               {guild.name}
             </Title>
             <ProfileImage src={URL.createObjectURL(guild.image) || profile} />
@@ -122,7 +122,7 @@ const GuiildLanding: React.FC = () => {
           {loading ? (
             <Loader size="md" />
           ) : (
-            <Title size="sm" strong={true}>
+            <Title size="sm" strong>
               404: Guild not found
             </Title>
           )}

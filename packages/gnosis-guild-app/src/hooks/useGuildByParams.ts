@@ -42,8 +42,10 @@ export const useGuildByParams = () => {
         }
         let blob = new Blob();
         if (metadata.imageCid) {
-          let resp = await fetch(`${IPFS_GATEWAY}/${metadata.imageCid}`).catch(
-            (err: Error) => console.error("Failed to fetch metadata image")
+          const resp = await fetch(
+            `${IPFS_GATEWAY}/${metadata.imageCid}`
+          ).catch((err: Error) =>
+            console.error("Failed to fetch metadata image")
           );
           if (resp) {
             blob = await resp.blob();

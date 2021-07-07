@@ -14,9 +14,17 @@
     "manage-versions": "lerna version --exact --no-git-tag-version --preid rc"
   },
   "devDependencies": {
-    "eslint": "^7.20.0",
-    "eslint-config-prettier": "^7.2.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.2",
+    "@typescript-eslint/parser": "^4.28.2",
+    "eslint": "^7.30.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-react": "^7.24.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
     "lerna": "^4.0.0",
     "prettier": "^2.2.1",
     "prettier-eslint": "^12.0.0"
