@@ -96,7 +96,13 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, onDisconnect }) => {
       setCurrentAccount(account);
       ceramicAuth();
     }
-  }, [account, connected, isUnsupportedNetwork]);
+  }, [
+    account,
+    connected,
+    isUnsupportedNetwork,
+    authenticateCeramic,
+    currentAccount,
+  ]);
   return (
     <>
       <div>

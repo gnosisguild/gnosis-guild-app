@@ -56,7 +56,7 @@ const GuildStats: React.FC = () => {
   const { guildMetadata } = useGuildContext();
   const hiddenAnchor = useRef<HTMLAnchorElement>(null);
   const fileUrl = "";
-  const { account, ethersProvider, providerChainId } = useWeb3Context();
+  const { providerChainId } = useWeb3Context();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   useEffect(() => {
@@ -97,6 +97,7 @@ const GuildStats: React.FC = () => {
             closeSnackbar("failed-csv-notification-178");
           },
         });
+        console.error(err);
       });
     if (!resp) {
       return;

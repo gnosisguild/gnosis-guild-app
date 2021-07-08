@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 
@@ -7,7 +7,7 @@ import { useContributorContext } from "../context/ContributorContext";
 import { fetchSubscriberByGuild } from "../graphql";
 
 export const useSubscriber = () => {
-  const { providerChainId, account, cpk } = useWeb3Context();
+  const { providerChainId, account } = useWeb3Context();
   const { guildId } = useParams<{ guildId: string }>();
   const { subscribed, setSubscribed, subscriber, setSubscriber } =
     useContributorContext();

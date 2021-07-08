@@ -194,7 +194,7 @@ const CreateGuildForm: React.FC = () => {
     }
   };
 
-  const clickImageInput = (e: MouseEvent<HTMLButtonElement>) => {
+  const clickImageInput = () => {
     hiddenImageInput?.current?.click();
   };
 
@@ -368,7 +368,7 @@ const CreateGuildForm: React.FC = () => {
     }
   };
 
-  const pauseGuild = async (e: MouseEvent<HTMLButtonElement>) => {
+  const pauseGuild = async () => {
     if (!ethersProvider) {
       console.error("EthersProvider has not been set yet");
       return;

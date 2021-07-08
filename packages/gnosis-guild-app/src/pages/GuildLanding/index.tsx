@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { Loader, Text, Title } from "@gnosis.pm/safe-react-components";
@@ -80,8 +80,8 @@ const GuiildLanding: React.FC = () => {
         This creator has ended their subscription service.
       </Text>
       <Text size="md">
-        If you've previously subscribed to this creator, connect your account to
-        unsubscribe
+        If you&#39ve previously subscribed to this creator, connect your account
+        to unsubscribe
       </Text>
     </GridProfile>
   );

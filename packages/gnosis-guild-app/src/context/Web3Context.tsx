@@ -60,16 +60,24 @@ const initialWeb3Context = {
   authenticateCeramic: async () => "",
   disconnect: () => {},
   getConnectText: () => "",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getBalanceOf: async (account: string, tokenAddress: string) =>
     BigNumber.from("0"),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getProxyBalance: async (tokenAddress: string) => BigNumber.from("0"),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   fundProxy: async (tokenAddress: string, value: string) => {},
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setupCPKModules: async (tokenAddress: string, deposit: string) => [],
   signTransfer: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     guildAddress: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     tokenAddress: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     contributionValue: string
   ) => "",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   submitCPKTx: async (txs: Array<Transaction>) => null,
   account: "",
   providerChainId: 0,
@@ -176,15 +184,15 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     [account]
   );
 
-  const get3IdProvider = async () => {
+  const get3IdProvider = useCallback(async () => {
     const authProvider = new EthereumAuthProvider(window.ethereum, account);
 
     const threeIdConnect = new ThreeIdConnect();
     await threeIdConnect.connect(authProvider);
     return threeIdConnect.getDidProvider();
-  };
+  }, [account]);
 
-  const authenticateCeramic = async (): Promise<string> => {
+  const authenticateCeramic = useCallback(async (): Promise<string> => {
     if (!account) {
       return "";
     }
@@ -219,7 +227,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     const genIdx = new IDX({ ceramic, aliases });
     setIdx(genIdx);
     return genIdx.id;
-  };
+  }, [account, get3IdProvider]);
 
   const getBalanceOf = async (
     account: string,
@@ -280,7 +288,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     }
 
     const { gnosisConfig } = getNetworkByChainId(providerChainId);
-    const iErc20 = new ethers.utils.Interface(ERC20Abi);
+    /* const iErc20 = new ethers.utils.Interface(ERC20Abi); */
 
     const signer = ethersProvider.getSigner();
     const isDeployed = await cpk.isProxyDeployed();
@@ -389,21 +397,21 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       throw new Error("Provider is not setup!");
     }
     const { gnosisConfig } = getNetworkByChainId(providerChainId);
-    const domain = {
-      chainId: providerChainId,
-      verifyingContract: gnosisConfig.allowanceModule,
-    };
-    const types = {
-      AllowanceTransfer: [
-        { type: "address", name: "safe" },
-        { type: "address", name: "token" },
-        { type: "address", name: "to" },
-        { type: "uint96", name: "amount" },
-        { type: "address", name: "paymentToken" },
-        { type: "uint96", name: "payment" },
-        { type: "uint16", name: "nonce" },
-      ],
-    };
+    // const domain = {
+    //   chainId: providerChainId,
+    //   verifyingContract: gnosisConfig.allowanceModule,
+    // };
+    // const types = {
+    //   AllowanceTransfer: [
+    //     { type: "address", name: "safe" },
+    //     { type: "address", name: "token" },
+    //     { type: "address", name: "to" },
+    //     { type: "uint96", name: "amount" },
+    //     { type: "address", name: "paymentToken" },
+    //     { type: "uint96", name: "payment" },
+    //     { type: "uint16", name: "nonce" },
+    //   ],
+    // };
 
     const signer = ethersProvider.getSigner();
     const allowanceModule = new ethers.Contract(

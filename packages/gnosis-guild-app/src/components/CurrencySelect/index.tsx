@@ -1,3 +1,4 @@
+import React from "react";
 import { Select } from "@gnosis.pm/safe-react-components";
 import { CURRENCIES } from "../../constants";
 

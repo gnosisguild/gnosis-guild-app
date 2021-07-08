@@ -42,7 +42,9 @@ export const GuildContext = React.createContext<GuildContextValue>({
   loading: false,
   refreshGuild: async () => {},
   guildMetadata: initialGuildMetadata,
-  setGuildMetadata: (guildMeta) => {},
+  setGuildMetadata: (guildMeta) => {
+    guildMeta;
+  },
 });
 
 export const useGuildContext = () => useContext(GuildContext);
@@ -80,7 +82,7 @@ export const GuildProvider: React.FC = ({ children }) => {
           const resp = await fetch(
             `${IPFS_GATEWAY}/${metadata.imageCid}`
           ).catch((err: Error) =>
-            console.error("Failed to fetch metadata image")
+            console.error(`Failed to fetch metadata image ${err}`)
           );
           if (resp) {
             blob = await resp.blob();

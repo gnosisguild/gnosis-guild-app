@@ -24,7 +24,7 @@ const RiskAgreement: React.FC<Props> = ({ onClick }) => (
     <Text size="lg" color="white">
       Guild App is a permissionless crypto subscription tool. This means anyone
       can impersonate creators. Please verify this is the correct link provided
-      by creators to which you'd like to contribute.
+      by creators to which you&#39;d like to contribute.
     </Text>
     <AgreementButton size="md" onClick={onClick}>
       I understand the risk

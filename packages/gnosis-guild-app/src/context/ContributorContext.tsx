@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 
 import { GraphSubscriber, Payment } from "../graphql";
 
@@ -35,13 +35,17 @@ const initialContributionData = {
     keyId: 0,
   },
   guildMinimumAmount: "0",
-  setContributor: (
-    name: string,
-    email: string,
-    guildMinimumAmount: string
-  ) => {},
-  setSubscriber: (subscriber: GraphSubscriber) => {},
-  setSubscribed: (subscribed: boolean) => {},
+  setContributor: (name: string, email: string, guildMinimumAmount: string) => {
+    name;
+    email;
+    guildMinimumAmount;
+  },
+  setSubscriber: (subscriber: GraphSubscriber) => {
+    subscriber;
+  },
+  setSubscribed: (subscribed: boolean) => {
+    subscribed;
+  },
 };
 
 export const ContributorContext = React.createContext<ContributerContextValue>(
@@ -56,15 +60,17 @@ export const ContributorProvider: React.FC = ({ children }) => {
   const [subscribed, setSubscribed] = useState(false);
   const [guildMinimum, setGuildMinimum] = useState("0");
   const [subscriber, setSubscriber] = useState(initialSubscriber);
-  const setContributor = (
-    name: string,
-    email: string,
-    guildMinimum: string
-  ) => {
-    setName(name);
-    setEmail(email);
-    setGuildMinimum(guildMinimum);
-  };
+  const setContributor = useCallback(
+    (name: string, email: string, guildMinimum: string) => {
+      setName(name);
+      setEmail(email);
+      setGuildMinimum(guildMinimum);
+    },
+    []
+  );
+  const memoizedSetSubscribed = useCallback((subscribed: boolean) => {
+    setSubscribed(subscribed);
+  }, []);
   return (
     <ContributorContext.Provider
       value={{
@@ -75,7 +81,7 @@ export const ContributorProvider: React.FC = ({ children }) => {
         guildMinimumAmount: guildMinimum,
         setContributor,
         setSubscriber,
-        setSubscribed,
+        setSubscribed: memoizedSetSubscribed,
       }}
     >
       {children}

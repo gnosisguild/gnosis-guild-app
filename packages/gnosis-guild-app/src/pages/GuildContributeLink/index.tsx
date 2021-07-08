@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Button, Loader, Text, Title } from "@gnosis.pm/safe-react-components";
 
@@ -76,6 +76,10 @@ const GuildContributeLink: React.FC = () => {
   const [invalidForm, setInvalidForm] = useState(false);
   const { guild } = useGuildByParams();
 
+  const memoizedSetInvalidForm = useCallback((isInvalid: boolean) => {
+    setInvalidForm(isInvalid);
+  }, []);
+
   const web3connect = async () => {
     connectToWeb3();
     await authenticateCeramic();
@@ -115,7 +119,7 @@ const GuildContributeLink: React.FC = () => {
         </GridLogo>
       </GridHeader>
       {guild.name ? (
-        <ContributeForm setInvalid={setInvalidForm} clear={false} />
+        <ContributeForm setInvalid={memoizedSetInvalidForm} clear={false} />
       ) : (
         <Loading>
           {contributeLoading ? (

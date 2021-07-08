@@ -47,7 +47,7 @@ const pollSafeTx = async (
 };
 
 export const useGuild = () => {
-  const { refreshGuild, guildMetadata } = useGuildContext();
+  const { guildMetadata } = useGuildContext();
   const {
     cpk,
     fundProxy,
@@ -65,7 +65,9 @@ export const useGuild = () => {
 
     const imageResp = await fetch(
       `${IPFS_GATEWAY}/${resp.data.imageCid}`
-    ).catch((err: Error) => console.error("Failed to fetch metadata image"));
+    ).catch((err: Error) =>
+      console.error(`Failed to fetch metadata image ${err}`)
+    );
     let blob = new Blob();
     if (imageResp) {
       blob = await imageResp.blob();
@@ -245,10 +247,6 @@ export const useGuild = () => {
     return resp.data.metadataCid;
   };
 
-  const fetchSubscribers = () => {
-    // Missing smart contract function
-  };
-
   const fetchGuildTokens = async (
     chainId: number,
     ethersProvider: ethers.providers.Web3Provider,
@@ -276,31 +274,6 @@ export const useGuild = () => {
     return await guildContract
       .guildBalance(tokenAddress)
       .catch((err: Error) => console.error(`${err}`));
-  };
-
-  const _fetchGuild = async (
-    chainId: number,
-    ethersProvider: ethers.providers.Web3Provider,
-    ownerAddress: string
-  ): Promise<string> => {
-    const network = getNetworkByChainId(chainId);
-    const abi = [
-      "function guildsOf(address _owner) public view returns (address[] memory)",
-    ];
-    // get guilds
-    const guildAppContract = new Contract(
-      network.guildFactory,
-      abi,
-      ethersProvider.getSigner()
-    );
-    const guilds = await guildAppContract
-      .guildsOf(ownerAddress)
-      .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
-
-    // Select the first
-    // Call pause
-    const guildAddress = guilds[0];
-    return guildAddress;
   };
 
   const subscribe = async (
