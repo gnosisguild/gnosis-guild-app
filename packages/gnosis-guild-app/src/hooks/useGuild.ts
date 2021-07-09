@@ -10,6 +10,7 @@ import { API, IPFS_GATEWAY } from "../constants";
 import GuildFactoryABI from "../contracts/GuildFactory.json";
 import GuildAppABI from "../contracts/GuildApp.json";
 import { getNetworkByChainId } from "../lib/networks";
+import { SUBSCRIPTION_PERIOD_DEFAULT } from "../constants";
 
 import { GuildMetadata, useGuildContext } from "../context/GuildContext";
 import { useWeb3Context } from "../context/Web3Context";
@@ -148,7 +149,7 @@ export const useGuild = (): SafetGuild => {
       if (guildInfo.currency === "DAI") {
         tokenAddress = network.daiToken;
       }
-      const subscriptionTime = 30 * 24 * 60 * 60; // 30 days
+      const subscriptionTime = SUBSCRIPTION_PERIOD_DEFAULT * 60; // Get time in seconds
       const metadataCid = await saveMetadata(guildInfo);
       const functionArgs = [
         creatorAddress,

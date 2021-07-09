@@ -30,9 +30,11 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
     uint256 public subPrice;
     uint256 public subscriptionPeriod;
 
+    mapping(address => Subscription) public subscriptionByOwner;
+
     mapping(address => EnumerableSetUpgradeable.AddressSet) private _approvedTokens;
 
-    mapping(address => Subscription) public subscriptionByOwner;
+    uint256 private _nextId;
 
     modifier onlyIfActive() {
         require(isActive, "GuildApp: The Guild is disabled");
@@ -77,6 +79,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         subscriptionPeriod =_subscriptionPeriod;
         _setBaseURI(baseURI);
         _setupRole(DEFAULT_ADMIN_ROLE, _creator);
+        _nextId = 0;
         initialized = true;
     }
 
@@ -121,7 +124,8 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         require(value >= subPrice, "GuildApp: Insufficient value sent");
         Subscription storage subs = subscriptionByOwner[subscriber];
         if (subs.tokenId == 0) {
-            subs.tokenId = totalSupply().add(1);
+            _nextId = _nextId.add(1);
+            subs.tokenId = _nextId;
             _safeMint(subscriber, subs.tokenId);
             _setTokenURI(subs.tokenId, string(abi.encodePacked(_tokenURI, "#", subs.tokenId.toString())));
             subs.expirationTimestamp = subscriptionPeriod.add(block.timestamp);
