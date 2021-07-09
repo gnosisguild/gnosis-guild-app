@@ -92,7 +92,7 @@ const GuildContributeLink: React.FC = () => {
     if (account) {
       ceramicAuth();
     }
-  }, [account]);
+  }, [account, authenticateCeramic]);
 
   const buttonTxt = account ? contributeText : "Connect";
 

@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import axios from "axios";
 import { Contract, ethers } from "ethers";
 import SafeAppsSDK, {
@@ -18,6 +19,44 @@ function timeout(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+type SafetGuild = {
+  createGuild: (
+    arg0: number,
+    arg1: ethers.providers.Web3Provider,
+    arg2: GuildMetadata,
+    arg3: string,
+    arg4: SafeAppsSDK,
+    arg5?: (arg0: boolean, arg1?: string, arg2?: string) => void
+  ) => Promise<GatewayTransactionDetails>;
+  deactivateGuild: (
+    arg0: ethers.providers.Web3Provider,
+    arg1: string,
+    arg2: string,
+    arg3: SafeAppsSDK,
+    arg4?: (arg0: boolean, arg1?: string, arg2?: string) => void
+  ) => Promise<GatewayTransactionDetails | undefined>;
+  fetchGuildTokens: (
+    arg0: number,
+    arg1: ethers.providers.Web3Provider,
+    arg3: string,
+    arg4: string
+  ) => Promise<number>;
+  subscribe: (
+    arg0: number,
+    arg1: ethers.providers.Web3Provider,
+    arg2: string,
+    arg3: string,
+    arg4: string
+  ) => Promise<ethers.providers.TransactionResponse | null>;
+  fetchMetadata: (arg0: string, arg1: string) => Promise<GuildMetadata>;
+  updateMetadataCid: (
+    arg0: GuildMetadata,
+    arg1: ethers.providers.Web3Provider,
+    arg2: SafeAppsSDK,
+    arg3?: (arg0: boolean, arg1?: string, arg2?: string) => void
+  ) => Promise<GatewayTransactionDetails>;
+};
+
 const pollSafeTx = async (
   safeTxs: SendTransactionsResponse,
   sdk: SafeAppsSDK
@@ -28,8 +67,10 @@ const pollSafeTx = async (
   while (retries <= 15 && waitForConfrimation) {
     const results = await Promise.all([
       sdk.txs.getBySafeTxHash(safeTxs.safeTxHash),
-      timeout(1000),
-    ]).catch((err) => console.error(err));
+    ]).catch((err) => {
+      console.error(err);
+    });
+    await timeout(1000);
     if (results && results.slice(0)) {
       [safeTx] = results as any;
       console.log("HWERE");
@@ -46,7 +87,7 @@ const pollSafeTx = async (
   return safeTx;
 };
 
-export const useGuild = () => {
+export const useGuild = (): SafetGuild => {
   const { guildMetadata } = useGuildContext();
   const {
     cpk,
@@ -57,30 +98,33 @@ export const useGuild = () => {
     submitCPKTx,
   } = useWeb3Context();
 
-  const fetchMetadata = async (
-    metadataURI: string,
-    guildAddress: string
-  ): Promise<GuildMetadata> => {
-    const resp = await axios.get(metadataURI);
+  const fetchMetadata = useCallback(
+    async (
+      metadataURI: string,
+      guildAddress: string
+    ): Promise<GuildMetadata> => {
+      const resp = await axios.get(metadataURI);
 
-    const imageResp = await fetch(
-      `${IPFS_GATEWAY}/${resp.data.imageCid}`
-    ).catch((err: Error) =>
-      console.error(`Failed to fetch metadata image ${err}`)
-    );
-    let blob = new Blob();
-    if (imageResp) {
-      blob = await imageResp.blob();
-    }
+      const imageResp = await fetch(
+        `${IPFS_GATEWAY}/${resp.data.imageCid}`
+      ).catch((err: Error) =>
+        console.error(`Failed to fetch metadata image ${err}`)
+      );
+      let blob = new Blob();
+      if (imageResp) {
+        blob = await imageResp.blob();
+      }
 
-    const image = new File([blob], "profile.jpg");
-    return {
-      ...resp.data,
-      guildAddress,
-      imageCid: resp.data.imageCid,
-      image,
-    };
-  };
+      const image = new File([blob], "profile.jpg");
+      return {
+        ...resp.data,
+        guildAddress,
+        imageCid: resp.data.imageCid,
+        image,
+      };
+    },
+    []
+  );
 
   const createGuild = async (
     chainId: number,
@@ -113,6 +157,8 @@ export const useGuild = () => {
         subscriptionTime,
         [guildInfo.name, `GUILD${count}`, "https://ipfs.io/ipfs/", metadataCid],
       ];
+      console.log("FunctionArgs");
+      console.log(functionArgs);
 
       const iface = new ethers.utils.Interface(GuildAppABI);
       const calldata = iface.encodeFunctionData("initialize", functionArgs);
@@ -143,6 +189,7 @@ export const useGuild = () => {
 
       const safeTxs = await sdk.txs.send({ txs });
       const safeTx = await pollSafeTx(safeTxs, sdk);
+      console.log("Created");
 
       return safeTx;
     } catch (error) {

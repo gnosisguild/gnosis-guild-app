@@ -52,7 +52,8 @@ export const ContributorContext = React.createContext<ContributerContextValue>(
   initialContributionData
 );
 
-export const useContributorContext = () => useContext(ContributorContext);
+export const useContributorContext: () => ContributerContextValue = () =>
+  useContext(ContributorContext);
 
 export const ContributorProvider: React.FC = ({ children }) => {
   const [name, setName] = useState("");
@@ -71,6 +72,10 @@ export const ContributorProvider: React.FC = ({ children }) => {
   const memoizedSetSubscribed = useCallback((subscribed: boolean) => {
     setSubscribed(subscribed);
   }, []);
+
+  const memoizedSetSubscriber = useCallback((subscriber: GraphSubscriber) => {
+    setSubscriber(subscriber);
+  }, []);
   return (
     <ContributorContext.Provider
       value={{
@@ -80,7 +85,7 @@ export const ContributorProvider: React.FC = ({ children }) => {
         subscriber,
         guildMinimumAmount: guildMinimum,
         setContributor,
-        setSubscriber,
+        setSubscriber: memoizedSetSubscriber,
         setSubscribed: memoizedSetSubscribed,
       }}
     >

@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useCallback } from "react";
 import { ethers } from "ethers";
 
 import { useWeb3Context } from "../context/Web3Context";
 import { useContributorContext } from "../context/ContributorContext";
-import { fetchSubscriberByGuild } from "../graphql";
+import { fetchSubscriberByGuild, GraphSubscriber } from "../graphql";
 
-export const useSubscriber = () => {
+type Subscriber = {
+  subscribed: boolean;
+  currentMinimumAmount: string;
+  id: string;
+  subscriber: GraphSubscriber;
+  setSubscriber: () => void;
+  setSubscribed: (arg0: boolean) => void;
+};
+
+export const useSubscriber = (): Subscriber => {
   const { providerChainId, account } = useWeb3Context();
   const { guildId } = useParams<{ guildId: string }>();
   const { subscribed, setSubscribed, subscriber, setSubscriber } =
@@ -15,7 +25,7 @@ export const useSubscriber = () => {
   const [currentMinimumAmount, setCurrentMinimumAmount] = useState("0");
   const [id, setId] = useState("");
 
-  const wrappedSetSubscriber = async (): Promise<void> => {
+  const wrappedSetSubscriber = useCallback(async (): Promise<void> => {
     if (!guildId || !providerChainId || !account) {
       return;
     }
@@ -48,11 +58,11 @@ export const useSubscriber = () => {
       console.log("Subscriber");
       console.log(subscriber);
     }
-  };
+  }, [account, guildId, providerChainId, setSubscribed, setSubscriber]);
 
   useEffect(() => {
     wrappedSetSubscriber();
-  }, [providerChainId, account, guildId]);
+  }, [wrappedSetSubscriber]);
   return {
     subscribed,
     currentMinimumAmount,

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import { ethers } from "ethers";
@@ -59,9 +59,11 @@ const GuildStats: React.FC = () => {
   const { providerChainId } = useWeb3Context();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
+  const memoizedFetchGuild = useCallback(fetchGuild, []);
+
   useEffect(() => {
     const getTokens = async () => {
-      const guild = await fetchGuild(
+      const guild = await memoizedFetchGuild(
         guildMetadata.guildAddress,
         providerChainId
       );
@@ -80,7 +82,7 @@ const GuildStats: React.FC = () => {
       }
     };
     getTokens();
-  }, [providerChainId, fetchGuild, guildMetadata.guildAddress]);
+  }, [providerChainId, guildMetadata.guildAddress, memoizedFetchGuild]);
 
   const downloadContributors = async () => {
     const resp = await axios

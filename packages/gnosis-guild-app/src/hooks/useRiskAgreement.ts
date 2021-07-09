@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 
 import { RISK_AGREEMENT_KEY } from "../constants";
 
-export const useRiskAgreement = () => {
+type RiskAggreement = {
+  riskAgreement: boolean;
+  setRiskAgreement: () => void;
+};
+
+export const useRiskAgreement = (): RiskAggreement => {
   const [riskAgreement, setRiskAgreement] = useState(true);
   useEffect(() => {
     const val = sessionStorage.getItem(RISK_AGREEMENT_KEY);

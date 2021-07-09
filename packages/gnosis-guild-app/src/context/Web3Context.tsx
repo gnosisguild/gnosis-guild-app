@@ -87,7 +87,8 @@ const initialWeb3Context = {
 
 export const Web3Context =
   React.createContext<Web3ContextValue>(initialWeb3Context);
-export const useWeb3Context = () => useContext(Web3Context);
+export const useWeb3Context: () => Web3ContextValue = () =>
+  useContext(Web3Context);
 
 const providerOptions = {
   walletconnect: {
@@ -355,6 +356,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     const txs = [
       !hasAllowanceModule && {
         operation: CPK.Call,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         to: cpk?.address!,
         value: 0,
         data: await cpk.contractManager?.versionUtils?.encodeEnableModule(

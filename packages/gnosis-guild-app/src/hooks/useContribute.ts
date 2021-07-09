@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { BigNumber, Contract, utils } from "ethers";
+import { BigNumber, Contract, utils, providers } from "ethers";
 import { useWeb3Context } from "../context/Web3Context";
 import { useContributorContext } from "../context/ContributorContext";
 
@@ -10,7 +10,22 @@ import { useSubscriber } from "./useSubscriber";
 import GuildAppABI from "../contracts/GuildApp.json";
 import { fetchGuild } from "../graphql";
 
-export const useContribute = () => {
+type Contribution = {
+  submitContribution: (
+    arg0: string,
+    arg1: string,
+    arg2: string,
+    arg3: string
+  ) => Promise<void>;
+  contributionTx: () => Promise<void>;
+  contributeText: string;
+  contributeLoading: boolean;
+  setContributeLoading: (arg0: boolean) => void;
+  unsubscribe: (arg0: string) => Promise<providers.TransactionResponse>;
+  modalFooter: string;
+};
+
+export const useContribute = (): Contribution => {
   const [contributeLoading, setContributeLoading] = useState(false);
   const [modalFooter, setModalFooter] = useState("");
   const { subscribed, setSubscribed, setSubscriber } = useSubscriber();
@@ -37,7 +52,7 @@ export const useContribute = () => {
       }
     };
     _fetchGuild();
-  }, []);
+  }, [guildId, providerChainId]);
 
   const submitContribution = async (
     tokenAddress: string,
