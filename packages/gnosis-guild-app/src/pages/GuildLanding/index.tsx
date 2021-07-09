@@ -80,8 +80,8 @@ const GuiildLanding: React.FC = () => {
         This creator has ended their subscription service.
       </Text>
       <Text size="md">
-        If you've previously subscribed to this creator, connect your account to
-        unsubscribe
+        If you&#39;ve previously subscribed to this creator, connect your
+        account to unsubscribe
       </Text>
     </GridProfile>
   );
