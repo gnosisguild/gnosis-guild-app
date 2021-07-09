@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Button, Loader, Text, Title } from "@gnosis.pm/safe-react-components";
 
@@ -76,6 +76,10 @@ const GuildContributeLink: React.FC = () => {
   const [invalidForm, setInvalidForm] = useState(false);
   const { guild } = useGuildByParams();
 
+  const memoizedSetInvalidForm = useCallback((isInvalid: boolean) => {
+    setInvalidForm(isInvalid);
+  }, []);
+
   const web3connect = async () => {
     connectToWeb3();
     await authenticateCeramic();
@@ -88,7 +92,7 @@ const GuildContributeLink: React.FC = () => {
     if (account) {
       ceramicAuth();
     }
-  }, [account]);
+  }, [account, authenticateCeramic]);
 
   const buttonTxt = account ? contributeText : "Connect";
 
@@ -107,7 +111,7 @@ const GuildContributeLink: React.FC = () => {
         target="_blank"
         href={`${APP_DOMAIN}/#/guild/${guild.guildAddress}`}
       >
-        <Text size="xl" strong={true} color="white">
+        <Text size="xl" strong color="white">
           Contribute to {guildName} with crypto today
         </Text>
         <GridLogo>
@@ -115,13 +119,13 @@ const GuildContributeLink: React.FC = () => {
         </GridLogo>
       </GridHeader>
       {guild.name ? (
-        <ContributeForm setInvalid={setInvalidForm} clear={false} />
+        <ContributeForm setInvalid={memoizedSetInvalidForm} clear={false} />
       ) : (
         <Loading>
           {contributeLoading ? (
             <Loader size="md" />
           ) : (
-            <Title size="sm" strong={true}>
+            <Title size="sm" strong>
               404: Guild not found
             </Title>
           )}

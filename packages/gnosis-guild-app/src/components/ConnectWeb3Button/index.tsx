@@ -24,23 +24,16 @@ const LargeIcon = styled(Icon)`
 `;
 
 const ConnectWeb3Button: React.FC<Props> = ({ children, onDisconnect }) => {
-  const [currentAccount, setCurrentAccount] = useState("");
   const [isUnsupportedNetwork, setIsUnsupportedNetwork] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
-  const {
-    connectToWeb3,
-    account,
-    disconnect,
-    authenticateCeramic,
-    connected,
-    network,
-  } = useWeb3Context();
+  const { connectToWeb3, account, disconnect, authenticateCeramic, network } =
+    useWeb3Context();
 
   let warning;
 
   useEffect(() => {
     if (network) {
-      setIsUnsupportedNetwork(getIsValidChain(network.chainId) ? false : true);
+      setIsUnsupportedNetwork(!getIsValidChain(network.chainId));
     }
   }, [network]);
 
@@ -64,7 +57,7 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, onDisconnect }) => {
             variant: "warning",
           });
         }}
-        title={"Unsupported network selected"}
+        title="Unsupported network selected"
         body={body}
       />
     );
@@ -87,16 +80,10 @@ const ConnectWeb3Button: React.FC<Props> = ({ children, onDisconnect }) => {
     const ceramicAuth = async () => {
       await authenticateCeramic();
     };
-    let connectedIn = connected;
-    if (account && currentAccount && account !== currentAccount) {
-      setCurrentAccount("");
-      connectedIn = false;
-    }
-    if (account && connectedIn && !isUnsupportedNetwork) {
-      setCurrentAccount(account);
+    if (account && !isUnsupportedNetwork) {
       ceramicAuth();
     }
-  }, [account, connected, isUnsupportedNetwork]);
+  }, [account, isUnsupportedNetwork, authenticateCeramic]);
   return (
     <>
       <div>

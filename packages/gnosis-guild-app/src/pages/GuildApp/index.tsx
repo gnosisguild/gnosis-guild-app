@@ -46,7 +46,7 @@ const GuildApp: React.FC = () => {
 
   useEffect(() => {
     const fetchGuild = () => {
-      const guild = guildMetadata.active ? true : false;
+      const guild = !!guildMetadata.active;
       if (guild) {
         setDisplayPanel(<GuildStats />);
       } else {

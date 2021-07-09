@@ -2,15 +2,20 @@ import { useEffect, useState } from "react";
 
 import { RISK_AGREEMENT_KEY } from "../constants";
 
-export const useRiskAgreement = () => {
+type RiskAggreement = {
+  riskAgreement: boolean;
+  setRiskAgreement: () => void;
+};
+
+export const useRiskAgreement = (): RiskAggreement => {
   const [riskAgreement, setRiskAgreement] = useState(true);
   useEffect(() => {
     const val = sessionStorage.getItem(RISK_AGREEMENT_KEY);
     if (val) {
       setRiskAgreement(val === "true");
     } else {
-			setRiskAgreement(false)
-		}
+      setRiskAgreement(false);
+    }
   }, []);
 
   const storeRiskAgreement = () => {
@@ -22,7 +27,7 @@ export const useRiskAgreement = () => {
   };
 
   return {
-    riskAgreement: riskAgreement,
+    riskAgreement,
     setRiskAgreement: storeRiskAgreement,
   };
 };

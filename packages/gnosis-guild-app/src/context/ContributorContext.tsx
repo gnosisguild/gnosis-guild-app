@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 
 import { GraphSubscriber, Payment } from "../graphql";
 
@@ -35,20 +35,25 @@ const initialContributionData = {
     keyId: 0,
   },
   guildMinimumAmount: "0",
-  setContributor: (
-    name: string,
-    email: string,
-    guildMinimumAmount: string
-  ) => {},
-  setSubscriber: (subscriber: GraphSubscriber) => {},
-  setSubscribed: (subscribed: boolean) => {},
+  setContributor: (name: string, email: string, guildMinimumAmount: string) => {
+    name;
+    email;
+    guildMinimumAmount;
+  },
+  setSubscriber: (subscriber: GraphSubscriber) => {
+    subscriber;
+  },
+  setSubscribed: (subscribed: boolean) => {
+    subscribed;
+  },
 };
 
 export const ContributorContext = React.createContext<ContributerContextValue>(
   initialContributionData
 );
 
-export const useContributorContext = () => useContext(ContributorContext);
+export const useContributorContext: () => ContributerContextValue = () =>
+  useContext(ContributorContext);
 
 export const ContributorProvider: React.FC = ({ children }) => {
   const [name, setName] = useState("");
@@ -56,26 +61,32 @@ export const ContributorProvider: React.FC = ({ children }) => {
   const [subscribed, setSubscribed] = useState(false);
   const [guildMinimum, setGuildMinimum] = useState("0");
   const [subscriber, setSubscriber] = useState(initialSubscriber);
-  const setContributor = (
-    name: string,
-    email: string,
-    guildMinimum: string
-  ) => {
-    setName(name);
-    setEmail(email);
-    setGuildMinimum(guildMinimum);
-  };
+  const setContributor = useCallback(
+    (name: string, email: string, guildMinimum: string) => {
+      setName(name);
+      setEmail(email);
+      setGuildMinimum(guildMinimum);
+    },
+    []
+  );
+  const memoizedSetSubscribed = useCallback((subscribed: boolean) => {
+    setSubscribed(subscribed);
+  }, []);
+
+  const memoizedSetSubscriber = useCallback((subscriber: GraphSubscriber) => {
+    setSubscriber(subscriber);
+  }, []);
   return (
     <ContributorContext.Provider
       value={{
-        name: name,
-        email: email,
+        name,
+        email,
         subscribed,
         subscriber,
         guildMinimumAmount: guildMinimum,
-        setContributor: setContributor,
-        setSubscriber: setSubscriber,
-        setSubscribed: setSubscribed,
+        setContributor,
+        setSubscriber: memoizedSetSubscriber,
+        setSubscribed: memoizedSetSubscribed,
       }}
     >
       {children}

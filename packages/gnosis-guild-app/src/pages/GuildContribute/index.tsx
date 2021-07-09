@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
 import { GenericModal, Loader, Title } from "@gnosis.pm/safe-react-components";
 
@@ -60,6 +60,9 @@ const GuildContribute: React.FC = () => {
   const [clear, setClear] = useState(false);
   const [invalidForm, setInvalidForm] = useState(false);
 
+  const memoizedSetInvalidForm = useCallback((isInvalid: boolean) => {
+    setInvalidForm(isInvalid);
+  }, []);
   const connectText = getConnectText();
   const onDisconnect = () => {
     setClear(true);
@@ -76,7 +79,7 @@ const GuildContribute: React.FC = () => {
         <GuildLogo />
       </GridLogo>
       {guild.name ? (
-        <ContributeForm setInvalid={setInvalidForm} clear={clear}>
+        <ContributeForm setInvalid={memoizedSetInvalidForm} clear={clear}>
           <ContributeCard>
             <ContributeButton
               onClick={contributionTx}
@@ -91,7 +94,7 @@ const GuildContribute: React.FC = () => {
           {loading ? (
             <Loader size="md" />
           ) : (
-            <Title size="sm" strong={true}>
+            <Title size="sm" strong>
               404: Guild not found
             </Title>
           )}

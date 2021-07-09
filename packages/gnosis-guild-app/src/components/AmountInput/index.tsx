@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useState } from "react";
-import { Text, TextField, Tooltip } from "@gnosis.pm/safe-react-components";
+import { Text, TextField } from "@gnosis.pm/safe-react-components";
 import styled from "styled-components";
 import isInt from "validator/lib/isInt";
 import isDecimal from "validator/lib/isDecimal";
@@ -70,7 +70,7 @@ const AmountInput: React.FC<Props> = ({
   return (
     <>
       <div>
-        <Text size="xl" strong={true}>
+        <Text size="xl" strong>
           {title}
         </Text>
       </div>

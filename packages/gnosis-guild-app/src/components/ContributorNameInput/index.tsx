@@ -12,7 +12,7 @@ const ContributorNameInput: React.FC<Props> = ({
   name,
   setContributorName,
   setInvalidForm,
-  disabled
+  disabled,
 }) => {
   const [meta, setMeta] = useState({});
 
@@ -26,14 +26,14 @@ const ContributorNameInput: React.FC<Props> = ({
     } else {
       setInvalidForm(false);
     }
-		if (!val) {
+    if (!val) {
       setInvalidForm(true);
-		}
+    }
   };
 
   return (
     <>
-      <Text size="xl" strong={true}>
+      <Text size="xl" strong>
         Name
       </Text>
       <TextField

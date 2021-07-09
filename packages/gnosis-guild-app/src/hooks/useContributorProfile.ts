@@ -1,9 +1,15 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useWeb3Context } from "../context/Web3Context";
 import { ContributorProfile } from "../types";
 
-export const useContributorProfile = () => {
+type ContributorProfileMeta = {
+  profileName: string;
+  profileEmail: string;
+  saveContributorProfile: (arg0: string, arg1: string) => void;
+};
+
+export const useContributorProfile = (): ContributorProfileMeta => {
   const { idx, did, account } = useWeb3Context();
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
@@ -15,8 +21,8 @@ export const useContributorProfile = () => {
     ];
     const record = await did?.createDagJWE(
       {
-        name: name,
-        email: email,
+        name,
+        email,
         address: account,
       },
       recipients
@@ -33,7 +39,7 @@ export const useContributorProfile = () => {
     }
   };
 
-  const setContributorProfile = async () => {
+  const setContributorProfile = useCallback(async () => {
     if (!did) {
       return;
     }
@@ -53,7 +59,7 @@ export const useContributorProfile = () => {
         setProfileEmail(profile.email);
       }
     }
-  };
+  }, [did, idx, profileEmail, profileName]);
 
   // Set Idx ContributorProfile
   useEffect(() => {
@@ -63,7 +69,7 @@ export const useContributorProfile = () => {
     if (idx) {
       setProfile();
     }
-  }, [idx]);
+  }, [idx, setContributorProfile]);
 
   return {
     profileName,

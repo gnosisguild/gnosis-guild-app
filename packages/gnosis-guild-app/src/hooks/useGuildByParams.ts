@@ -7,7 +7,13 @@ import { fetchGuild } from "../graphql";
 import { IPFS_GATEWAY } from "../constants";
 import { useGuild } from "./useGuild";
 
-export const useGuildByParams = () => {
+type Guild = {
+  guild: GuildMetadata;
+  loading: boolean;
+  guildActive: boolean;
+};
+
+export const useGuildByParams = (): Guild => {
   const [guild, setGuild] = useState<GuildMetadata>({
     name: "",
     description: "",
@@ -33,7 +39,16 @@ export const useGuildByParams = () => {
       if (meta) {
         setGuildActive(meta.active);
         let metadata = {
-          ...guild,
+          name: "",
+          description: "",
+          contentFormat: "",
+          externalLink: "",
+          image: new File([], ""),
+          currency: "ETH",
+          amount: "0",
+          guildAddress: "",
+          imageCid: "",
+          active: true,
         };
 
         if (meta.metadataURI) {
@@ -42,8 +57,10 @@ export const useGuildByParams = () => {
         }
         let blob = new Blob();
         if (metadata.imageCid) {
-          let resp = await fetch(`${IPFS_GATEWAY}/${metadata.imageCid}`).catch(
-            (err: Error) => console.error("Failed to fetch metadata image")
+          const resp = await fetch(
+            `${IPFS_GATEWAY}/${metadata.imageCid}`
+          ).catch((err: Error) =>
+            console.error(`Failed to fetch metadata image: ${err}`)
           );
           if (resp) {
             blob = await resp.blob();
@@ -69,7 +86,7 @@ export const useGuildByParams = () => {
       setLoading(false);
     };
     _fetchGuild();
-  }, [guildId, providerChainId]);
+  }, [guildId, providerChainId, fetchMetadata, setGuildMetadata]);
   return {
     guild,
     loading,

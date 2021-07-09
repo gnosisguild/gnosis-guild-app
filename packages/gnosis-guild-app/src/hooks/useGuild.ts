@@ -1,16 +1,16 @@
+import { useCallback } from "react";
 import axios from "axios";
 import { Contract, ethers } from "ethers";
-import {
+import SafeAppsSDK, {
   SendTransactionsResponse,
   GatewayTransactionDetails,
 } from "@gnosis.pm/safe-apps-sdk";
 
-import SafeAppsSDK from "@gnosis.pm/safe-apps-sdk";
-
-import { API, IPFS_GATEWAY, SUBSCRIPTION_PERIOD_DEFAULT } from "../constants";
+import { API, IPFS_GATEWAY } from "../constants";
 import GuildFactoryABI from "../contracts/GuildFactory.json";
 import GuildAppABI from "../contracts/GuildApp.json";
 import { getNetworkByChainId } from "../lib/networks";
+import { SUBSCRIPTION_PERIOD_DEFAULT } from "../constants";
 
 import { GuildMetadata, useGuildContext } from "../context/GuildContext";
 import { useWeb3Context } from "../context/Web3Context";
@@ -20,26 +20,66 @@ function timeout(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+type SafetGuild = {
+  createGuild: (
+    arg0: number,
+    arg1: ethers.providers.Web3Provider,
+    arg2: GuildMetadata,
+    arg3: string,
+    arg4: SafeAppsSDK,
+    arg5?: (arg0: boolean, arg1?: string, arg2?: string) => void
+  ) => Promise<GatewayTransactionDetails>;
+  deactivateGuild: (
+    arg0: ethers.providers.Web3Provider,
+    arg1: string,
+    arg2: string,
+    arg3: SafeAppsSDK,
+    arg4?: (arg0: boolean, arg1?: string, arg2?: string) => void
+  ) => Promise<GatewayTransactionDetails | undefined>;
+  fetchGuildTokens: (
+    arg0: number,
+    arg1: ethers.providers.Web3Provider,
+    arg3: string,
+    arg4: string
+  ) => Promise<number>;
+  subscribe: (
+    arg0: number,
+    arg1: ethers.providers.Web3Provider,
+    arg2: string,
+    arg3: string,
+    arg4: string
+  ) => Promise<ethers.providers.TransactionResponse | null>;
+  fetchMetadata: (arg0: string, arg1: string) => Promise<GuildMetadata>;
+  updateMetadataCid: (
+    arg0: GuildMetadata,
+    arg1: ethers.providers.Web3Provider,
+    arg2: SafeAppsSDK,
+    arg3?: (arg0: boolean, arg1?: string, arg2?: string) => void
+  ) => Promise<GatewayTransactionDetails>;
+};
+
 const pollSafeTx = async (
   safeTxs: SendTransactionsResponse,
   sdk: SafeAppsSDK
 ): Promise<GatewayTransactionDetails> => {
   let retries = 0;
-  let safeTx = undefined;
+  let safeTx;
   let waitForConfrimation = true;
   while (retries <= 15 && waitForConfrimation) {
     const results = await Promise.all([
       sdk.txs.getBySafeTxHash(safeTxs.safeTxHash),
-      timeout(1000),
-    ]).catch((err) => console.error(err));
+    ]).catch((err) => {
+      console.error(err);
+    });
+    await timeout(1000);
     if (results && results.slice(0)) {
       [safeTx] = results as any;
       console.log("HWERE");
       console.log(safeTx);
       waitForConfrimation =
-        safeTx.detailedExecutionInfo.confirmationsRequired === 1 ? true : false;
+        safeTx.detailedExecutionInfo.confirmationsRequired === 1;
       if (waitForConfrimation === true && retries <= 300) {
-        waitForConfrimation = safeTx.txStatus === "SUCCESS" ? false : true;
+        waitForConfrimation = safeTx.txStatus !== "SUCCESS";
       }
     }
     retries++;
@@ -48,39 +88,44 @@ const pollSafeTx = async (
   return safeTx;
 };
 
-export const useGuild = () => {
-  const { refreshGuild, guildMetadata } = useGuildContext();
+export const useGuild = (): SafetGuild => {
+  const { guildMetadata } = useGuildContext();
   const {
     cpk,
     fundProxy,
     getProxyBalance,
     setupCPKModules,
     signTransfer,
-    submitCPKTx
+    submitCPKTx,
   } = useWeb3Context();
 
-  const fetchMetadata = async (
-    metadataURI: string,
-    guildAddress: string
-  ): Promise<GuildMetadata> => {
-    const resp = await axios.get(metadataURI);
+  const fetchMetadata = useCallback(
+    async (
+      metadataURI: string,
+      guildAddress: string
+    ): Promise<GuildMetadata> => {
+      const resp = await axios.get(metadataURI);
 
-    let imageResp = await fetch(`${IPFS_GATEWAY}/${resp.data.imageCid}`).catch(
-      (err: Error) => console.error("Failed to fetch metadata image")
-    );
-    let blob = new Blob();
-    if (imageResp) {
-      blob = await imageResp.blob();
-    }
+      const imageResp = await fetch(
+        `${IPFS_GATEWAY}/${resp.data.imageCid}`
+      ).catch((err: Error) =>
+        console.error(`Failed to fetch metadata image ${err}`)
+      );
+      let blob = new Blob();
+      if (imageResp) {
+        blob = await imageResp.blob();
+      }
 
-    const image = new File([blob], "profile.jpg");
-    return {
-      ...resp.data,
-      guildAddress: guildAddress,
-      imageCid: resp.data.imageCid,
-      image,
-    };
-  };
+      const image = new File([blob], "profile.jpg");
+      return {
+        ...resp.data,
+        guildAddress,
+        imageCid: resp.data.imageCid,
+        image,
+      };
+    },
+    []
+  );
 
   const createGuild = async (
     chainId: number,
@@ -113,6 +158,8 @@ export const useGuild = () => {
         subscriptionTime,
         [guildInfo.name, `GUILD${count}`, "https://ipfs.io/ipfs/", metadataCid],
       ];
+      console.log("FunctionArgs");
+      console.log(functionArgs);
 
       const iface = new ethers.utils.Interface(GuildAppABI);
       const calldata = iface.encodeFunctionData("initialize", functionArgs);
@@ -143,6 +190,7 @@ export const useGuild = () => {
 
       const safeTxs = await sdk.txs.send({ txs });
       const safeTx = await pollSafeTx(safeTxs, sdk);
+      console.log("Created");
 
       return safeTx;
     } catch (error) {
@@ -247,10 +295,6 @@ export const useGuild = () => {
     return resp.data.metadataCid;
   };
 
-  const fetchSubscribers = () => {
-    // Missing smart contract function
-  };
-
   const fetchGuildTokens = async (
     chainId: number,
     ethersProvider: ethers.providers.Web3Provider,
@@ -280,37 +324,12 @@ export const useGuild = () => {
       .catch((err: Error) => console.error(`${err}`));
   };
 
-  const _fetchGuild = async (
-    chainId: number,
-    ethersProvider: ethers.providers.Web3Provider,
-    ownerAddress: string
-  ): Promise<string> => {
-    const network = getNetworkByChainId(chainId);
-    const abi = [
-      "function guildsOf(address _owner) public view returns (address[] memory)",
-    ];
-    // get guilds
-    const guildAppContract = new Contract(
-      network.guildFactory,
-      abi,
-      ethersProvider.getSigner()
-    );
-    const guilds = await guildAppContract
-      .guildsOf(ownerAddress)
-      .catch((err: Error) => console.error(`Failed to create guild: ${err}`));
-
-    // Select the first
-    // Call pause
-    const guildAddress = guilds[0];
-    return guildAddress;
-  };
-
   const subscribe = async (
     chainId: number,
     ethersProvider: ethers.providers.Web3Provider,
     guildAddress: string,
     guildToken: string,
-    value: string,
+    value: string
   ): Promise<ethers.providers.TransactionResponse | null> => {
     const signer = ethersProvider.getSigner();
     console.log(
@@ -319,14 +338,10 @@ export const useGuild = () => {
       await signer.getAddress(),
       guildAddress,
       guildToken,
-      value,
+      value
     );
 
-    const guildContract = new Contract(
-      guildAddress,
-      GuildAppABI,
-      signer
-    );
+    const guildContract = new Contract(guildAddress, GuildAppABI, signer);
 
     // TODO:  generate tokenURI
     const tokenURI = "";
@@ -334,7 +349,7 @@ export const useGuild = () => {
 
     if (cpk) {
       // Contribute using CPK proxy
-      console.log('Using CPK');
+      console.log("Using CPK");
       const balance = await getProxyBalance(guildToken);
       if (balance.lt(bnValue)) {
         console.log("STEP 0: Fund Proxy");
@@ -343,41 +358,50 @@ export const useGuild = () => {
       }
       // TODO: Call only if subscribes for the 1st time
       // const cpkModuleTxs = !subscription ? await setupCPKModules(guildToken, bnValue.toString()) : [];
-      const cpkModuleTxs = await setupCPKModules(guildToken, bnValue.toString());
+      const cpkModuleTxs = await setupCPKModules(
+        guildToken,
+        bnValue.toString()
+      );
       // TODO: Should store the signature for the contribution of the current period
       // TODO: delegate signature should be from Guild contract
-      const transferSignature = await signTransfer(guildAddress, guildToken, bnValue.toString());
+      const transferSignature = await signTransfer(
+        guildAddress,
+        guildToken,
+        bnValue.toString()
+      );
       const args = [tokenURI, bnValue.toString(), transferSignature];
-      
+
       const tx = await submitCPKTx([
         ...cpkModuleTxs,
         {
           // operation: 0, // TODO: CPK.Call by default
           to: guildAddress,
-          value: guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0",
+          value:
+            guildToken === ethers.constants.AddressZero
+              ? bnValue.toString()
+              : "0",
           data: guildContract.interface.encodeFunctionData("subscribe", args),
-        }
+        },
       ]);
       return tx;
-    } else {
-      // Contribute using injected EOA wallet
-      console.log('Using EOA');
-      if (guildToken !== ethers.constants.AddressZero) {
-        const tokenContract = new Contract(
-          guildToken,
-          ERC20Abi,
-          ethersProvider.getSigner()
-        );
-        const tx = await tokenContract.approve(guildAddress, bnValue.toString());
-        await tx.wait(1);
-      }
-      const args = [tokenURI, bnValue.toString(), "0x"];
-      const tx = await guildContract.subscribe(...args, {
-        value:
-          guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0",
-      });
-      return tx;
     }
+    // Contribute using injected EOA wallet
+    console.log("Using EOA");
+    if (guildToken !== ethers.constants.AddressZero) {
+      const tokenContract = new Contract(
+        guildToken,
+        ERC20Abi,
+        ethersProvider.getSigner()
+      );
+      const tx = await tokenContract.approve(guildAddress, bnValue.toString());
+      await tx.wait(1);
+    }
+    const args = [tokenURI, bnValue.toString(), "0x"];
+    const tx = await guildContract.subscribe(...args, {
+      value:
+        guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0",
+    });
+    return tx;
   };
 
   return {

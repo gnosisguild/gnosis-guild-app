@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useCallback, useEffect, useState, useContext } from "react";
 
 import { useGuild } from "../hooks/useGuild";
-import { useWeb3Context } from "../context/Web3Context";
+import { useWeb3Context } from "./Web3Context";
 import { IPFS_GATEWAY } from "../constants";
 import { fetchGuildByAddress } from "../graphql";
 
@@ -42,10 +42,13 @@ export const GuildContext = React.createContext<GuildContextValue>({
   loading: false,
   refreshGuild: async () => {},
   guildMetadata: initialGuildMetadata,
-  setGuildMetadata: (guildMeta) => {},
+  setGuildMetadata: (guildMeta) => {
+    guildMeta;
+  },
 });
 
-export const useGuildContext = () => useContext(GuildContext);
+export const useGuildContext: () => GuildContextValue = () =>
+  useContext(GuildContext);
 
 export const GuildProvider: React.FC = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -53,7 +56,11 @@ export const GuildProvider: React.FC = ({ children }) => {
   const { fetchMetadata } = useGuild();
   const { providerChainId, account } = useWeb3Context();
 
-  const refreshGuild = async () => {
+  const memoizedSetGuildMetadata = useCallback((guild: GuildMetadata) => {
+    setGuildMetadata(guild);
+  }, []);
+
+  const refreshGuild = useCallback(async () => {
     if (account) {
       setLoading(true);
       const guilds = await fetchGuildByAddress(account, providerChainId);
@@ -61,15 +68,16 @@ export const GuildProvider: React.FC = ({ children }) => {
       if (guilds && guilds.length > 0) {
         const guild = guilds[guilds.length - 1];
         let metadata = {
-          name: guildMetadata.name,
-          description: guildMetadata.description,
-          contentFormat: guildMetadata.contentFormat,
-          externalLink: guildMetadata.externalLink,
-          image: guildMetadata.image,
-          currency: guildMetadata.currency,
-          amount: guildMetadata.amount,
-          guildAddress: guildMetadata.guildAddress,
-          imageCid: guildMetadata.imageCid,
+          name: "",
+          description: "",
+          contentFormat: "",
+          externalLink: "",
+          image: new File([], ""),
+          currency: "ETH",
+          amount: "0",
+          guildAddress: "",
+          imageCid: "",
+          active: false,
         };
         if (guild.metadataURI) {
           const cid = guild.metadataURI.split("/").slice(-1)[0];
@@ -77,8 +85,10 @@ export const GuildProvider: React.FC = ({ children }) => {
         }
         let blob = new Blob();
         if (metadata.imageCid) {
-          let resp = await fetch(`${IPFS_GATEWAY}/${metadata.imageCid}`).catch(
-            (err: Error) => console.error("Failed to fetch metadata image")
+          const resp = await fetch(
+            `${IPFS_GATEWAY}/${metadata.imageCid}`
+          ).catch((err: Error) =>
+            console.error(`Failed to fetch metadata image ${err}`)
           );
           if (resp) {
             blob = await resp.blob();
@@ -99,16 +109,21 @@ export const GuildProvider: React.FC = ({ children }) => {
       }
       setLoading(false);
     }
-  };
+  }, [account, providerChainId, fetchMetadata]);
 
   // TODO: Placeholder values
   useEffect(() => {
     refreshGuild();
-  }, [account, providerChainId]);
+  }, [refreshGuild]);
 
   return (
     <GuildContext.Provider
-      value={{ loading, refreshGuild, guildMetadata, setGuildMetadata }}
+      value={{
+        loading,
+        refreshGuild,
+        guildMetadata,
+        setGuildMetadata: memoizedSetGuildMetadata,
+      }}
     >
       {children}
     </GuildContext.Provider>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import { ethers } from "ethers";
@@ -56,12 +56,14 @@ const GuildStats: React.FC = () => {
   const { guildMetadata } = useGuildContext();
   const hiddenAnchor = useRef<HTMLAnchorElement>(null);
   const fileUrl = "";
-  const { account, ethersProvider, providerChainId } = useWeb3Context();
+  const { providerChainId } = useWeb3Context();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const memoizedFetchGuild = useCallback(fetchGuild, []);
 
   useEffect(() => {
     const getTokens = async () => {
-      const guild = await fetchGuild(
+      const guild = await memoizedFetchGuild(
         guildMetadata.guildAddress,
         providerChainId
       );
@@ -80,7 +82,7 @@ const GuildStats: React.FC = () => {
       }
     };
     getTokens();
-  }, [providerChainId, fetchGuild, guildMetadata.guildAddress]);
+  }, [providerChainId, guildMetadata.guildAddress, memoizedFetchGuild]);
 
   const downloadContributors = async () => {
     const resp = await axios
@@ -97,6 +99,7 @@ const GuildStats: React.FC = () => {
             closeSnackbar("failed-csv-notification-178");
           },
         });
+        console.error(err);
       });
     if (!resp) {
       return;
@@ -118,11 +121,11 @@ const GuildStats: React.FC = () => {
   return (
     <div style={{ width: "100%" }}>
       <ProfileImage src={imageUrl || profile} alt="Guild profile" />
-      <Title size="md" strong={true}>
+      <Title size="md" strong>
         Guild Stats
       </Title>
       <StatItemContainer>
-        <StatsText size="xl" strong={true}>
+        <StatsText size="xl" strong>
           Other Internet Guild Page
         </StatsText>
         <CopyToClipboardBtn
@@ -131,7 +134,7 @@ const GuildStats: React.FC = () => {
       </StatItemContainer>
       <Text size="lg">{`${APP_DOMAIN}/...`}</Text>
       <StatItemContainer>
-        <StatsText size="xl" strong={true}>
+        <StatsText size="xl" strong>
           Embed Code
         </StatsText>
         <CopyToClipboardBtn
@@ -142,18 +145,18 @@ const GuildStats: React.FC = () => {
       <StatItemContainer>
         <Card style={{ width: "100%", maxWidth: "16rem" }}>
           <TitleCardContainer>
-            <Text size="lg" color="primary" strong={true}>
+            <Text size="lg" color="primary" strong>
               {numContributors}
             </Text>
-            <Text size="lg" strong={true}>
+            <Text size="lg" strong>
               Contributors
             </Text>
           </TitleCardContainer>
           <CardContainer>
-            <Text size="lg" color="primary" strong={true}>
+            <Text size="lg" color="primary" strong>
               {numTokens}
             </Text>
-            <Text size="lg" strong={true}>
+            <Text size="lg" strong>
               ETH
             </Text>
           </CardContainer>

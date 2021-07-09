@@ -57,6 +57,7 @@
     "eject": "react-scripts eject",
     "serve-dev": "node ./server.js",
     "serve": "yarn build && node ./server.js",
+    "lint": "eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
     "ceramic": "ceramic daemon",
     "deploy-schema": "node ./scripts/build_schema.js"
   },

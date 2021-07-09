@@ -11,8 +11,8 @@ type Props = {
   className?: string;
 };
 
-const GuildLogo: React.FC<Props> = ({ className }) => {
-  return <Logo className={className} src={guildLogo} alt="gnosis guild" />;
-};
+const GuildLogo: React.FC<Props> = ({ className }) => (
+  <Logo className={className} src={guildLogo} alt="gnosis guild" />
+);
 
 export default GuildLogo;

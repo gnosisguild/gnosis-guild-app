@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { Loader, Text, Title } from "@gnosis.pm/safe-react-components";
@@ -73,15 +73,15 @@ const GuiildLanding: React.FC = () => {
 
   const disabledGuild = (
     <GridProfile>
-      <Title size="sm" strong={true}>
+      <Title size="sm" strong>
         {guild.name}
       </Title>
       <Text size="md" color="error">
         This creator has ended their subscription service.
       </Text>
       <Text size="md">
-        If you've previously subscribed to this creator, connect your account to
-        unsubscribe
+        If you&#39;ve previously subscribed to this creator, connect your
+        account to unsubscribe
       </Text>
     </GridProfile>
   );
@@ -94,7 +94,7 @@ const GuiildLanding: React.FC = () => {
       {guild.name ? (
         guild.active ? (
           <GridProfile>
-            <Title size="sm" strong={true}>
+            <Title size="sm" strong>
               {guild.name}
             </Title>
             <ProfileImage src={URL.createObjectURL(guild.image) || profile} />
@@ -122,7 +122,7 @@ const GuiildLanding: React.FC = () => {
           {loading ? (
             <Loader size="md" />
           ) : (
-            <Title size="sm" strong={true}>
+            <Title size="sm" strong>
               404: Guild not found
             </Title>
           )}

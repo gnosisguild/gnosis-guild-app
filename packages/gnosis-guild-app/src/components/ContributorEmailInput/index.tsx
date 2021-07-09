@@ -34,7 +34,7 @@ const ContributorEmailInput: React.FC<Props> = ({
 
   return (
     <>
-      <Text size="xl" strong={true}>
+      <Text size="xl" strong>
         Email
       </Text>
       <TextField

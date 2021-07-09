@@ -39,7 +39,7 @@ export type Web3ContextValue = {
   submitCPKTx: (
     txs: Array<Transaction>
   ) => Promise<ethers.providers.TransactionResponse | null>;
-  ethersProvider: ethers.providers.Web3Provider;
+  ethersProvider?: ethers.providers.Web3Provider;
   account: string;
   providerChainId: number;
   connected: boolean;
@@ -56,27 +56,30 @@ type Web3State = {
   cpk?: CPK;
 };
 
-const newProvider = () => {
-  return new ethers.providers.Web3Provider(window.ethereum);
-};
-
 const initialWeb3Context = {
   connectToWeb3: () => {},
   authenticateCeramic: async () => "",
   disconnect: () => {},
   getConnectText: () => "",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getBalanceOf: async (account: string, tokenAddress: string) =>
     BigNumber.from("0"),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getProxyBalance: async (tokenAddress: string) => BigNumber.from("0"),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   fundProxy: async (tokenAddress: string, value: string) => {},
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setupCPKModules: async (tokenAddress: string, deposit: string) => [],
   signTransfer: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     guildAddress: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     tokenAddress: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     contributionValue: string
   ) => "",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   submitCPKTx: async (txs: Array<Transaction>) => null,
-  ethersProvider: new ethers.providers.Web3Provider(window.ethereum),
   account: "",
   providerChainId: 0,
   connected: false,
@@ -85,7 +88,8 @@ const initialWeb3Context = {
 
 export const Web3Context =
   React.createContext<Web3ContextValue>(initialWeb3Context);
-export const useWeb3Context = () => useContext(Web3Context);
+export const useWeb3Context: () => Web3ContextValue = () =>
+  useContext(Web3Context);
 
 const providerOptions = {
   walletconnect: {
@@ -99,7 +103,7 @@ const providerOptions = {
 };
 const web3Modal = new Web3Modal({
   cacheProvider: false,
-  providerOptions: providerOptions,
+  providerOptions,
 });
 
 const initialWeb3State = {
@@ -118,7 +122,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     async (initialProvider: any): Promise<void> => {
       try {
         const provider = new ethers.providers.Web3Provider(initialProvider);
-        const chainId = initialProvider.chainId;
+        const { chainId } = initialProvider;
         const currentNetwork = await provider.getNetwork();
         setNetwork(currentNetwork);
 
@@ -176,21 +180,21 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     setConnected(false);
   };
 
-  const getConnectText = useCallback(() => {
-    return account
-      ? `${account.substr(0, 5)}... Connected`
-      : "Connect to a Wallet";
-  }, [account]);
+  const getConnectText = useCallback(
+    () =>
+      account ? `${account.substr(0, 5)}... Connected` : "Connect to a Wallet",
+    [account]
+  );
 
-  const get3IdProvider = async () => {
+  const get3IdProvider = useCallback(async () => {
     const authProvider = new EthereumAuthProvider(window.ethereum, account);
 
     const threeIdConnect = new ThreeIdConnect();
     await threeIdConnect.connect(authProvider);
     return threeIdConnect.getDidProvider();
-  };
+  }, [account]);
 
-  const authenticateCeramic = async (): Promise<string> => {
+  const authenticateCeramic = useCallback(async (): Promise<string> => {
     if (!account) {
       return "";
     }
@@ -225,7 +229,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     const genIdx = new IDX({ ceramic, aliases });
     setIdx(genIdx);
     return genIdx.id;
-  };
+  }, [account, get3IdProvider]);
 
   const getBalanceOf = async (
     account: string,
@@ -286,7 +290,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     }
 
     const { gnosisConfig } = getNetworkByChainId(providerChainId);
-    const iErc20 = new ethers.utils.Interface(ERC20Abi);
+    /* const iErc20 = new ethers.utils.Interface(ERC20Abi); */
 
     const signer = ethersProvider.getSigner();
     const isDeployed = await cpk.isProxyDeployed();
@@ -353,6 +357,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     const txs = [
       !hasAllowanceModule && {
         operation: CPK.Call,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         to: cpk?.address!,
         value: 0,
         data: await cpk.contractManager?.versionUtils?.encodeEnableModule(
@@ -376,7 +381,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
           tokenAddress,
           allowanceAmount,
           SUBSCRIPTION_PERIOD_DEFAULT, // Get time in minutes
-          ((currentPeriod.getTime() / 1000) / 60).toFixed(0) // First day of current Period. Get time in minutes
+          (currentPeriod.getTime() / 1000 / 60).toFixed(0), // First day of current Period. Get time in minutes
         ]),
       },
     ].filter((t) => t) as Array<Transaction>;
@@ -395,21 +400,21 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       throw new Error("Provider is not setup!");
     }
     const { gnosisConfig } = getNetworkByChainId(providerChainId);
-    const domain = {
-      chainId: providerChainId,
-      verifyingContract: gnosisConfig.allowanceModule,
-    };
-    const types = {
-      AllowanceTransfer: [
-        { type: "address", name: "safe" },
-        { type: "address", name: "token" },
-        { type: "address", name: "to" },
-        { type: "uint96", name: "amount" },
-        { type: "address", name: "paymentToken" },
-        { type: "uint96", name: "payment" },
-        { type: "uint16", name: "nonce" },
-      ],
-    };
+    // const domain = {
+    //   chainId: providerChainId,
+    //   verifyingContract: gnosisConfig.allowanceModule,
+    // };
+    // const types = {
+    //   AllowanceTransfer: [
+    //     { type: "address", name: "safe" },
+    //     { type: "address", name: "token" },
+    //     { type: "address", name: "to" },
+    //     { type: "uint96", name: "amount" },
+    //     { type: "address", name: "paymentToken" },
+    //     { type: "uint96", name: "payment" },
+    //     { type: "uint16", name: "nonce" },
+    //   ],
+    // };
 
     const signer = ethersProvider.getSigner();
     const allowanceModule = new ethers.Contract(
@@ -508,11 +513,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
   } as Web3ContextValue;
 
   if (idx) {
-    values = { idx: idx, ...values };
+    values = { idx, ...values };
   }
 
   if (did) {
-    values = { did: did, ...values };
+    values = { did, ...values };
   }
 
   return <Web3Context.Provider value={values}>{children}</Web3Context.Provider>;

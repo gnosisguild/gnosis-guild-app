@@ -1,3 +1,4 @@
+import React from "react";
 import styled from "styled-components";
 import { Button, Text } from "@gnosis.pm/safe-react-components";
 
@@ -16,18 +17,21 @@ const StyledButton = styled(Button)`
 `;
 
 type Props = {
-  onClick?: (e: any) => void,
-  disabled?: boolean
-}
-
-const ContributeButton: React.FC<Props> = ({ onClick, disabled, children }) => {
-  return (
-    <StyledButton size="lg" color="secondary" onClick={onClick} disabled={disabled}>
-      <Text size="lg" strong={true} color="white">
-        {children}
-      </Text>
-    </StyledButton>
-  );
+  onClick?: (e: any) => void;
+  disabled?: boolean;
 };
+
+const ContributeButton: React.FC<Props> = ({ onClick, disabled, children }) => (
+  <StyledButton
+    size="lg"
+    color="secondary"
+    onClick={onClick}
+    disabled={disabled}
+  >
+    <Text size="lg" strong color="white">
+      {children}
+    </Text>
+  </StyledButton>
+);
 
 export default ContributeButton;

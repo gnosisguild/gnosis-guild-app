@@ -1,13 +1,12 @@
+import React from "react";
 import { useEffect, useState } from "react";
-import { BigNumber, utils } from "ethers";
-import { useParams } from "react-router-dom";
 import styled from "styled-components";
 
 import { Title } from "@gnosis.pm/safe-react-components";
 
-import AmountInput from "../../components/AmountInput";
-import ContributorNameInput from "../../components/ContributorNameInput";
-import ContributorEmailInput from "../../components/ContributorEmailInput";
+import AmountInput from "../AmountInput";
+import ContributorNameInput from "../ContributorNameInput";
+import ContributorEmailInput from "../ContributorEmailInput";
 
 import { useContribute } from "../../hooks/useContribute";
 import { useContributorProfile } from "../../hooks/useContributorProfile";
@@ -15,8 +14,6 @@ import { useGuildByParams } from "../../hooks/useGuildByParams";
 import { useSubscriber } from "../../hooks/useSubscriber";
 import { useContributorContext } from "../../context/ContributorContext";
 import { useWeb3Context } from "../../context/Web3Context";
-
-import { fetchGuild } from "../../graphql";
 
 type Props = {
   setInvalid: (arg0: boolean) => void;
@@ -50,9 +47,6 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
   const [invalidForm, setInvalidForm] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [guildMinimumAmount, setGuildMinimumAmount] = useState("0");
-  const [_, setGuildMetadata] = useState<any>();
-
-  const { guildId } = useParams<{ guildId: string }>();
 
   // Form validation fields
   const [invalidName, setInvalidName] = useState(false);
@@ -60,24 +54,13 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
   const [invalidAmount, setInvalidAmount] = useState(false);
 
   const { currentMinimumAmount, subscribed, setSubscribed } = useSubscriber();
-  const { contributeLoading, setContributeLoading } = useContribute();
+  const { contributeLoading } = useContribute();
   const { guild } = useGuildByParams();
 
-  let name = guild.name;
+  let { name } = guild;
   if (name && !guild.active) {
     name = `${guild.name} (Inactive)`;
   }
-  useEffect(() => {
-    setContributeLoading(true);
-    const _fetchGuild = async () => {
-      const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
-      if (meta) {
-        setGuildMetadata(meta);
-      }
-      setContributeLoading(false);
-    };
-    _fetchGuild();
-  }, []);
 
   useEffect(() => {
     if (connected) {
@@ -92,7 +75,7 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
     console.log(contributorName);
     console.log(contributorEmail);
     setContributor(contributorName, contributorEmail, guildMinimumAmount);
-  }, [contributorName, contributorEmail, guildMinimumAmount]);
+  }, [contributorName, contributorEmail, guildMinimumAmount, setContributor]);
 
   useEffect(() => {
     if (clear) {
@@ -102,7 +85,7 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
       console.log("Hit clear path");
       setSubscribed(false);
     }
-  }, [clear]);
+  }, [clear, setSubscribed]);
 
   // Form validation
   useEffect(() => {
@@ -140,6 +123,7 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
     invalidForm,
     subscribed,
     guild.active,
+    setInvalid,
   ]);
 
   useEffect(() => {
@@ -152,7 +136,7 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
 
   return (
     <GridForm>
-      <Title size="sm" strong={true}>
+      <Title size="sm" strong>
         {name}
       </Title>
       <FormItem>
