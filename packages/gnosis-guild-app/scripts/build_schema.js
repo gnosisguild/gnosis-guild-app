@@ -33,8 +33,6 @@ execP(`idx schema:publish ${did} '${escapedContributorsCSVSchema}'`)
     console.error(err);
   });
 
-//ceramic://k3y52l7qbv1frxli9be7tgqhymexl50ah5xgdfkltu2skoqrjpp4kgat5v9qif9q8
-
 execP(`idx schema:publish ${did} '${escapedGuildCSVMappingSchema}'`)
   .then(resp => {
     console.log("Guild to CSV mapping");

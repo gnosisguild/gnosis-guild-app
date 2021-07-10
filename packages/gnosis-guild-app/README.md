@@ -1,51 +1,105 @@
-# My Safe App
+# Gnosis Guild Safe App
 
-## Getting Started
+An application with two user profiles a guild contributor and guild owner. One can think of a guild as a method for a content creating organization to receive recurring revenue. The guild owner side of the application is a safe app that allows members of a Gnosis safe to create a guild. This guild will allow contributors to learn a little about the guild and contribute via the Gnosis CPK on a 30 day interval. The contributor form is not a safe app, but a standard React app.
 
-Install dependencies and start a local dev server.
+// Blurb
+
+## Installation
+
+Run the following commmand:
 
 ```
 yarn install
-cp .env.sample .env
-yarn start
 ```
 
-Then:
+## Getting Started
 
-- If HTTPS is used (by default enabled)
-  - Open your Safe app locally (by default via https://localhost:3000/) and accept the SSL error.
-- Go to Safe Multisig web interface
-  - [Mainnet](https://app.gnosis-safe.io)
-  - [Rinkeby](https://rinkeby.gnosis-safe.io/app)
-- Create your test safe
-- Go to Apps -> Manage Apps -> Add Custom App
-- Paste your localhost URL, default is https://localhost:3000/
-- You should see Safe App Starter as a new app
-- Develop your app from there
+### Local Development
 
-## Features
+When developing locally there are two pieces that need to be set up the react app and the express server. Both of these can be set up with the below commands.
 
-Gnosis Safe App Starter combines recommendations described in the following repositories:
-
-- [Safe Apps SDK](https://github.com/gnosis/safe-apps-sdk)
-- [safe-react-components](https://github.com/gnosis/safe-react-components)
-
-You can use the `useSafe` React hook to interact with the Safe Apps SDK
+React app:
 
 ```
-const safe = useSafe();
-console.log(safe.info);
+npm run start
 ```
 
-Safe React Components are also integrated and ready to use. [See all components](https://components.gnosis-safe.io/).
+Express
 
-## Dependencies
+```
+npm run serve-dev
+```
 
-### Included
-- [`@gnosis.pm/safe-react-components`](https://github.com/gnosis/safe-react-components) (UI components themed for the Safe Multisig interface)
-- [`@rmeissner/safe-apps-react-sdk`](https://github.com/rmeissner/safe-sdks-js/tree/master/safe-apps-react-sdk) (React hook for the Safe Apps SDK)
+### Production Deployment
 
-### Recommended
-- [`ethers`](https://github.com/ethers-io/ethers.js) (Library for interacting with Ethereum)
-- [`web3`](https://github.com/ethereum/web3.js/) (Library for interacting with Ethereum)
-- [`@studydefi/money-legos`](https://github.com/studydefi/money-legos) (Library for DeFi interactions)
+We provided a Dockerfile for deployment purposes. We recommend modifying the Dockerfile to a two step build if it will be used in a production setting. Building the app outside of Docker we recommend the below commands.
+
+```
+yarn run serve
+```
+
+### Env vars
+
+#### Client Environment variables
+
+REACT_APP_INFURA_ID - The infura client id for the guild app
+REACT_APP_API_HOST - The server uri
+REACT_APP_DOMAIN - The url of the app
+REACT_APP_USE_CPK - Whether to use the CPK or not
+
+#### Server Environment variables
+
+NFT_STORAGE - The api key for nft.storage
+SERVER_PORT - port the server listens to
+SCHEMA_DID - local did used generate ceramic schemas
+NODE_WALLET_SEED - byte array used for the wallet seed needed to read the encrypted user data and generated with the below code.
+
+```
+const random = require('@stablelib/random')
+var seed = random.randomBytes(32)
+```
+
+### Components
+
+#### Server
+
+The server is an express app, uses NFT storage to store the guild metadata, and Ceramic in order to fetch the created guild CSV. The Ceramic document is a mapping of guild id to csv cid, and is created in the contributor-list-job. More information can be found there. TODO: link to document
+
+#### React App
+
+There are 4 main pages to the React App.
+
+1. Guild App page
+
+- This page holds all the safe app views, handles createing, updating, deleteing a guild, and downloading a guilds contributor CSV.
+
+1. Guild Landing Page
+
+- The landing page for a contributor to conbtribute to the guild
+
+1. Contributor page
+
+- A page for a contributor to contribute, and cancel their contribution
+
+1. Contributor Link Page
+
+- Holds the same functionality as the contributor page, but is meant to be wrapped in an Iframe and thus has a slightly different layout.
+
+## Commands
+
+**yarn run start**: Start the React app
+**yarn run build**: Create optimized static files for the React app
+**serve-dev**: Start the Express server
+**serve**: Build and then start the Express server
+**lint**: Lint the app
+**deploy-schema**: Run the schema deploy script script which will log the ceramic uri and add them to the Ceramic network
+
+## Generating Ceramic Schemas
+
+1. Install the [idx cli](https://www.npmjs.com/package/@ceramicstudio/idx-cli)
+1. Create a did `idx did:create`
+1. Create idx definition
+   - Command: `idx definition:cerate`
+     Example
+   - `idx definition:create did:key:z6MkvVDYv8tb sHt71thPou827LLnHGjgjtMQSeUUBRE6pYAD --schema="ceramic://k3y52l7qbv1fry10q0pvzj8rw tiwik6jrla51zyn1whgnz1s5sf2rs05gupuqoagw" --name="contributorProfile" --descriptio n="Profile for contributing to Gnosis guilds"`
+1. Update definition did aliases in the application
