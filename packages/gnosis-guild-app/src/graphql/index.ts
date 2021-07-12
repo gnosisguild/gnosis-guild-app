@@ -185,7 +185,7 @@ export const fetchSubscriberByGuild = async (
 
   const network = getNetworkByChainId(chainId);
   const resp = await request(network.subgraphUrl, fetchGuildQuery, {
-    date: Date.now().toString().substr(0, 10),
+    date: (Date.now() / 1000).toFixed(0).toString(),
     guild: guildId,
     owner: subscriberAddress,
   }).catch((e) => {

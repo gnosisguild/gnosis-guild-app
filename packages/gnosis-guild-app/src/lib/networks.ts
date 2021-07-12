@@ -19,7 +19,7 @@ type Networks = {
 
 const Default = {
   name: "Rinkeby",
-  guildFactory: "0xFa3BC3824207cC1e143a63D3F846402659B45fea",
+  guildFactory: "0xAB3C53733e1a591AC9BA78660dD09e8DE54243a2",
   daiToken: "0x15f0ca26781c3852f8166ed2ebce5d18265cceb7",
   subgraphUrl:
     "https://api.thegraph.com/subgraphs/name/santteegt/gnosis-guild-app-rinkeby",
@@ -30,7 +30,7 @@ const Default = {
 };
 
 const networks: Networks = {
-  1: {
+  0x1: {
     name: "Mainnet",
     guildFactory: "",
     daiToken: "",
@@ -40,9 +40,9 @@ const networks: Networks = {
       allowanceModule: "0xCFbFaC74C26F8647cBDb8c5caf80BB5b32E43134",
     },
   },
-  4: {
+  0x4: {
     name: "Rinkeby",
-    guildFactory: "0xFa3BC3824207cC1e143a63D3F846402659B45fea",
+    guildFactory: "0xAB3C53733e1a591AC9BA78660dD09e8DE54243a2",
     daiToken: "0x15f0ca26781c3852f8166ed2ebce5d18265cceb7",
     subgraphUrl:
       "https://api.thegraph.com/subgraphs/name/santteegt/gnosis-guild-app-rinkeby",
@@ -54,7 +54,7 @@ const networks: Networks = {
 };
 
 export const getNetworkByChainId = (chainId: number): Network => {
-  const network = networks[chainId];
+  const network = networks[parseInt(chainId.toString(), 16)];
   return network || Default;
 };
 
