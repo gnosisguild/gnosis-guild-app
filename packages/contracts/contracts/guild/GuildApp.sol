@@ -10,9 +10,12 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 
+import "../interfaces/IAllowanceModule.sol";
+import "../interfaces/IGnosisSafe.sol";
 import "../interfaces/IGuild.sol";
+import "../utils/SignatureDecoder.sol";
 
-contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
+contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecoder, IGuild {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint256;
@@ -33,6 +36,8 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
     mapping(address => Subscription) public subscriptionByOwner;
 
     mapping(address => EnumerableSetUpgradeable.AddressSet) private _approvedTokens;
+
+    address private _allowanceModule;
 
     uint256 private _nextId;
 
@@ -64,7 +69,8 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
                                        string memory _metadataCID,
                                        address _tokenAddress,
                                        uint256 _subPrice,
-                                       uint256 _subscriptionPeriod
+                                       uint256 _subscriptionPeriod,
+                                       address allowanceModule
                                        ) internal initializer {
         require(
             _tokenAddress == address(0) ||
@@ -80,6 +86,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         _setBaseURI(baseURI);
         _setupRole(DEFAULT_ADMIN_ROLE, _creator);
         _nextId = 0;
+        _allowanceModule = allowanceModule;
         initialized = true;
     }
 
@@ -87,11 +94,18 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
                         address _tokenAddress,
                         uint256 _subPrice,
                         uint256 _subscriptionPeriod,
-                        GuildMetadata memory _metadata
+                        GuildMetadata memory _metadata,
+                        address allowanceModule
                         ) public override initializer {
         __AccessControl_init();
         __ERC721_init(_metadata.name, _metadata.symbol);
-        __GuildApp_init_unchained(_creator, _metadata.baseURI, _metadata.metadataCID, _tokenAddress, _subPrice, _subscriptionPeriod);
+        __GuildApp_init_unchained(_creator,
+                                  _metadata.baseURI,
+                                  _metadata.metadataCID,
+                                  _tokenAddress,
+                                  _subPrice,
+                                  _subscriptionPeriod,
+                                  allowanceModule);
         emit InitializedGuild(_creator, _tokenAddress, _subPrice, _subscriptionPeriod, _metadata);
     }
 
@@ -118,12 +132,30 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         emit SubscriptionPriceChanged(tokenAddress, subPrice);
     }
 
+    function _validateSignature(address _safeAddress, bytes32 _transferhash, bytes memory _data) internal view {
+        // Validate signature belongs to a Safe owner
+        GnosisSafe safe = GnosisSafe(_safeAddress);
+        (uint8 v, bytes32 r, bytes32 s) = signatureSplit(_data, 0);
+        address safeOwner;
+
+        if (v > 30) {
+            // To support eth_sign and similar we adjust v and hash the messageHash with the Ethereum message prefix before applying ecrecover
+            safeOwner = ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _transferhash)), v - 4, r, s);
+        } else {
+            // Use ecrecover with the messageHash for EOA signatures
+            safeOwner = ecrecover(_transferhash, v, r, s);
+        }
+        require(safe.isOwner(safeOwner), "GuildApp: Signer is not a safe owner");
+    }
+
     function subscribe(string memory _tokenURI, uint256 _value, bytes memory _data) public payable override onlyIfActive {
         address subscriber = _msgSender();
         uint256 value = tokenAddress != address(0) ? _value : msg.value;
         require(value >= subPrice, "GuildApp: Insufficient value sent");
         Subscription storage subs = subscriptionByOwner[subscriber];
+        bool newSubscription = false;
         if (subs.tokenId == 0) {
+            newSubscription = true;
             _nextId = _nextId.add(1);
             subs.tokenId = _nextId;
             _safeMint(subscriber, subs.tokenId);
@@ -140,7 +172,36 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         if (tokenAddress != address(0) && _data.length == 0) {
             IERC20Upgradeable(tokenAddress).safeTransferFrom(subscriber, address(this), value);
         } else {
-            // TODO: use gnosis recurring allowance
+            require(_allowanceModule != address(0), "GuildApp: Guild does not support Safe Allowances");
+            IAllowanceModule safeModule = IAllowanceModule(_allowanceModule);
+            uint256[5] memory allowance = safeModule.getTokenAllowance(subscriber, address(this), tokenAddress);
+            // allowance.amout - allowance.spent
+            require(allowance[0] - allowance[1] >= value, "GuildApp: Not enough allowance");
+
+            // TODO: Pre-validate if sent by a safe owner. Current issue is related to changing nonce on subsequent transactions
+            // Current solution: only validate on new subscription
+            if (newSubscription) {
+                bytes32 transferHash = safeModule.generateTransferHash(subscriber, // MUST be a safe
+                                                                       tokenAddress,
+                                                                       address(this), // to
+                                                                       uint96(value), // value
+                                                                       address(0), // paymentToken
+                                                                       0, // payment
+                                                                       uint16(allowance[4]) // nonce
+                                                                       );
+                _validateSignature(subscriber, transferHash, _data);
+            }
+
+            safeModule.executeAllowanceTransfer(
+                subscriber, // MUST be a safe
+                tokenAddress,
+                payable(this), // to
+                uint96(value),
+                address(0), // payment token
+                0, // payment
+                address(this), // delegate
+                "" // bypass signature check as contract signatures are not supported by the module
+            );
         }
     }
 
@@ -202,7 +263,10 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         metadataCID = _metadataCID;
         emit UpdatedMetadata(getMetadata());
     }
-    
+
+    receive() external payable {
+
+    }
 
     uint256[50] private __gap;
 

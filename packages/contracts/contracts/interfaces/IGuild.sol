@@ -19,7 +19,8 @@ interface IGuild is IERC721Upgradeable {
                         address _tokenAddress,
                         uint256 _subPrice,
                         uint256 _subscriptionPeriod,
-                        GuildMetadata calldata _metadata
+                        GuildMetadata calldata _metadata,
+                        address allowanceModule
                         ) external;
 
     function pauseGuild(bool pause) external;

@@ -49,6 +49,11 @@ type SafetGuild = {
     arg3: string,
     arg4: string
   ) => Promise<ethers.providers.TransactionResponse | null>;
+  unsubscribe: (
+    keyId: string,
+    guildAddress: string,
+    ethersProvider: ethers.providers.Web3Provider
+  ) => Promise<ethers.providers.TransactionResponse | null>;
   fetchMetadata: (arg0: string, arg1: string) => Promise<GuildMetadata>;
   updateMetadataCid: (
     arg0: GuildMetadata,
@@ -95,6 +100,7 @@ export const useGuild = (): SafetGuild => {
     fundProxy,
     getProxyBalance,
     setupCPKModules,
+    encodeAllowanceModuleCall,
     signTransfer,
     submitCPKTx,
   } = useWeb3Context();
@@ -157,6 +163,7 @@ export const useGuild = (): SafetGuild => {
         ethers.utils.parseEther(guildInfo.amount),
         subscriptionTime,
         [guildInfo.name, `GUILD${count}`, "https://ipfs.io/ipfs/", metadataCid],
+        network.gnosisConfig.allowanceModule,
       ];
       console.log("FunctionArgs");
       console.log(functionArgs);
@@ -359,10 +366,10 @@ export const useGuild = (): SafetGuild => {
       // const cpkModuleTxs = !subscription ? await setupCPKModules(guildToken, bnValue.toString()) : [];
       const cpkModuleTxs = await setupCPKModules(
         guildToken,
-        bnValue.toString()
+        bnValue.toString(),
+        guildAddress // delegate Contract
       );
       // TODO: Should store the signature for the contribution of the current period
-      // TODO: delegate signature should be from Guild contract
       const transferSignature = await signTransfer(
         guildAddress,
         guildToken,
@@ -373,7 +380,7 @@ export const useGuild = (): SafetGuild => {
       const tx = await submitCPKTx([
         ...cpkModuleTxs,
         {
-          // operation: 0, // TODO: CPK.Call by default
+          // operation: 0, // CPK.Call by default
           to: guildAddress,
           value:
             guildToken === ethers.constants.AddressZero
@@ -403,11 +410,42 @@ export const useGuild = (): SafetGuild => {
     return tx;
   };
 
+  const unsubscribe = async (
+    keyId: string,
+    guildAddress: string,
+    ethersProvider: ethers.providers.Web3Provider
+  ): Promise<ethers.providers.TransactionResponse | null> => {
+    const guildContract = new Contract(
+      guildAddress,
+      GuildAppABI,
+      ethersProvider.getSigner()
+    );
+
+    if (cpk) {
+      const tx = await submitCPKTx([
+        ...encodeAllowanceModuleCall("removeDelegate", [guildAddress, "1"]),
+        {
+          // operation: 0, // CPK.Call by default
+          to: guildAddress,
+          value: "0",
+          data: guildContract.interface.encodeFunctionData("unsubscribe", [
+            keyId,
+          ]),
+        },
+      ]);
+      return tx;
+    }
+
+    const tx = await guildContract.unsubscribe(keyId);
+    return tx;
+  };
+
   return {
     createGuild,
     deactivateGuild,
     fetchGuildTokens,
     subscribe,
+    unsubscribe,
     fetchMetadata,
     updateMetadataCid,
   };
