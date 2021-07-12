@@ -85,6 +85,7 @@ export const useContribute = (): Contribution => {
         preventDuplicate: true,
         variant: "error",
       });
+      return;
     }
     console.log("Saving Contributor");
     console.log(contributorName);
