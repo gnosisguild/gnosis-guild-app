@@ -689,6 +689,11 @@
                 "internalType": "struct IGuild.GuildMetadata",
                 "name": "_metadata",
                 "type": "tuple"
+            },
+            {
+                "internalType": "address",
+                "name": "allowanceModule",
+                "type": "address"
             }
         ],
         "name": "initialize",
@@ -1215,5 +1220,9 @@
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
+    },
+    {
+        "stateMutability": "payable",
+        "type": "receive"
     }
 ]

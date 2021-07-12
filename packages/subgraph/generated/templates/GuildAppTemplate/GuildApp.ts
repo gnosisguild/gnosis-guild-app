@@ -1155,6 +1155,10 @@ export class InitializeCall__Inputs {
   get _metadata(): InitializeCall_metadataStruct {
     return this._call.inputValues[4].value.toTuple() as InitializeCall_metadataStruct;
   }
+
+  get allowanceModule(): Address {
+    return this._call.inputValues[5].value.toAddress();
+  }
 }
 
 export class InitializeCall__Outputs {

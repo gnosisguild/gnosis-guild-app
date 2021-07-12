@@ -29,8 +29,13 @@ export type Web3ContextValue = {
   fundProxy: (tokenAddress: string, value: string) => Promise<void>;
   setupCPKModules: (
     tokenAddress: string,
-    deposit: string
+    deposit: string,
+    delegateContract: string
   ) => Promise<Array<Transaction>>;
+  encodeAllowanceModuleCall(
+    functionName: string,
+    args: Array<string>
+  ): Array<Transaction>;
   signTransfer: (
     guildAddress: string,
     tokenAddress: string,
@@ -69,7 +74,20 @@ const initialWeb3Context = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   fundProxy: async (tokenAddress: string, value: string) => {},
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setupCPKModules: async (tokenAddress: string, deposit: string) => [],
+  setupCPKModules: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    tokenAddress: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    deposit: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    delegateContract: string
+  ) => [],
+  encodeAllowanceModuleCall: (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    functionName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    args: Array<string>
+  ) => [],
   signTransfer: async (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     guildAddress: string,
@@ -283,7 +301,8 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 
   const setupCPKModules = async (
     tokenAddress: string,
-    deposit: string
+    deposit: string,
+    delegateContract: string
   ): Promise<Array<Transaction>> => {
     if (!ethersProvider || !cpk) {
       throw new Error("Provider is not setup!");
@@ -320,8 +339,8 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         : (await cpk.getModules()).includes(gnosisConfig.allowanceModule));
     console.log("hasAllowanceModule", hasAllowanceModule);
 
-    // TODO: change delegate to Guild Contract
-    const delegate = await signer.getAddress();
+    // Delegate MUST be a GuildApp contract
+    const delegate = delegateContract;
 
     console.log("STEP: 2: Check if owner is a delegate");
     const allowanceModule = new ethers.Contract(
@@ -389,6 +408,33 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     console.log("Txs to be included", txs.length, txs);
 
     return txs;
+  };
+
+  const encodeAllowanceModuleCall = (
+    functionName: string,
+    args: Array<string>
+  ): Array<Transaction> => {
+    if (!ethersProvider || !cpk) {
+      throw new Error("Provider is not setup!");
+    }
+
+    const { gnosisConfig } = getNetworkByChainId(providerChainId);
+    const signer = ethersProvider.getSigner();
+
+    const allowanceModule = new ethers.Contract(
+      gnosisConfig.allowanceModule,
+      AllowanceModuleAbi,
+      signer
+    );
+
+    return [
+      {
+        // operation: 0, // CPK.Call by default
+        to: allowanceModule.address,
+        value: "0",
+        data: allowanceModule.interface.encodeFunctionData(functionName, args),
+      },
+    ];
   };
 
   const signTransfer = async (
@@ -501,6 +547,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     getProxyBalance,
     fundProxy,
     setupCPKModules,
+    encodeAllowanceModuleCall,
     signTransfer,
     submitCPKTx,
     ethersProvider,
