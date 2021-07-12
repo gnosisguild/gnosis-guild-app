@@ -17,7 +17,7 @@ type Subscriber = {
 };
 
 export const useSubscriber = (): Subscriber => {
-  const { providerChainId, account } = useWeb3Context();
+  const { account, /*cpk,*/ providerChainId } = useWeb3Context();
   const { guildId } = useParams<{ guildId: string }>();
   const { subscribed, setSubscribed, subscriber, setSubscriber } =
     useContributorContext();
@@ -29,11 +29,12 @@ export const useSubscriber = (): Subscriber => {
     if (!guildId || !providerChainId || !account) {
       return;
     }
+    // TODO: should subscriber be the CPK or the owner?
+    // const subscriberAddress = cpk?.address || account;
+    const subscriberAddress = account;
     const subscribers = await fetchSubscriberByGuild(
       guildId,
-      // TODO: should subscriber be the CPK or the owner?
-      // cpk?.address || account,
-      account,
+      subscriberAddress.toLowerCase(),
       providerChainId
     );
     if (!subscribers) {

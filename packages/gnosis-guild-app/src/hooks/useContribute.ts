@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { BigNumber, Contract, utils, providers } from "ethers";
+import { BigNumber, utils } from "ethers";
 import { useWeb3Context } from "../context/Web3Context";
 import { useContributorContext } from "../context/ContributorContext";
 
 import { useGuild } from "./useGuild";
 import { useContributorProfile } from "./useContributorProfile";
 import { useSubscriber } from "./useSubscriber";
-import GuildAppABI from "../contracts/GuildApp.json";
 import { fetchGuild } from "../graphql";
 
 type Contribution = {
@@ -21,7 +20,6 @@ type Contribution = {
   contributeText: string;
   contributeLoading: boolean;
   setContributeLoading: (arg0: boolean) => void;
-  unsubscribe: (arg0: string) => Promise<providers.TransactionResponse>;
   modalFooter: string;
 };
 
@@ -38,7 +36,7 @@ export const useContribute = (): Contribution => {
     getBalanceOf,
   } = useWeb3Context();
   const { name, email, guildMinimumAmount } = useContributorContext();
-  const { subscribe } = useGuild();
+  const { subscribe, unsubscribe } = useGuild();
   const { guildId } = useParams<{ guildId: string }>();
   const { saveContributorProfile } = useContributorProfile();
   const { subscriber } = useSubscriber();
@@ -77,29 +75,14 @@ export const useContribute = (): Contribution => {
       if (tx) {
         await tx.wait();
       }
+      console.log("Saving Contributor");
+      console.log(contributorName);
+      console.log(contributorEmail);
+      await saveContributorProfile(contributorName, contributorEmail);
+      setContributeLoading(false);
     } catch (error) {
       // TODO: Show an pop-up error
     }
-    console.log("Saving Contributor");
-    console.log(contributorName);
-    console.log(contributorEmail);
-    await saveContributorProfile(contributorName, contributorEmail);
-    setContributeLoading(false);
-  };
-
-  const unsubscribe = async (guildAddress: string) => {
-    if (!ethersProvider) {
-      return;
-    }
-    const guildContract = new Contract(
-      guildAddress,
-      GuildAppABI,
-      ethersProvider.getSigner()
-    );
-    const tx = await guildContract
-      .unsubscribe(subscriber.keyId)
-      .catch((err: Error) => console.error(err));
-    return tx;
   };
 
   const submitContributionTx = async () => {
@@ -135,17 +118,24 @@ export const useContribute = (): Contribution => {
   };
 
   const unsubscribeTx = async () => {
+    if (!ethersProvider) {
+      return;
+    }
     setModalFooter("Cancelling Subscription...");
     setContributeLoading(true);
-    const tx = await unsubscribe(guildMetadata.id);
-    setContributeLoading(true);
+    const tx = await unsubscribe(
+      subscriber.keyId.toString(),
+      guildMetadata.id,
+      ethersProvider
+    );
+
     if (tx) {
       await tx.wait();
     }
 
     setContributeLoading(false);
     setSubscribed(false);
-    await setSubscriber();
+    setSubscriber();
   };
   const loadingText = subscribed
     ? "Cancelling Contribution..."
@@ -160,7 +150,6 @@ export const useContribute = (): Contribution => {
     contributeText,
     contributeLoading,
     setContributeLoading,
-    unsubscribe,
     modalFooter,
   };
 };

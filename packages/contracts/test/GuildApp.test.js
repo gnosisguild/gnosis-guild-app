@@ -65,6 +65,7 @@ describe("GuildApp", () => {
         const guildName = "Alice Guild";
         const guildSymbol = `GUILD${nextGuildId})`;
         const metadataCID = "dummyMetadataHash"; // IPFS Content Hash from JSON metadata following Opensea standard
+        const allowanceModule = ethers.constants.AddressZero; // TODO: add more tests using allowance Module
         const initData = (
             await guildAppTemplate.connect(alice).populateTransaction.initialize(
                 alice.address,
@@ -76,7 +77,8 @@ describe("GuildApp", () => {
                     guildSymbol,
                     NFT_BASE_URI,
                     metadataCID,
-                ]
+                ],
+                allowanceModule,
             )
         ).data;
         const rs = await factory.functions['createGuild(bytes)'](initData);
