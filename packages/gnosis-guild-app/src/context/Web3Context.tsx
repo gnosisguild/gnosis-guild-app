@@ -198,7 +198,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     if (!account) {
       return "";
     }
-    const ceramic = new Ceramic("https://ceramic-clay.3boxlabs.com");
+    const ceramic = new Ceramic(process.env.REACT_APP_CERAMIC_URL);
 
     const threeIdProvider = await get3IdProvider();
 
