@@ -103,3 +103,5 @@ There are 4 main pages to the React App.
      Example
    - `idx definition:create did:key:z6MkvVDYv8tb sHt71thPou827LLnHGjgjtMQSeUUBRE6pYAD --schema="ceramic://k3y52l7qbv1fry10q0pvzj8rw tiwik6jrla51zyn1whgnz1s5sf2rs05gupuqoagw" --name="contributorProfile" --descriptio n="Profile for contributing to Gnosis guilds"`
 1. Update definition did aliases in the application
+
+## Adding a network
