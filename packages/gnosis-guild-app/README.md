@@ -63,7 +63,7 @@ var seed = random.randomBytes(32)
 
 #### Server
 
-The server is an express app, uses NFT storage to store the guild metadata, and Ceramic in order to fetch the created guild CSV. The Ceramic document is a mapping of guild id to csv cid, and is created in the contributor-list-job. More information can be found there. TODO: link to document
+The server is an express app, uses NFT storage to store the guild metadata, and Ceramic in order to fetch the created guild CSV. The Ceramic document is a mapping of guild id to csv cid, and is created in the [contributor-list-job](./packages/contributor-list-job). More information can be found there.
 
 #### React App
 

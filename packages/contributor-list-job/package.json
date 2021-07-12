@@ -1,7 +1,7 @@
 {
   "name": "contributor-list-job",
   "version": "1.0.0",
-  "description": "> TODO: description",
+  "description": "A job to build a contributor CSV per guild",
   "author": "Alexander Keating <keating.dev@protonmail.com>",
   "homepage": "https://github.com/raid-guild/gnosis-guild-app#readme",
   "license": "ISC",

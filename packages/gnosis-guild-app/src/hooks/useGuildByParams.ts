@@ -35,7 +35,7 @@ export const useGuildByParams = (): Guild => {
 
   useEffect(() => {
     const _fetchGuild = async () => {
-      const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
+      const meta = await fetchGuild(guildId, providerChainId || 4);
       if (meta) {
         setGuildActive(meta.active);
         let metadata = {
@@ -82,7 +82,6 @@ export const useGuildByParams = (): Guild => {
         setGuildMetadata(data);
         setGuild(data);
       }
-      // TODO: Redirect to 404 if data is missing
       setLoading(false);
     };
     _fetchGuild();

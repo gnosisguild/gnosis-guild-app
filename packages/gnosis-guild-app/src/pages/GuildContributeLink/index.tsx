@@ -66,7 +66,6 @@ const GuildLogoSmall = styled(GuildLogo)`
   }
 `;
 
-// TODO: Abstract out GuildContribute and reuse here
 const GuildContributeLink: React.FC = () => {
   const { connectToWeb3, account, authenticateCeramic } = useWeb3Context();
   const contractGuild = useGuildContext();

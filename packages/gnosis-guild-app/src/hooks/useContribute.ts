@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { BigNumber, Contract, utils, providers } from "ethers";
+import { useSnackbar } from "notistack";
 import { useWeb3Context } from "../context/Web3Context";
 import { useContributorContext } from "../context/ContributorContext";
 
@@ -43,10 +44,11 @@ export const useContribute = (): Contribution => {
   const { saveContributorProfile } = useContributorProfile();
   const { subscriber } = useSubscriber();
   const [guildMetadata, setGuildMetadata] = useState<any>();
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     const _fetchGuild = async () => {
-      const meta = await fetchGuild(guildId, providerChainId || 4); // TODO: fetch default Network
+      const meta = await fetchGuild(guildId, providerChainId || 4);
       if (meta) {
         setGuildMetadata(meta);
       }
@@ -78,7 +80,11 @@ export const useContribute = (): Contribution => {
         await tx.wait();
       }
     } catch (error) {
-      // TODO: Show an pop-up error
+      enqueueSnackbar("Failed to contribute to guild", {
+        anchorOrigin: { horizontal: "right", vertical: "top" },
+        preventDuplicate: true,
+        variant: "error",
+      });
     }
     console.log("Saving Contributor");
     console.log(contributorName);
@@ -117,7 +123,12 @@ export const useContribute = (): Contribution => {
     const balance = await getBalanceOf(account, guildMetadata.tokenAddress);
 
     if (balance.lt(bnValue) && cpk?.address && proxyBalance.lt(bnValue)) {
-      // TODO: popup error
+      enqueueSnackbar("Tx Failed. Not Enough Balance!", {
+        anchorOrigin: { horizontal: "right", vertical: "top" },
+        preventDuplicate: true,
+        variant: "error",
+      });
+
       console.error("Not Enough balance");
       setModalFooter("Tx Failed. Not Enough Balance!");
       return;

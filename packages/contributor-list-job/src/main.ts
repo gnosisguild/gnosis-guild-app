@@ -33,8 +33,6 @@ type LastRun = {
   lastContributorID: string;
 };
 
-// TODO: Move to a separate package
-const BATCH_SIZE = 100;
 const SUBGRAPH_URL = process.env.SUBGRAPH_URL;
 let lastGuildID = "";
 let lastContributorID = "";
@@ -65,7 +63,6 @@ const fetchGuilds = async () => {
 const fetchContributors = async (
   guild: string
 ): Promise<Array<Contributor>> => {
-  // TODO: Should expires be same day
   const fetchContributors = graphqlRequest.gql`
 	    query getContributors($lastID: String, $date: String, $guild: String) {
 				guildSubscriptions(first: ${BATCH_SIZE}, where: { id_gt: $lastID, expires_gte: $date, guild: $guild, active: true }) {
