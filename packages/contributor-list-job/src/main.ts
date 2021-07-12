@@ -94,7 +94,7 @@ const fetchContributors = async (
 };
 
 const setupCeramic = async () => {
-  const ceramic = new Ceramic("https://ceramic-clay.3boxlabs.com");
+  const ceramic = new Ceramic(process.env.CERAMIC_URL);
   const resolver = {
     ...KeyDidResolver.getResolver(),
     ...ThreeIdResolver.getResolver(ceramic),
@@ -117,7 +117,7 @@ const setupCeramic = async () => {
 const ethAddressToDID = async (address: string, ceramic: CeramicClient) => {
   const link = await Caip10Link.fromAccount(
     ceramic,
-    ethers.utils.getAddress(address) + "@eip155:4"
+    ethers.utils.getAddress(address) + `@eip155:${process.env.NETWORK_ID}`
   );
   return link.did;
 };
@@ -230,7 +230,7 @@ const main = async () => {
       );
       await ceramic.pin.add(record.id);
       const merged = await idx.merge("guildCSVMapping", {
-        [guild.id]: record.id.toString(),
+        [`${guild.id}:${process.env.NETWORK_ID}`]: record.id.toString(),
       });
       await ceramic.pin.add(merged);
     }
