@@ -2,9 +2,10 @@
 
 ## Packages
 
-|name| readme |
-|gnosis-guild-app| [link]('./packages/gnosis-guild-app/README.md')
-|contributor-list-job| [link](./packages/contributor-list-job/README.md)
+| name                 | readme                                            |
+| -------------------- | ------------------------------------------------- |
+| gnosis-guild-app     | [link]('./packages/gnosis-guild-app/README.md')   |
+| contributor-list-job | [link](./packages/contributor-list-job/README.md) |
 
 ## Installation
 

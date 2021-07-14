@@ -24,8 +24,8 @@ This job is scoped per chain. Multiple versions of this job will need to be depl
 
 ## Environment Variables
 
-SUBGRAPH_URL - the url to the chains specific subgraph
-NODE_WALLET_SEED - A wallet seed that should match the wallet seed in the express server.
+SUBGRAPH_URL: the url to the chains specific subgraph
+NODE_WALLET_SEED: A wallet seed that should match the wallet seed in the express server.
 
 ## Schema Updates
 

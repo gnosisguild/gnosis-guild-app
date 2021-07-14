@@ -22,7 +22,7 @@ React app:
 npm run start
 ```
 
-Express
+Express:
 
 ```
 npm run serve-dev
@@ -40,18 +40,18 @@ yarn run serve
 
 #### Client Environment variables
 
-REACT_APP_INFURA_ID - The infura client id for the guild app
-REACT_APP_API_HOST - The server uri
-REACT_APP_DOMAIN - The url of the app
-REACT_APP_USE_CPK - Whether to use the CPK or not
-REACT_APP_CERAMIC_URL - URL of ceramic netwrork to use, used in both the client and server
+REACT_APP_INFURA_ID: The infura client id for the guild app
+REACT_APP_API_HOST: The server uri
+REACT_APP_DOMAIN: The url of the app
+REACT_APP_USE_CPK: Whether to use the CPK or not
+REACT_APP_CERAMIC_URL: URL of ceramic netwrork to use, used in both the client and server
 
 #### Server Environment variables
 
-NFT_STORAGE - The api key for nft.storage
-SERVER_PORT - port the server listens to
-SCHEMA_DID - local did used generate ceramic schemas
-NODE_WALLET_SEED - byte array used for the wallet seed needed to read the encrypted user data and generated with the below code.
+NFT_STORAGE: The api key for nft.storage
+SERVER_PORT: port the server listens to
+SCHEMA_DID: local did used generate ceramic schemas
+NODE_WALLET_SEED: byte array used for the wallet seed needed to read the encrypted user data and generated with the below code.
 
 ```
 const random = require('@stablelib/random')
@@ -62,16 +62,14 @@ var seed = random.randomBytes(32)
 
 #### Server
 
-The server is an express app, uses NFT storage to store the guild metadata, and Ceramic in order to fetch the created guild CSV. The Ceramic document is a mapping of guild id to csv cid, and is created in the [contributor-list-job](./packages/contributor-list-job). More information can be found there.
+The server is an express app, uses NFT storage to store the guild metadata, and Ceramic in order to fetch the created guild CSV. The Ceramic document is a mapping of guild id to csv cid, and is created in the [contributor-list-job](./packages/contributor-list-job/README.md). More information can be found there.
 
 #### React App
 
 There are 4 main pages to the React App.
 
 1. Guild App page
-
-- This page holds all the safe app views, handles creating, updating, deleting a guild, and downloading a guilds contributor CSV.
-
+   - This page holds all the safe app views, handles creating, updating, deleting a guild, and downloading a guilds contributor CSV.
 1. Guild Landing Page
    - The landing page for a contributor to contribute to the guild.
 1. Contributor page
