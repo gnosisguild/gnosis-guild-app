@@ -33,6 +33,7 @@ type LastRun = {
   lastContributorID: string;
 };
 
+const BATCH_SIZE = 100;
 const SUBGRAPH_URL = process.env.SUBGRAPH_URL;
 let lastGuildID = "";
 let lastContributorID = "";

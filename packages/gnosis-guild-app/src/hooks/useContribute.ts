@@ -81,6 +81,8 @@ export const useContribute = (): Contribution => {
       console.log(contributorName);
       console.log(contributorEmail);
       await saveContributorProfile(contributorName, contributorEmail);
+      setSubscribed(true);
+      await setSubscriber();
       setContributeLoading(false);
     } catch (error) {
       enqueueSnackbar("Failed to contribute to guild", {
@@ -89,6 +91,7 @@ export const useContribute = (): Contribution => {
         variant: "error",
       });
       return;
+      console.error("An error occurred while trying to subscribe", error);
     }
   };
 
@@ -125,8 +128,6 @@ export const useContribute = (): Contribution => {
       guildMinimumAmount
     );
     setContributeLoading(false);
-    setSubscribed(true);
-    await setSubscriber();
   };
 
   const unsubscribeTx = async () => {

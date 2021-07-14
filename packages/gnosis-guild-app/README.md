@@ -1,8 +1,6 @@
 # Gnosis Guild Safe App
 
-An application with two user profiles a guild contributor and guild owner. One can think of a guild as a method for a content creating organization to receive recurring revenue. The guild owner side of the application is a safe app that allows members of a Gnosis safe to create a guild. This guild will allow contributors to learn a little about the guild and contribute via the Gnosis CPK on a 30 day interval. The contributor form is not a safe app, but a standard React app.
-
-// Blurb
+An application with two user profiles a guild contributor and a guild owner. A guild is a method for a content creating organization to receive recurring revenue. The guild owner side of the application is a safe app that allows members of a Gnosis safe to create a guild. This guild will allow contributors to learn a little about the guild and contribute via the Gnosis CPK on a 30 day interval. The contributor form is not a safe app, but a standard React app.
 
 ## Installation
 
@@ -32,7 +30,7 @@ npm run serve-dev
 
 ### Production Deployment
 
-We provided a Dockerfile for deployment purposes. We recommend modifying the Dockerfile to a two step build if it will be used in a production setting. Building the app outside of Docker we recommend the below commands.
+We provided a Dockerfile for deployment purposes. We recommend modifying the Dockerfile to be a two step build if it will be used in a production setting. Building the app outside of Docker we recommend the below commands.
 
 ```
 yarn run serve
@@ -46,6 +44,7 @@ REACT_APP_INFURA_ID - The infura client id for the guild app
 REACT_APP_API_HOST - The server uri
 REACT_APP_DOMAIN - The url of the app
 REACT_APP_USE_CPK - Whether to use the CPK or not
+REACT_APP_CERAMIC_URL - URL of ceramic netwrork to use, used in both the client and server
 
 #### Server Environment variables
 
@@ -71,28 +70,23 @@ There are 4 main pages to the React App.
 
 1. Guild App page
 
-- This page holds all the safe app views, handles createing, updating, deleteing a guild, and downloading a guilds contributor CSV.
+- This page holds all the safe app views, handles creating, updating, deleting a guild, and downloading a guilds contributor CSV.
 
 1. Guild Landing Page
-
-- The landing page for a contributor to conbtribute to the guild
-
+   - The landing page for a contributor to contribute to the guild.
 1. Contributor page
-
-- A page for a contributor to contribute, and cancel their contribution
-
+   - A page for a contributor to contribute, and cancel their contribution.
 1. Contributor Link Page
-
-- Holds the same functionality as the contributor page, but is meant to be wrapped in an Iframe and thus has a slightly different layout.
+   - Holds the same functionality as the contributor page, but is meant to be wrapped in an Iframe and thus has a slightly different layout.
 
 ## Commands
 
-**yarn run start**: Start the React app
+**yarn run start**: Start the react app
 **yarn run build**: Create optimized static files for the React app
 **serve-dev**: Start the Express server
 **serve**: Build and then start the Express server
 **lint**: Lint the app
-**deploy-schema**: Run the schema deploy script script which will log the ceramic uri and add them to the Ceramic network
+**deploy-schema**: Run the schema deploy script which will log the ceramic uri and add them to the Ceramic network
 
 ## Generating Ceramic Schemas
 
@@ -100,8 +94,8 @@ There are 4 main pages to the React App.
 1. Create a did `idx did:create`
 1. Create idx definition
    - Command: `idx definition:cerate`
-     Example
-   - `idx definition:create did:key:z6MkvVDYv8tb sHt71thPou827LLnHGjgjtMQSeUUBRE6pYAD --schema="ceramic://k3y52l7qbv1fry10q0pvzj8rw tiwik6jrla51zyn1whgnz1s5sf2rs05gupuqoagw" --name="contributorProfile" --descriptio n="Profile for contributing to Gnosis guilds"`
+   - Example
+     - `idx definition:create did:key:z6MkvVDYv8tb sHt71thPou827LLnHGjgjtMQSeUUBRE6pYAD --schema="ceramic://k3y52l7qbv1fry10q0pvzj8rw tiwik6jrla51zyn1whgnz1s5sf2rs05gupuqoagw" --name="contributorProfile" --descriptio n="Profile for contributing to Gnosis guilds"`
 1. Update definition did aliases in the application
 
 ## Adding a network

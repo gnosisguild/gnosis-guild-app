@@ -12,7 +12,7 @@ type Subscriber = {
   currentMinimumAmount: string;
   id: string;
   subscriber: GraphSubscriber;
-  setSubscriber: () => void;
+  setSubscriber: () => Promise<void>;
   setSubscribed: (arg0: boolean) => void;
 };
 

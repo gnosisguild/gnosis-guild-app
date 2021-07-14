@@ -157,7 +157,7 @@ const GuildStats: React.FC = () => {
               {numTokens}
             </Text>
             <Text size="lg" strong>
-              ETH
+              {guildMetadata.currency}
             </Text>
           </CardContainer>
         </Card>
