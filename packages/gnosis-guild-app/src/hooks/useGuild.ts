@@ -358,19 +358,16 @@ export const useGuild = (): SafetGuild => {
       // Contribute using CPK proxy
       console.log("Using CPK");
       const balance = await getProxyBalance(guildToken);
+      console.log("STEP 0: Fund Proxy");
       if (balance.lt(bnValue)) {
-        console.log("STEP 0: Fund Proxy");
         // TODO: user should opt in to fund the proxy and specify the deposit value
         await fundProxy(guildToken, bnValue.toString());
       }
-      // TODO: Call only if subscribes for the 1st time
-      // const cpkModuleTxs = !subscription ? await setupCPKModules(guildToken, bnValue.toString()) : [];
       const cpkModuleTxs = await setupCPKModules(
         guildToken,
         bnValue.toString(),
         guildAddress // delegate Contract
       );
-      // TODO: Should store the signature for the contribution of the current period
       const transferSignature = await signTransfer(
         guildAddress,
         guildToken,
@@ -383,10 +380,7 @@ export const useGuild = (): SafetGuild => {
         {
           // operation: 0, // CPK.Call by default
           to: guildAddress,
-          value:
-            guildToken === ethers.constants.AddressZero
-              ? bnValue.toString()
-              : "0",
+          // value: "0",
           data: guildContract.interface.encodeFunctionData("subscribe", args),
         },
       ]);

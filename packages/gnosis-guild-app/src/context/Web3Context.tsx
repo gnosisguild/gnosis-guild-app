@@ -146,7 +146,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
 
         const signer = provider.getSigner();
         const gotAccount = await signer.getAddress();
-
         const isSafeApp = await web3Modal.isSafeApp();
         const ethLibAdapter = !isSafeApp
           ? new EthersAdapter({ ethers, signer })
@@ -155,7 +154,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
           process.env.REACT_APP_USE_CPK === "true" && ethLibAdapter
             ? await CPK.create({
                 ethLibAdapter,
-                ownerAccount: await signer.getAddress(),
+                ownerAccount: gotAccount,
               })
             : undefined;
         console.log("Use CPK?", process.env.REACT_APP_USE_CPK, cpkInstance);
@@ -270,7 +269,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     }
 
     if (tokenAddress === ethers.constants.AddressZero) {
-      const balance = await cpk.getBalance();
+      // TODO: This should be used after https://github.com/gnosis/contract-proxy-kit/pull/150 is merged
+      // const balance = await cpk.getBalance();
+      const balance = await (
+        cpk.ethLibAdapter as EthersAdapter
+      ).signer.provider.getBalance(cpk.address); // quick fix
       return balance.toString() === "NaN"
         ? BigNumber.from("0")
         : BigNumber.from(balance.toString());
@@ -289,14 +292,20 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     if (!ethersProvider || !cpk) {
       throw new Error("Provider is not setup!");
     }
+    const signer = ethersProvider.getSigner();
     if (tokenAddress === ethers.constants.AddressZero) {
+      const tx = await signer.sendTransaction({
+        to: cpk.address,
+        value: ethers.BigNumber.from(value),
+      });
+      console.log("Waiting for confirmation...");
+      await tx.wait(1);
       return;
     }
-    const signer = ethersProvider.getSigner();
     const erc20 = new ethers.Contract(tokenAddress, ERC20Abi, signer);
-    const rs = await erc20.transfer(cpk.address, value);
+    const tx = await erc20.transfer(cpk.address, value);
     console.log("Waiting for confirmation...");
-    await rs.wait(1);
+    await tx.wait(1);
   };
 
   const setupCPKModules = async (
@@ -524,11 +533,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         return cpkTxRs.transactionResponse as ethers.providers.TransactionResponse;
       } catch (error) {
         console.error("Something wrong happened", error);
+        throw new Error(error);
       }
-    } else {
-      console.error("No batch Txs sent", txs);
     }
-    return null;
+    console.error("No batch Txs sent", txs);
+    throw new Error("No batch Txs sent");
   };
 
   useEffect(() => {
