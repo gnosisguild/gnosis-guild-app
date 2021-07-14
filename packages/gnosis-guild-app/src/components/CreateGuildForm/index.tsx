@@ -137,16 +137,22 @@ const CreateGuildForm: React.FC = () => {
     if (guildImage) {
       hasImage = !!guildImage.name;
     }
-    const valid =
+    const invalid =
       !guildName ||
       !guildDescription ||
       !guildExternalLink ||
       !contentFormat ||
       !hasImage ||
       guildMinimumAmount === "0" ||
-      guildImageError;
-    if (valid) {
+      guildImageError ||
+      guildNameMeta.error ||
+      guildExternalLinkMeta.error ||
+      guildDescriptionMeta.error ||
+      guildContentFormatMeta.error;
+    if (invalid) {
       setInvalidForm(true);
+    } else {
+      setInvalidForm(false);
     }
   }, [
     guildName,
@@ -156,6 +162,10 @@ const CreateGuildForm: React.FC = () => {
     guildImage,
     guildMinimumAmount,
     guildImageError,
+    guildContentFormatMeta.error,
+    guildNameMeta.error,
+    guildExternalLinkMeta.error,
+    guildDescriptionMeta.error,
   ]);
 
   const uploadImage = (
@@ -307,13 +317,6 @@ const CreateGuildForm: React.FC = () => {
     setGuildName(val);
     if (val && val.length > 50) {
       setGuildNameMeta({ error: "Name must be less than 50 characters" });
-      setInvalidForm(true);
-    } else {
-      setInvalidForm(false);
-    }
-
-    if (!val) {
-      setInvalidForm(true);
     }
   };
 
@@ -325,12 +328,6 @@ const CreateGuildForm: React.FC = () => {
       setGuildDescriptionMeta({
         error: "Description must be less than 200 characters",
       });
-      setInvalidForm(true);
-    } else {
-      setInvalidForm(false);
-    }
-    if (!val) {
-      setInvalidForm(true);
     }
   };
 
@@ -339,15 +336,9 @@ const CreateGuildForm: React.FC = () => {
     setGuildExternalLinkMeta({ error: "" });
     setGuildExternalLink(val);
     if (val && !isURL(val)) {
-      setInvalidForm(true);
       setGuildExternalLinkMeta({
         error: "Guild external link must be a valid Url",
       });
-    } else {
-      setInvalidForm(false);
-    }
-    if (!val) {
-      setInvalidForm(true);
     }
   };
 
@@ -359,12 +350,6 @@ const CreateGuildForm: React.FC = () => {
       setGuildContentFormatMeta({
         error: "Must be less than 200 characters",
       });
-      setInvalidForm(true);
-    } else {
-      setInvalidForm(false);
-    }
-    if (!val) {
-      setInvalidForm(true);
     }
   };
 

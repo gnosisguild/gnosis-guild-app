@@ -111,7 +111,6 @@ export const GuildProvider: React.FC = ({ children }) => {
     }
   }, [account, providerChainId, fetchMetadata]);
 
-  // TODO: Placeholder values
   useEffect(() => {
     refreshGuild();
   }, [refreshGuild]);

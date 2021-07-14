@@ -9,8 +9,8 @@
   "npmClient": "yarn",
   "license": "MIT",
   "scripts": {
-    "test": "yarn workspaces run test",
-    "lint": "yarn workspaces run lint",
+    "test": "lerna run test",
+    "lint": "lerna run lint",
     "manage-versions": "lerna version --exact --no-git-tag-version --preid rc"
   },
   "devDependencies": {

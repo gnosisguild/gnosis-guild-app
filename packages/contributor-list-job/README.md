@@ -1,11 +1,32 @@
 # `contributor-list-job`
 
-> TODO: description
+A job that fetches all of the contributors to all guilds
+for a specific network and then builds a CSV which is stored
+on Ceramic.
 
-## Usage
+## Installation
 
 ```
-const contributorListJob = require('contributor-list-job');
-
-// TODO: DEMONSTRATE API
+yarn install
 ```
+
+## Getting Started
+
+In order to run the job execute the below command.
+
+```
+yarn run start
+```
+
+### Production Deployment
+
+This job is scoped per chain. Multiple versions of this job will need to be deployed in order to support multiple chains. Each job will have a slightly different config consisting of a different network id and different subgraph url.
+
+## Environment Variables
+
+- _SUBGRAPH_URL_: the url to the chains specific subgraph
+- _NODE_WALLET_SEED_: A wallet seed that should match the wallet seed in the express server.
+
+## Schema Updates
+
+When Ceramic schemas are updated the dids need to be updated inside of the ceramic aliases.

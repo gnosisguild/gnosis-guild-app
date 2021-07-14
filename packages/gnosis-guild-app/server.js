@@ -47,7 +47,7 @@ const getNFTStorageClient = () => {
 };
 
 const ceramicAuth = async () => {
-  const ceramic = new Ceramic("https://ceramic-clay.3boxlabs.com");
+  const ceramic = new Ceramic(process.env.REACT_APP_CERAMIC_URL);
   const resolver = {
     ...keyResolver.getResolver(),
     ...threeIdResolver.getResolver(ceramic),

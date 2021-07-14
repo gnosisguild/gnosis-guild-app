@@ -87,7 +87,7 @@ const GuildStats: React.FC = () => {
   const downloadContributors = async () => {
     const resp = await axios
       .get(
-        `${API}/api/v1/contributorList?guildAddress=${guildMetadata.guildAddress}`
+        `${API}/api/v1/contributorList?guildAddress=${guildMetadata.guildAddress}:${providerChainId}`
       )
       .catch((err) => {
         enqueueSnackbar("Failed to fetch CSV", {

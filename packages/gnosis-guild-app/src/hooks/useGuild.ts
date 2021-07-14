@@ -174,7 +174,6 @@ export const useGuild = (): SafetGuild => {
       if (setPrevModal) {
         setPrevModal(false);
       }
-      // TODO: Add Guild address here
       const unsignedTransaction = await factoryContract.populateTransaction[
         "createGuild(bytes)"
       ](calldata);
