@@ -40,18 +40,18 @@ yarn run serve
 
 #### Client Environment variables
 
-REACT_APP_INFURA_ID: The infura client id for the guild app
-REACT_APP_API_HOST: The server uri
-REACT_APP_DOMAIN: The url of the app
-REACT_APP_USE_CPK: Whether to use the CPK or not
-REACT_APP_CERAMIC_URL: URL of ceramic netwrork to use, used in both the client and server
+- REACT_APP_INFURA_ID: The infura client id for the guild app
+- REACT_APP_API_HOST: The server uri
+- REACT_APP_DOMAIN: The url of the app
+- REACT_APP_USE_CPK: Whether to use the CPK or not
+- REACT_APP_CERAMIC_URL: URL of ceramic netwrork to use, used in both the client and server
 
 #### Server Environment variables
 
-NFT_STORAGE: The api key for nft.storage
-SERVER_PORT: port the server listens to
-SCHEMA_DID: local did used generate ceramic schemas
-NODE_WALLET_SEED: byte array used for the wallet seed needed to read the encrypted user data and generated with the below code.
+- NFT_STORAGE: The api key for nft.storage
+- SERVER_PORT: port the server listens to
+- SCHEMA_DID: local did used generate ceramic schemas
+- NODE_WALLET_SEED: byte array used for the wallet seed needed to read the encrypted user data and generated with the below code.
 
 ```
 const random = require('@stablelib/random')
