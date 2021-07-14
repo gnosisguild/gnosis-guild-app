@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../interfaces/IAllowanceModule.sol";
 import "../interfaces/IGnosisSafe.sol";
@@ -20,6 +21,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint256;
     using StringsUpgradeable for uint256;
+    using AddressUpgradeable for address;
 
     struct Subscription {
         uint256 tokenId;
@@ -134,7 +136,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
 
     function _validateSignature(address _safeAddress, bytes32 _transferhash, bytes memory _data) internal view {
         // Validate signature belongs to a Safe owner
-        GnosisSafe safe = GnosisSafe(_safeAddress);
+        IGnosisSafe safe = IGnosisSafe(_safeAddress);
         (uint8 v, bytes32 r, bytes32 s) = signatureSplit(_data, 0);
         address safeOwner;
 
@@ -150,12 +152,24 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
 
     function subscribe(string memory _tokenURI, uint256 _value, bytes memory _data) public payable override onlyIfActive {
         address subscriber = _msgSender();
-        uint256 value = tokenAddress != address(0) ? _value : msg.value;
+        // uint256 value = tokenAddress != address(0) ? _value : msg.value;
+        uint256 value = _value;
+        if (_data.length == 0) {  // condition if not using a safe
+            require((tokenAddress != address(0) && msg.value == 0) ||
+                    (tokenAddress == address(0) && msg.value == value),
+                    "GuildApp: incorrect msg.value");
+        } else {
+            // require(address(subscriber).isContract() &&
+            //         keccak256(abi.encodePacked(IGnosisSafe(subscriber).NAME())) == keccak256(abi.encodePacked("Gnosis Safe")),
+            //         "GuildApp: Sender is not a Gnosis Safe");
+            require(msg.value == 0,
+                    "GuildApp: ETH should be transferred via AllowanceModule");
+        }
         require(value >= subPrice, "GuildApp: Insufficient value sent");
         Subscription storage subs = subscriptionByOwner[subscriber];
-        bool newSubscription = false;
+        // bool newSubscription = false;
         if (subs.tokenId == 0) {
-            newSubscription = true;
+            // newSubscription = true;
             _nextId = _nextId.add(1);
             subs.tokenId = _nextId;
             _safeMint(subscriber, subs.tokenId);
@@ -180,17 +194,17 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
 
             // TODO: Pre-validate if sent by a safe owner. Current issue is related to changing nonce on subsequent transactions
             // Current solution: only validate on new subscription
-            if (newSubscription) {
-                bytes32 transferHash = safeModule.generateTransferHash(subscriber, // MUST be a safe
-                                                                       tokenAddress,
-                                                                       address(this), // to
-                                                                       uint96(value), // value
-                                                                       address(0), // paymentToken
-                                                                       0, // payment
-                                                                       uint16(allowance[4]) // nonce
-                                                                       );
-                _validateSignature(subscriber, transferHash, _data);
-            }
+            // if (newSubscription) {
+            //     bytes32 transferHash = safeModule.generateTransferHash(subscriber, // MUST be a safe
+            //                                                            tokenAddress,
+            //                                                            address(this), // to
+            //                                                            uint96(value), // value
+            //                                                            address(0), // paymentToken
+            //                                                            0, // payment
+            //                                                            uint16(allowance[4]) // nonce
+            //                                                            );
+            //     _validateSignature(subscriber, transferHash, _data);
+            // }
 
             safeModule.executeAllowanceTransfer(
                 subscriber, // MUST be a safe

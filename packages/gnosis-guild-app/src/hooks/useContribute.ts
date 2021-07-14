@@ -79,8 +79,11 @@ export const useContribute = (): Contribution => {
       console.log(contributorName);
       console.log(contributorEmail);
       await saveContributorProfile(contributorName, contributorEmail);
+      setSubscribed(true);
+      await setSubscriber();
       setContributeLoading(false);
     } catch (error) {
+      console.error("An error occurred while trying to subscribe", error);
       // TODO: Show an pop-up error
     }
   };
@@ -113,8 +116,6 @@ export const useContribute = (): Contribution => {
       guildMinimumAmount
     );
     setContributeLoading(false);
-    setSubscribed(true);
-    await setSubscriber();
   };
 
   const unsubscribeTx = async () => {
