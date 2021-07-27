@@ -83,7 +83,8 @@ const pollSafeTx = async (
       console.log(safeTx);
       waitForConfrimation =
         safeTx.detailedExecutionInfo.confirmationsRequired === 1;
-      if (waitForConfrimation === true && retries <= 300) {
+      // Max wait of 10 minutes
+      if (waitForConfrimation === true && retries <= 600) {
         waitForConfrimation = safeTx.txStatus !== "SUCCESS";
       }
     }
