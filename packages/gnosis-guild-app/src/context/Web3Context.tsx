@@ -157,7 +157,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
                 ownerAccount: gotAccount,
               })
             : undefined;
-        console.log("Use CPK?", process.env.REACT_APP_USE_CPK, cpkInstance);
 
         setWeb3State({
           account: gotAccount,
@@ -298,13 +297,11 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         to: cpk.address,
         value: ethers.BigNumber.from(value),
       });
-      console.log("Waiting for confirmation...");
       await tx.wait(1);
       return;
     }
     const erc20 = new ethers.Contract(tokenAddress, ERC20Abi, signer);
     const tx = await erc20.transfer(cpk.address, value);
-    console.log("Waiting for confirmation...");
     await tx.wait(1);
   };
 
@@ -323,35 +320,15 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     const signer = ethersProvider.getSigner();
     const isDeployed = await cpk.isProxyDeployed();
 
-    if (isDeployed) {
-      const safeVersion = await cpk.getContractVersion();
-      const balance = await cpk.getBalance();
-      const modules = await cpk.getModules();
-      const owner = await cpk.getOwnerAccount();
-      console.log(
-        "CPK",
-        cpk,
-        cpk?.address,
-        isDeployed,
-        owner,
-        safeVersion,
-        balance.toString(10),
-        modules
-      );
-    }
-
-    console.log("STEP 1: Check for AllowanceModule");
     const hasAllowanceModule =
       isDeployed &&
       ((await cpk.getContractVersion()) !== "1.1.1"
         ? await cpk.isModuleEnabled(gnosisConfig.allowanceModule)
         : (await cpk.getModules()).includes(gnosisConfig.allowanceModule));
-    console.log("hasAllowanceModule", hasAllowanceModule);
 
     // Delegate MUST be a GuildApp contract
     const delegate = delegateContract;
 
-    console.log("STEP: 2: Check if owner is a delegate");
     const allowanceModule = new ethers.Contract(
       gnosisConfig.allowanceModule,
       AllowanceModuleAbi,
@@ -359,7 +336,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     );
     const delegates = await allowanceModule.getDelegates(cpk.address, 0, 10);
     const isDelegate = delegates.results.includes(delegate);
-    console.log("Delegates", delegates, isDelegate);
 
     const currentDate = new Date();
     const currentPeriod = new Date(
@@ -367,17 +343,12 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       currentDate.getMonth(),
       1
     );
-    const blockNo = await ethersProvider.getBlockNumber();
-    const block = await ethersProvider.getBlock(blockNo);
-    console.log(block.timestamp, (currentPeriod.getTime() / 1000).toFixed(0));
 
-    console.log("STEP 3: Check allowance");
     const allowance = await allowanceModule.allowances(
       cpk.address,
       delegate,
       tokenAddress
     );
-    console.log("Current Allowance", allowance, allowance.amount.toString());
     const allowanceAmount = (allowance.amount as ethers.BigNumber)
       .add(ethers.BigNumber.from(deposit))
       .toString();
@@ -413,8 +384,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         ]),
       },
     ].filter((t) => t) as Array<Transaction>;
-
-    console.log("Txs to be included", txs.length, txs);
 
     return txs;
   };
@@ -486,17 +455,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       delegate,
       tokenAddress
     );
-
-    console.log(
-      "Signature params",
-      cpk.address,
-      tokenAddress,
-      guildAddress,
-      contributionValue,
-      ethers.constants.AddressZero,
-      0,
-      allowance.nonce
-    );
     const transferHash = await allowanceModule.generateTransferHash(
       cpk.address,
       tokenAddress,
@@ -506,13 +464,10 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       0,
       allowance.nonce
     );
-    console.log("TransferHash", transferHash);
 
     // TODO: Fix bug with EIP712 signature
     // const signature = await signer._signTypedData(domain, types, transferHash);
     const signature = await signer.signMessage(transferHash);
-    console.log("STEP 4: Store this Signature **IMPORTANT**", signature);
-
     // const recoveredAddress = ethers.utils.verifyTypedData(domain, types, transferHash, signature);
     // console.log('EQUAL ?', recoveredAddress === await signer.getAddress());
 
@@ -525,9 +480,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
     if (!cpk) {
       throw new Error("CPK was not setup!");
     }
-    console.log("submitCPKTx", txs.length, txs);
     if (txs.length > 0) {
-      console.log("Exec...");
       try {
         const cpkTxRs = await cpk.execTransactions(txs);
         return cpkTxRs.transactionResponse as ethers.providers.TransactionResponse;
@@ -536,7 +489,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
         throw new Error(error);
       }
     }
-    console.error("No batch Txs sent", txs);
     throw new Error("No batch Txs sent");
   };
 

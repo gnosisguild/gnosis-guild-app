@@ -165,8 +165,6 @@ export const useGuild = (): SafetGuild => {
         [guildInfo.name, `GUILD${count}`, "https://ipfs.io/ipfs/", metadataCid],
         network.gnosisConfig.allowanceModule,
       ];
-      console.log("FunctionArgs");
-      console.log(functionArgs);
 
       const iface = new ethers.utils.Interface(GuildAppABI);
       const calldata = iface.encodeFunctionData("initialize", functionArgs);
@@ -178,7 +176,6 @@ export const useGuild = (): SafetGuild => {
         "createGuild(bytes)"
       ](calldata);
 
-      console.log(unsignedTransaction);
       const txs = [
         {
           to: network.guildFactory,
@@ -196,7 +193,6 @@ export const useGuild = (): SafetGuild => {
 
       const safeTxs = await sdk.txs.send({ txs });
       const safeTx = await pollSafeTx(safeTxs, sdk);
-      console.log("Created");
 
       return safeTx;
     } catch (error) {
@@ -322,7 +318,7 @@ export const useGuild = (): SafetGuild => {
     const network = getNetworkByChainId(chainId);
     let tokenAddress = network.daiToken;
     if (token === "ETH") {
-      tokenAddress = "0x0000000000000000000000000000000000000000";
+      tokenAddress = ethers.constants.AddressZero;
     }
 
     return await guildContract
@@ -338,14 +334,6 @@ export const useGuild = (): SafetGuild => {
     value: string
   ): Promise<ethers.providers.TransactionResponse | null> => {
     const signer = ethersProvider.getSigner();
-    console.log(
-      "Subscribe",
-      chainId,
-      await signer.getAddress(),
-      guildAddress,
-      guildToken,
-      value
-    );
 
     const guildContract = new Contract(guildAddress, GuildAppABI, signer);
 
@@ -355,9 +343,7 @@ export const useGuild = (): SafetGuild => {
 
     if (cpk) {
       // Contribute using CPK proxy
-      console.log("Using CPK");
       const balance = await getProxyBalance(guildToken);
-      console.log("STEP 0: Fund Proxy");
       if (balance.lt(bnValue)) {
         // TODO: user should opt in to fund the proxy and specify the deposit value
         await fundProxy(guildToken, bnValue.toString());
@@ -385,8 +371,7 @@ export const useGuild = (): SafetGuild => {
       ]);
       return tx;
     }
-    // Contribute using injected EOA wallet
-    console.log("Using EOA");
+    // Else Contribute using injected EOA wallet
     if (guildToken !== ethers.constants.AddressZero) {
       const tokenContract = new Contract(
         guildToken,
