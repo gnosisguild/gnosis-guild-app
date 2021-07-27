@@ -136,14 +136,23 @@ export const useContribute = (): Contribution => {
     }
     setModalFooter("Cancelling Subscription...");
     setContributeLoading(true);
-    const tx = await unsubscribe(
-      subscriber.keyId.toString(),
-      guildMetadata.id,
-      ethersProvider
-    );
+    try {
+      const tx = await unsubscribe(
+        subscriber.keyId.toString(),
+        guildMetadata.id,
+        ethersProvider
+      );
 
-    if (tx) {
-      await tx.wait();
+      if (tx) {
+        await tx.wait();
+      }
+    } catch (err) {
+      enqueueSnackbar("Failed to cancel guild contribution", {
+        anchorOrigin: { horizontal: "right", vertical: "top" },
+        preventDuplicate: true,
+        variant: "error",
+      });
+      console.error(err);
     }
 
     setContributeLoading(false);

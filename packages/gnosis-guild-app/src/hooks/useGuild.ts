@@ -60,7 +60,7 @@ type SafetGuild = {
     arg1: ethers.providers.Web3Provider,
     arg2: SafeAppsSDK,
     arg3?: (arg0: boolean, arg1?: string, arg2?: string) => void
-  ) => Promise<GatewayTransactionDetails>;
+  ) => Promise<GatewayTransactionDetails | Error>;
 };
 
 const pollSafeTx = async (
