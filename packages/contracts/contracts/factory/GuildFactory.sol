@@ -10,18 +10,26 @@ import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 
 import "../interfaces/IGuild.sol";
 
+/// @title GuildApp Proxy Factory
+/// @author RaidGuild
+/// @notice Allows to deploy a new GuildApp contract
+/// @dev Based on EIP-1167
 contract GuildFactory is Initializable {
     using AddressUpgradeable for address;
     using ClonesUpgradeable for address;
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
-    address public template; // fixed template for minion using eip-1167 proxy pattern
+    /// @dev fixed contract template for EIP-1167 proxy pattern
+    address public template;
 
+    /// @dev keep track of total created Guilds
     CountersUpgradeable.Counter private _totalGuilds;
 
+    /// @dev keep track of guild by owner
     mapping(address => EnumerableSetUpgradeable.AddressSet) private _guilds;
 
+    /// @dev new guild event
     event NewGuild(address indexed guildOwner, address indexed guild);
 
     function __GuildFactory_init_unchained(address _template) internal initializer {
@@ -32,10 +40,17 @@ contract GuildFactory is Initializable {
         __GuildFactory_init_unchained(_template);
     }
 
+    /// @notice Initializes the factory contract
+    /// @dev Initializes factory contract using a minimal proxy pattern (EIP-1167)
+    /// @param _template GuildApp contract address to be used as template
     function initialize(address _template) public {
         __GuildFactory_init(_template);
     }
 
+    /// @notice get list of guilds created by `_owner`
+    /// @dev get GuildApp contract addresses created by `_owner`
+    /// @param _owner Guild app owner
+    /// @return an array of guilds created by `_owner`
     function guildsOf(address _owner) public view returns (address[] memory) {
         address[] memory tokens = new address[](_guilds[_owner].length());
         for (uint256 i = 0; i < _guilds[_owner].length(); i++) {
@@ -44,10 +59,16 @@ contract GuildFactory is Initializable {
         return tokens;
     }
 
+    /// @notice get the total amount of existing guilds
+    /// @return total amount of deployed guilds
     function totalGuilds() public view returns (uint256) {
         return _totalGuilds.current();
     }
-
+ 
+    /// @dev call GuildApp initialize function encoded in `_initData` and register the contract
+    /// @param _instance GuildApp contract address
+    /// @param _sender GuildApp owner
+    /// @param _initData Encoded GuildApp initialize function
     function _initAndEmit(address _instance, address _sender, bytes calldata _initData) private {
         _totalGuilds.increment();
         emit NewGuild(_sender, _instance);
@@ -59,26 +80,42 @@ contract GuildFactory is Initializable {
         _guilds[_sender].add(_instance);
     }
 
+    /// @dev Clone the template using EIP-1167 and initlize the new deployment
+    /// @param _initData Encoded GuildApp initialize function
     function clone(bytes calldata _initData) internal {
         address sender = msg.sender;
         _initAndEmit(template.clone(), sender, _initData);
     }
 
+    /// @dev Clone the template using EIP-1167 + CREATE2 and initlize the new deployment
+    /// @param _initData Encoded GuildApp initialize function
+    /// @param _salt salt used for deploying the contract
     function cloneDeterministic(bytes calldata _initData, bytes32 _salt) internal {
         address sender = msg.sender;
         _initAndEmit(template.cloneDeterministic(_salt), sender, _initData);
     }
 
+    /// @notice Obtains the address that will be assigned to a new GuildApp contract
+    /// @dev 
+    /// @param _salt salt used for deploying the contract
+    /// @return predicted contract address
     function predictDeterministicAddress(bytes32 _salt) public view returns (address predicted) {
         return template.predictDeterministicAddress(_salt);
     }
 
+    /// @notice deploy a new GuildApp
+    /// @dev deploy a new GuildApp using the EIP-1167 Proxy pattern
+    /// @param _initData Encoded GuildApp initialize function
     function createGuild(bytes calldata _initData) external {
         require(template != address(0), "GuildFactory: Missing Guild Template");
         clone(_initData);
 
     }
 
+    /// @notice deploy a new GuildApp deterministically
+    /// @dev currently not implemented.
+    /// @param _initData Encoded GuildApp initialize function
+    /// @param _salt salt used for deploying the contract
     function createGuild(bytes calldata _initData, bytes32 _salt) public {
         require(template != address(0), "GuildFactory: Missing Guild Template");
         // TODO: prepend msg.sender to salt. NOTICE: predict DeterministicAddress should be changed as well
