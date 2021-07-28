@@ -157,7 +157,6 @@ export const useContribute = (): Contribution => {
 
     setContributeLoading(false);
     setSubscribed(false);
-    setSubscriber();
   };
   const loadingText = subscribed
     ? "Cancelling Contribution..."

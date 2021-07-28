@@ -32,9 +32,8 @@ type SafetGuild = {
   deactivateGuild: (
     arg0: ethers.providers.Web3Provider,
     arg1: string,
-    arg2: string,
-    arg3: SafeAppsSDK,
-    arg4?: (arg0: boolean, arg1?: string, arg2?: string) => void
+    arg2: SafeAppsSDK,
+    arg3?: (arg0: boolean, arg1?: string, arg2?: string) => void
   ) => Promise<GatewayTransactionDetails | undefined>;
   fetchGuildTokens: (
     arg0: number,
@@ -208,7 +207,6 @@ export const useGuild = (): SafetGuild => {
 
   const deactivateGuild = async (
     ethersProvider: ethers.providers.Web3Provider,
-    ownerAddress: string,
     guildAddress: string,
     sdk: SafeAppsSDK,
     setPrevModal?: (arg0: boolean, arg1?: string, arg2?: string) => void

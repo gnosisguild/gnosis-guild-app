@@ -274,7 +274,7 @@ const CreateGuildForm: React.FC = () => {
     setSubmitting(true);
     setLoadingTitle("Setting up transaction to be sent");
     try {
-      const tx = (await updateMetadataCid(
+      await updateMetadataCid(
         {
           name: guildName,
           description: guildDescription,
@@ -290,12 +290,7 @@ const CreateGuildForm: React.FC = () => {
         ethersProvider,
         sdk,
         setModal
-      )) as any;
-      if (tx) {
-        if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
-          window.location.reload();
-        }
-      }
+      );
     } catch (err) {
       console.error(err);
     }
@@ -366,7 +361,6 @@ const CreateGuildForm: React.FC = () => {
     try {
       const tx = (await deactivateGuild(
         ethersProvider,
-        account,
         guildAddress,
         sdk,
         setModal
