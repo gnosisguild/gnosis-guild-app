@@ -5,7 +5,6 @@ import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import Ceramic from "@ceramicnetwork/http-client";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 import { TileDocument } from "@ceramicnetwork/stream-tile";
-import { StreamID } from "@ceramicnetwork/streamid";
 import { IDX } from "@ceramicstudio/idx";
 import { ethers } from "ethers";
 
@@ -152,7 +151,7 @@ const main = async () => {
   const idx = new IDX({ ceramic, aliases });
   let data = "";
   try {
-    let data = fs
+    data = fs
       .readFileSync("./last_run.json")
       .catch((err: Error) => console.log(err));
   } catch {
