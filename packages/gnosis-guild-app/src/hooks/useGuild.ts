@@ -32,9 +32,8 @@ type SafetGuild = {
   deactivateGuild: (
     arg0: ethers.providers.Web3Provider,
     arg1: string,
-    arg2: string,
-    arg3: SafeAppsSDK,
-    arg4?: (arg0: boolean, arg1?: string, arg2?: string) => void
+    arg2: SafeAppsSDK,
+    arg3?: (arg0: boolean, arg1?: string, arg2?: string) => void
   ) => Promise<GatewayTransactionDetails | undefined>;
   fetchGuildTokens: (
     arg0: number,
@@ -60,7 +59,7 @@ type SafetGuild = {
     arg1: ethers.providers.Web3Provider,
     arg2: SafeAppsSDK,
     arg3?: (arg0: boolean, arg1?: string, arg2?: string) => void
-  ) => Promise<GatewayTransactionDetails>;
+  ) => Promise<GatewayTransactionDetails | Error>;
 };
 
 const pollSafeTx = async (
@@ -83,7 +82,8 @@ const pollSafeTx = async (
       console.log(safeTx);
       waitForConfrimation =
         safeTx.detailedExecutionInfo.confirmationsRequired === 1;
-      if (waitForConfrimation === true && retries <= 300) {
+      // Max wait of 10 minutes
+      if (waitForConfrimation === true && retries <= 600) {
         waitForConfrimation = safeTx.txStatus !== "SUCCESS";
       }
     }
@@ -203,7 +203,6 @@ export const useGuild = (): SafetGuild => {
 
   const deactivateGuild = async (
     ethersProvider: ethers.providers.Web3Provider,
-    ownerAddress: string,
     guildAddress: string,
     sdk: SafeAppsSDK,
     setPrevModal?: (arg0: boolean, arg1?: string, arg2?: string) => void

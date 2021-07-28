@@ -71,7 +71,7 @@ const ErrorText = styled(Text)<ErrorThemeProps>`
 `;
 
 const CreateGuildForm: React.FC = () => {
-  const { refreshGuild, guildMetadata, setGuildMetadata } = useGuildContext();
+  const { guildMetadata, setGuildMetadata } = useGuildContext();
   const { sdk } = useSafeAppsSDK();
   const { ethersProvider, account, providerChainId } = useWeb3Context();
   const { createGuild, deactivateGuild, updateMetadataCid } = useGuild();
@@ -273,27 +273,26 @@ const CreateGuildForm: React.FC = () => {
 
     setSubmitting(true);
     setLoadingTitle("Setting up transaction to be sent");
-    const tx = (await updateMetadataCid(
-      {
-        name: guildName,
-        description: guildDescription,
-        contentFormat,
-        externalLink: guildExternalLink,
-        image: guildImage,
-        currency: activeCurrency,
-        amount: guildMinimumAmount,
-        guildAddress,
-        imageCid: "",
-        active: true,
-      },
-      ethersProvider,
-      sdk,
-      setModal
-    )) as any;
-    if (tx) {
-      if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
-        await refreshGuild();
-      }
+    try {
+      await updateMetadataCid(
+        {
+          name: guildName,
+          description: guildDescription,
+          contentFormat,
+          externalLink: guildExternalLink,
+          image: guildImage,
+          currency: activeCurrency,
+          amount: guildMinimumAmount,
+          guildAddress,
+          imageCid: "",
+          active: true,
+        },
+        ethersProvider,
+        sdk,
+        setModal
+      );
+    } catch (err) {
+      console.error(err);
     }
     setLoadingTitle("");
     setLoadingFooter("");
@@ -359,28 +358,31 @@ const CreateGuildForm: React.FC = () => {
       return;
     }
 
-    const tx = (await deactivateGuild(
-      ethersProvider,
-      account,
-      guildAddress,
-      sdk,
-      setModal
-    )) as any;
-    if (tx) {
-      if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
-        setGuildMetadata({
-          name: "",
-          description: "",
-          contentFormat: "",
-          externalLink: "",
-          image: new File([], ""),
-          currency: "ETH",
-          amount: "0",
-          guildAddress: "",
-          imageCid: "",
-          active: false,
-        });
+    try {
+      const tx = (await deactivateGuild(
+        ethersProvider,
+        guildAddress,
+        sdk,
+        setModal
+      )) as any;
+      if (tx) {
+        if (tx.detailedExecutionInfo?.confirmationsRequired === 1) {
+          setGuildMetadata({
+            name: "",
+            description: "",
+            contentFormat: "",
+            externalLink: "",
+            image: new File([], ""),
+            currency: "ETH",
+            amount: "0",
+            guildAddress: "",
+            imageCid: "",
+            active: false,
+          });
+        }
       }
+    } catch (err) {
+      console.error(err);
     }
     setLoadingTitle("");
     setLoadingFooter("");
