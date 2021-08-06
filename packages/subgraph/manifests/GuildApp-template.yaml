@@ -24,9 +24,9 @@ mapping:
       handler: handlePausedGuild
     - event: "SubscriptionPriceChanged(address,uint256)"
       handler: handleUpdatedPaymentInfo
-    - event: "NewSubscription(uint256,uint256,uint256,bytes)"
+    - event: "NewSubscription(address,uint256,uint256,uint256,bytes)"
       handler: handleNewSubcription
-    - event: "RenewSubscription(uint256,uint256,uint256,bytes)"
+    - event: "RenewSubscription(address,uint256,uint256,uint256,bytes)"
       handler: handleRenewSubcription
     - event: "Unsubscribed(uint256)"
       handler: handleUnsubscription

@@ -72,8 +72,8 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
     event PausedGuild(bool _isPaused);
     event Withdraw(address _tokenAddress, address beneficiary, uint256 _amount);
     event SubscriptionPriceChanged(address _tokenAddress, uint256 _subPrice);
-    event NewSubscription(uint256 _tokenId, uint256 _value, uint256 expiry, bytes _data);
-    event RenewSubscription(uint256 _tokenId, uint256 _value, uint256 expiry, bytes _data);
+    event NewSubscription(address _subscriber, uint256 _tokenId, uint256 _value, uint256 expiry, bytes _data);
+    event RenewSubscription(address _subscriber, uint256 _tokenId, uint256 _value, uint256 expiry, bytes _data);
     event Unsubscribed(uint256 _tokenId);
 
     function __GuildApp_init_unchained(address _creator,
@@ -197,15 +197,17 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
 
     /// @notice New subscription to the Guild
     /// @dev Accepts contributions from EOA and Safes w/ enabledAllowanceModule.
+    /// @param _subscriber Account address
     /// @param _tokenURI URI of subsription metadata
     /// @param _value subsription payment value send by a user
     /// @param _data allowance Tx signature used by the safe AllowanceModule
     function subscribe(
+        address _subscriber,
         string memory _tokenURI,
         uint256 _value,
         bytes memory _data
     ) public payable override onlyIfActive {
-        address subscriber = _msgSender();
+        address subscriber = _subscriber;
         uint256 value = _value;
         if (_data.length == 0) {  // condition if not using a safe
             require((tokenAddress != address(0) && msg.value == 0) ||
@@ -222,16 +224,18 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         Subscription storage subs = subscriptionByOwner[subscriber];
         
         if (subs.tokenId == 0) {
+            require(subscriber == _msgSender(), "GuildApp: msg.sender must be the subscriber");
             _nextId = _nextId.add(1);
             subs.tokenId = _nextId;
             _safeMint(subscriber, subs.tokenId);
             _setTokenURI(subs.tokenId, string(abi.encodePacked(_tokenURI, "#", subs.tokenId.toString())));
             subs.expirationTimestamp = subscriptionPeriod.add(block.timestamp);
-            emit NewSubscription(subs.tokenId, value, subs.expirationTimestamp, _data);
+            emit NewSubscription(subscriber, subs.tokenId, value, subs.expirationTimestamp, _data);
         } else {
+            require(subs.expirationTimestamp < block.timestamp, "GuildApp: sill an active subscription");
             // renew or extend subscription
             subs.expirationTimestamp = subs.expirationTimestamp.add(block.timestamp);
-            emit RenewSubscription(subs.tokenId, value, subs.expirationTimestamp, _data);
+            emit RenewSubscription(subscriber, subs.tokenId, value, subs.expirationTimestamp, _data);
         }
         
         if (tokenAddress != address(0) && _data.length == 0) {

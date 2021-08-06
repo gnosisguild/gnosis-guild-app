@@ -1,6 +1,7 @@
-import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import { Guild, GuildBalance, GuildSubscription, Payment, GuildWithdrawal } from "../generated/schema";
 import {
+    GuildApp,
     InitializedGuild,
     NewSubscription,
     PausedGuild,
@@ -97,13 +98,15 @@ export function handleNewSubcription(event: NewSubscription): void {
 
         guildBalance.save();
 
-        let owner = event.transaction.from;
-        let subId = guild.id.concat("-").concat(owner.toHexString());
+        let keyId = event.params._tokenId;
+        // let owner = event.transaction.from;
+        let owner = event.params._subscriber;
+        let subId = guild.id.concat("-").concat(keyId.toHexString());
         let subscription = new GuildSubscription(subId);
         subscription.createdAt = event.block.timestamp.toString();
         subscription.active = true;
         subscription.guild = guild.id;
-        subscription.keyId = event.params._tokenId;
+        subscription.keyId = keyId;
         subscription.owner = owner;
         subscription.expires = event.params.expiry.toString();
 
@@ -130,7 +133,7 @@ export function handleRenewSubcription(event: RenewSubscription): void {
     let guild = Guild.load(event.address.toHex());
     if (guild != null) {
         let keyId = event.params._tokenId;
-        let subId = event.address.toHexString().concat("-").concat(keyId.toHexString());
+        let subId = guild.id.concat("-").concat(keyId.toHexString());
         let subscription = GuildSubscription.load(subId);
         if (subscription != null) {
             let value = event.params._value;
@@ -171,14 +174,13 @@ export function handleUnsubscription(event: Unsubscribed): void {
 
         guild.save();
 
-        let owner = event.transaction.from;
-        let subId = guild.id.concat("-").concat(owner.toHexString());
+        let keyId = event.params._tokenId;
+        let subId = guild.id.concat("-").concat(keyId.toHexString());
         let subscription = GuildSubscription.load(subId);
         if (subscription != null) {
             subscription.active = false;
             subscription.unsubscribedAt = event.block.timestamp.toString();
-            subscription.keyId = BigInt.fromI32(0); // TODO: correct approach?
-
+            // subscription.keyId = BigInt.fromI32(0); // TODO: correct approach?
             subscription.save();
         }
 

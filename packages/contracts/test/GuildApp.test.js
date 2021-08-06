@@ -100,11 +100,12 @@ describe("GuildApp", () => {
         const lastTokenId = await guildA.totalSupply();
         const tokenURI = '';
         await dai.connect(bob).approve(guildA.address, SUBSCRIPTION_PRICE); // This should be done by the SpendingLimit module on Safe accounts
-        const rs = await guildA.connect(bob).subscribe(tokenURI, SUBSCRIPTION_PRICE, "0x");
+        const rs = await guildA.connect(bob).subscribe(bob.address, tokenURI, SUBSCRIPTION_PRICE, "0x");
         const receipt = await rs.wait();
         const block = await ethers.provider.getBlock(receipt.blockNumber);
 
-        const [ tokenId, value, expirationTimestamp ] = receipt.events.find(e => e.event === 'NewSubscription').args;
+        const [ subscriber, tokenId, value, expirationTimestamp ] = receipt.events.find(e => e.event === 'NewSubscription').args;
+        expect(subscriber).to.equal(bob.address);
         expect(+tokenId.toString()).to.equal(+lastTokenId.toString() + 1);
         expect(value.toString()).to.equal(SUBSCRIPTION_PRICE.toString());
         expect(+expirationTimestamp).to.equal(block.timestamp + SUBSCRIPTION_PERIOD_DEFAULT);
@@ -165,7 +166,7 @@ describe("GuildApp", () => {
             .to.be.reverted;
         
         await dai.connect(carl).approve(guildA.address, SUBSCRIPTION_PRICE);
-        await expect(guildA.connect(carl).subscribe('', SUBSCRIPTION_PRICE, "0x"))
+        await expect(guildA.connect(carl).subscribe(carl.address, '', SUBSCRIPTION_PRICE, "0x"))
             .to.be.reverted;
     });
 

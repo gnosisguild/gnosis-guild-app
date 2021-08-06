@@ -17,7 +17,7 @@ type Subscriber = {
 };
 
 export const useSubscriber = (): Subscriber => {
-  const { account, /*cpk,*/ providerChainId } = useWeb3Context();
+  const { account, cpk, providerChainId } = useWeb3Context();
   const { guildId } = useParams<{ guildId: string }>();
   const { subscribed, setSubscribed, subscriber, setSubscriber } =
     useContributorContext();
@@ -29,7 +29,8 @@ export const useSubscriber = (): Subscriber => {
     if (!guildId || !providerChainId || !account) {
       return;
     }
-    const subscriberAddress = account;
+    // Subscriber should be the Gnosis proxy or the EOA if null
+    const subscriberAddress = cpk?.address || account;
     const subscribers = await fetchSubscriberByGuild(
       guildId,
       subscriberAddress.toLowerCase(),

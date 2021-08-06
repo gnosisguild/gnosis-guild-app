@@ -8,9 +8,9 @@ dataSources:
     name: GuildFactory
     network: rinkeby
     source:
-      address: "0x9f9901d6797726bbC9623EEB6030F2ebD62596B5"
+      address: "0xb8f1b78303E7eb24F89B760D1c54B8446841d64c"
       abi: GuildFactory
-      startBlock: 8932841
+      startBlock: 9068167
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3
@@ -51,9 +51,9 @@ templates:
           handler: handlePausedGuild
         - event: SubscriptionPriceChanged(address,uint256)
           handler: handleUpdatedPaymentInfo
-        - event: NewSubscription(uint256,uint256,uint256,bytes)
+        - event: NewSubscription(address,uint256,uint256,uint256,bytes)
           handler: handleNewSubcription
-        - event: RenewSubscription(uint256,uint256,uint256,bytes)
+        - event: RenewSubscription(address,uint256,uint256,uint256,bytes)
           handler: handleRenewSubcription
         - event: Unsubscribed(uint256)
           handler: handleUnsubscription
