@@ -355,7 +355,12 @@ export const useGuild = (): SafetGuild => {
         guildToken,
         bnValue.toString()
       );
-      const args = [tokenURI, bnValue.toString(), transferSignature];
+      const args = [
+        cpk.address,
+        tokenURI,
+        bnValue.toString(),
+        transferSignature,
+      ];
 
       const tx = await submitCPKTx([
         ...cpkModuleTxs,
@@ -378,7 +383,12 @@ export const useGuild = (): SafetGuild => {
       const tx = await tokenContract.approve(guildAddress, bnValue.toString());
       await tx.wait(1);
     }
-    const args = [tokenURI, bnValue.toString(), "0x"];
+    const args = [
+      await signer.getAddress(),
+      tokenURI,
+      bnValue.toString(),
+      "0x",
+    ];
     const tx = await guildContract.subscribe(...args, {
       value:
         guildToken === ethers.constants.AddressZero ? bnValue.toString() : "0",

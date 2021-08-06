@@ -127,20 +127,24 @@ export class NewSubscription__Params {
     this._event = event;
   }
 
-  get _tokenId(): BigInt {
-    return this._event.parameters[0].value.toBigInt();
+  get _subscriber(): Address {
+    return this._event.parameters[0].value.toAddress();
   }
 
-  get _value(): BigInt {
+  get _tokenId(): BigInt {
     return this._event.parameters[1].value.toBigInt();
   }
 
-  get expiry(): BigInt {
+  get _value(): BigInt {
     return this._event.parameters[2].value.toBigInt();
   }
 
+  get expiry(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+
   get _data(): Bytes {
-    return this._event.parameters[3].value.toBytes();
+    return this._event.parameters[4].value.toBytes();
   }
 }
 
@@ -175,20 +179,24 @@ export class RenewSubscription__Params {
     this._event = event;
   }
 
-  get _tokenId(): BigInt {
-    return this._event.parameters[0].value.toBigInt();
+  get _subscriber(): Address {
+    return this._event.parameters[0].value.toAddress();
   }
 
-  get _value(): BigInt {
+  get _tokenId(): BigInt {
     return this._event.parameters[1].value.toBigInt();
   }
 
-  get expiry(): BigInt {
+  get _value(): BigInt {
     return this._event.parameters[2].value.toBigInt();
   }
 
+  get expiry(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+
   get _data(): Bytes {
-    return this._event.parameters[3].value.toBytes();
+    return this._event.parameters[4].value.toBytes();
   }
 }
 
@@ -1446,16 +1454,20 @@ export class SubscribeCall__Inputs {
     this._call = call;
   }
 
+  get _subscriber(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
   get _tokenURI(): string {
-    return this._call.inputValues[0].value.toString();
+    return this._call.inputValues[1].value.toString();
   }
 
   get _value(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
+    return this._call.inputValues[2].value.toBigInt();
   }
 
   get _data(): Bytes {
-    return this._call.inputValues[2].value.toBytes();
+    return this._call.inputValues[3].value.toBytes();
   }
 }
 

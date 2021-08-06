@@ -8,7 +8,7 @@ const main = async () => {
     
     console.log(`Deploying on ${network.name}`);
 
-    if (network.name === 'localhost') {
+    if (['hardhat', 'localhost'].includes(network.name)) {
         [admin, alice, bob] = await ethers.getSigners();
         const DAIMock = await ethers.getContractFactory("DAIMock");
         dai = await DAIMock.connect(admin).deploy();
