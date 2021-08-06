@@ -1,6 +1,6 @@
 # Gnosis Guild Safe App
 
-An application with two user profiles a guild contributor and a guild owner. A guild is a method for a content creating organization to receive recurring revenue. The guild owner side of the application is a safe app that allows members of a Gnosis safe to create a guild. This guild will allow contributors to learn a little about the guild and contribute via the Gnosis CPK on a 30 day interval. The contributor form is not a safe app, but a standard React app.
+An application with two user profiles a guild contributor and a guild owner. A guild is a method for a content creating organization to receive recurring revenue. The guild owner side of the application is a safe app that allows members of a Gnosis safe to create a guild. This guild will allow contributors to learn a little about the guild and contribute via the Gnosis CPK on a monthly basis. The contributor form is not a safe app, but a standard React app.
 
 ## Installation
 
@@ -19,13 +19,13 @@ When developing locally there are two pieces that need to be set up the react ap
 React app:
 
 ```
-npm run start
+yarn start
 ```
 
 Express:
 
 ```
-npm run serve-dev
+yarn serve-dev
 ```
 
 ### Production Deployment
@@ -62,7 +62,7 @@ var seed = random.randomBytes(32)
 
 #### Server
 
-The server is an express app, uses NFT storage to store the guild metadata, and Ceramic in order to fetch the created guild CSV. The Ceramic document is a mapping of guild id to csv cid, and is created in the [contributor-list-job](./packages/contributor-list-job/README.md). More information can be found there.
+The server is an Express app, uses [NFTStorage](https://nft.storage/) to store the guild metadata, and [Ceramic](ceramic.network) in order to fetch the created guild CSV. The Ceramic document is a mapping of guild id to csv cid, and is created in the [contributor-list-job](./packages/contributor-list-job/README.md). More information can be found there.
 
 #### React App
 
@@ -79,12 +79,12 @@ There are 4 main pages to the React App.
 
 ## Commands
 
-**yarn run start**: Start the react app
-**yarn run build**: Create optimized static files for the React app
-**serve-dev**: Start the Express server
-**serve**: Build and then start the Express server
-**lint**: Lint the app
-**deploy-schema**: Run the schema deploy script which will log the ceramic uri and add them to the Ceramic network
+**yarn start**: Start the react app
+**yarn build**: Create optimized static files for the React app
+**yarn serve-dev**: Start the Express server
+**yarn serve**: Build and then start the Express server
+**yarn lint**: Lint the app
+**yarn deploy-schema**: Run the schema deploy script which will log the ceramic uri and add them to the Ceramic network
 
 ## Generating Ceramic Schemas
 
@@ -97,3 +97,20 @@ There are 4 main pages to the React App.
 1. Update definition did aliases in the application
 
 ## Adding a network
+
+GuildAop is only available on Rinkeby. In order to make it avaiable on another network you'll need to deploy a new set of contracts and the subgraph. To do so, follow the instructions [here](../contracts/README.md) and [here](../subgraph/README.md).
+
+In order to enable a new network, you need to specify the following contract addresses and endpoints under [networks.ts](src/lib/networks.ts). For example:
+
+```
+[chainID]: {
+    name: <network_name>,
+    guildFactory: <GuildFactory_contract_address>,
+    daiToken: <ERC20_contract_address>,
+    subgraphUrl: "https://api.thegraph.com/subgraphs/name/<subgraph_name>",
+    rpc_url: `https://<network>.infura.io/v3/${API_KEY}`,
+    gnosisConfig: {
+      allowanceModule: "0xCFbFaC74C26F8647cBDb8c5caf80BB5b32E43134", // same address for all networks
+    },
+},
+```
