@@ -336,7 +336,6 @@ export const useGuild = (): SafetGuild => {
 
     const guildContract = new Contract(guildAddress, GuildAppABI, signer);
 
-    // TODO:  generate tokenURI
     const tokenURI = "";
     const bnValue = ethers.utils.parseEther(value);
 
@@ -344,7 +343,6 @@ export const useGuild = (): SafetGuild => {
       // Contribute using CPK proxy
       const balance = await getProxyBalance(guildToken);
       if (balance.lt(bnValue)) {
-        // TODO: user should opt in to fund the proxy and specify the deposit value
         await fundProxy(guildToken, bnValue.toString());
       }
       const cpkModuleTxs = await setupCPKModules(

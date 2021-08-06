@@ -77,9 +77,6 @@ export const useContribute = (): Contribution => {
       if (tx) {
         await tx.wait();
       }
-      console.log("Saving Contributor");
-      console.log(contributorName);
-      console.log(contributorEmail);
       await saveContributorProfile(contributorName, contributorEmail);
       setSubscribed(true);
       await setSubscriber();

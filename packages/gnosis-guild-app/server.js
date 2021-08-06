@@ -146,7 +146,7 @@ app.get("/", (req, res) => {
   const filePath = path.resolve(__dirname, "./build", "index.html");
   fs.readFile(filePath, "utf8", (err, data) => {
     if (err) {
-      return console.log(err);
+      return console.error(err);
     }
 
     data = data
@@ -165,7 +165,7 @@ app.get("/guild/*", (req, res) => {
   const filePath = path.resolve(__dirname, "./build", "index.html");
   fs.readFile(filePath, "utf8", (err, data) => {
     if (err) {
-      return console.log(err);
+      return console.error(err);
     }
 
     data = data

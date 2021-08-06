@@ -56,9 +56,6 @@ const GuildApp: React.FC = () => {
     fetchGuild();
   }, [guildMetadata.active]);
 
-  // Get reference to image
-  console.log("Inspect", loading, guildMetadata);
-
   return loading ? (
     <Loading>
       <Loader size="md" />

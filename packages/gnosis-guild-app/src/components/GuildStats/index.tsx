@@ -116,7 +116,6 @@ const GuildStats: React.FC = () => {
   const imageUrl = guildMetadata.image
     ? URL.createObjectURL(guildMetadata.image)
     : "";
-  console.log(imageUrl);
 
   return (
     <div style={{ width: "100%" }}>

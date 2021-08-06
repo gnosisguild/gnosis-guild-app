@@ -183,8 +183,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       window.location.reload();
     });
     modalProvider.on("chainChanged", () => {
-      /* setWeb3Provider(modalProvider); */
-      console.log("Reloading");
       window.location.reload();
     });
     setConnected(true);
@@ -447,7 +445,6 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       signer
     );
 
-    // TODO: set Guild as delegate
     const delegate = await signer.getAddress();
 
     const allowance = await allowanceModule.allowances(
@@ -465,11 +462,7 @@ export const Web3ContextProvider: React.FC = ({ children }) => {
       allowance.nonce
     );
 
-    // TODO: Fix bug with EIP712 signature
-    // const signature = await signer._signTypedData(domain, types, transferHash);
     const signature = await signer.signMessage(transferHash);
-    // const recoveredAddress = ethers.utils.verifyTypedData(domain, types, transferHash, signature);
-    // console.log('EQUAL ?', recoveredAddress === await signer.getAddress());
 
     return signature;
   };

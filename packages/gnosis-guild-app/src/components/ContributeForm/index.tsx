@@ -64,16 +64,11 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
 
   useEffect(() => {
     if (connected) {
-      setContributorEmail(profileEmail);
-      setContributorName(profileName);
       setGuildMinimumAmount(currentMinimumAmount);
     }
   }, [profileName, profileEmail, currentMinimumAmount, connected]);
 
   useEffect(() => {
-    console.log("SettingContributor");
-    console.log(contributorName);
-    console.log(contributorEmail);
     setContributor(contributorName, contributorEmail, guildMinimumAmount);
   }, [contributorName, contributorEmail, guildMinimumAmount, setContributor]);
 
@@ -130,9 +125,6 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
     // setDisabled
     setDisabled(subscribed || !guild.active);
   }, [subscribed, guild.active]);
-
-  console.log("Subscribed");
-  console.log(subscribed);
 
   return (
     <GridForm>

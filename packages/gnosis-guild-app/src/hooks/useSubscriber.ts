@@ -29,8 +29,6 @@ export const useSubscriber = (): Subscriber => {
     if (!guildId || !providerChainId || !account) {
       return;
     }
-    // TODO: should subscriber be the CPK or the owner?
-    // const subscriberAddress = cpk?.address || account;
     const subscriberAddress = account;
     const subscribers = await fetchSubscriberByGuild(
       guildId,
@@ -38,12 +36,10 @@ export const useSubscriber = (): Subscriber => {
       providerChainId
     );
     if (!subscribers) {
-      console.log("Still False");
       setSubscribed(false);
       return;
     }
     if (subscribers.length > 0) {
-      console.log("subscriber True");
       const subscriber = subscribers[0];
       setSubscriber(subscriber);
       if (subscriber.active) {
@@ -56,8 +52,6 @@ export const useSubscriber = (): Subscriber => {
         const payment = subscriber.paymentHistory[0];
         setCurrentMinimumAmount(ethers.utils.formatEther(payment.value));
       }
-      console.log("Subscriber");
-      console.log(subscriber);
     }
   }, [account, guildId, providerChainId, setSubscribed, setSubscriber]);
 
