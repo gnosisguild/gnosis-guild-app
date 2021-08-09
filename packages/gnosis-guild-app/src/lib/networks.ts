@@ -19,7 +19,7 @@ type Networks = {
 
 const Default = {
   name: "Rinkeby",
-  guildFactory: "0xb8f1b78303E7eb24F89B760D1c54B8446841d64c",
+  guildFactory: "0x258Fe59eC38162AF877D6aCD782303582Dfa10BA",
   daiToken: "0x15f0ca26781c3852f8166ed2ebce5d18265cceb7",
   subgraphUrl:
     "https://api.thegraph.com/subgraphs/name/santteegt/gnosis-guild-app-rinkeby",
@@ -42,7 +42,7 @@ const networks: Networks = {
   },
   0x4: {
     name: "Rinkeby",
-    guildFactory: "0xb8f1b78303E7eb24F89B760D1c54B8446841d64c",
+    guildFactory: "0x258Fe59eC38162AF877D6aCD782303582Dfa10BA",
     daiToken: "0x15f0ca26781c3852f8166ed2ebce5d18265cceb7",
     subgraphUrl:
       "https://api.thegraph.com/subgraphs/name/santteegt/gnosis-guild-app-rinkeby",

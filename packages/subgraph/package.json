@@ -6,6 +6,7 @@
     "create-local": "graph create raid-guild/gnosis-guild-app --node http://127.0.0.1:8020",
     "codegen": "graph codegen",
     "build": "graph build",
+    "prepare": "node manifests/deploy-prep.js",
     "prepare-local": "node manifests/deploy-prep.js local",
     "deploy-local": "graph deploy raid-guild/gnosis-guild-app --ipfs http://localhost:5001 --node http://127.0.0.1:8020",
     "deploy-main": "node manifests/deploy-prep.js mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ raid-guild/gnosis-guild-app",
