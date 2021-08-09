@@ -41,7 +41,7 @@ yarn run --network rinkeby scripts/generate-guilds.js
 yarn run --network rinkeby scripts/test-subscriptions.js
 ```
 
-* At the end, you'll have a Guild with subscriptions from two different Gnosis Safe. This is useful for testing the recurring subscriptions using the [subscription-relayer server](../subscription-relayer)
+* At the end, you'll have a Guild with subscriptions from two different Gnosis Safe. This is also useful for testing the recurring subscriptions using the [subscription-relayer server](../subscription-relayer)
 
 ## Deployed contract addresses
 

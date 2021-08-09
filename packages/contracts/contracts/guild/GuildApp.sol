@@ -152,8 +152,13 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         uint256 outstandingBalance = guildBalance(_tokenAddress);
         require(_amount > 0 && outstandingBalance >= _amount, "GuildApp: Not enough balance to withdraw");
         address beneficiary = _beneficiary != address(0) ? _beneficiary : _msgSender();
-        emit Withdraw(tokenAddress, beneficiary, _amount);
-        IERC20Upgradeable(tokenAddress).safeTransfer(beneficiary, _amount);
+        emit Withdraw(_tokenAddress, beneficiary, _amount);
+        if (_tokenAddress != address(0)) {
+            IERC20Upgradeable(_tokenAddress).safeTransfer(beneficiary, _amount);
+        } else {
+            (bool success, ) = payable(beneficiary).call{value: _amount}("");
+            require(success, "GuildApp: Failed to send Ether");
+        }
     }
 
     /// @notice Update Guild subscription token and price
@@ -238,9 +243,11 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
             emit RenewSubscription(subscriber, subs.tokenId, value, subs.expirationTimestamp, _data);
         }
         
-        if (tokenAddress != address(0) && _data.length == 0) {
-            // Handle payment using EOA allowances
-            IERC20Upgradeable(tokenAddress).safeTransferFrom(subscriber, address(this), value);
+        if (_data.length == 0) {
+            if (tokenAddress != address(0)) {
+                // Handle payment using EOA allowances
+                IERC20Upgradeable(tokenAddress).safeTransferFrom(subscriber, address(this), value);
+            }
             return;
         }
         // Else Handle payment using Safe Allowance Module
@@ -278,8 +285,8 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
     /// @return current guild balanceOf `_tokenAddres`
     function guildBalance(address _tokenAddress) public view override returns (uint256) {
         if (_approvedTokens[address(this)].contains(_tokenAddress)) {
-            if (tokenAddress != address(0)) {
-                return IERC20Upgradeable(tokenAddress).balanceOf(address(this));
+            if (_tokenAddress != address(0)) {
+                return IERC20Upgradeable(_tokenAddress).balanceOf(address(this));
             }
             return address(this).balance;
         }
