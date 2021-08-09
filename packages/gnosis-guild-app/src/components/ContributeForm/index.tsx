@@ -66,7 +66,14 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
     if (connected) {
       setGuildMinimumAmount(currentMinimumAmount);
     }
-  }, [profileName, profileEmail, currentMinimumAmount, connected]);
+  }, [currentMinimumAmount, connected]);
+
+  useEffect(() => {
+    if (connected) {
+      setContributorName(profileName);
+      setContributorEmail(profileEmail);
+    }
+  }, [profileName, profileEmail, connected]);
 
   useEffect(() => {
     setContributor(contributorName, contributorEmail, guildMinimumAmount);
@@ -77,7 +84,6 @@ const ContributeForm: React.FC<Props> = ({ setInvalid, clear, children }) => {
       setContributorName("");
       setContributorEmail("");
       setGuildMinimumAmount("0");
-      console.log("Hit clear path");
       setSubscribed(false);
     }
   }, [clear, setSubscribed]);
