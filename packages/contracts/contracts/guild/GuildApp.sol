@@ -234,7 +234,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         } else {
             require(subs.expirationTimestamp < block.timestamp, "GuildApp: sill an active subscription");
             // renew or extend subscription
-            subs.expirationTimestamp = subs.expirationTimestamp.add(block.timestamp);
+            subs.expirationTimestamp = subs.expirationTimestamp.add(subscriptionPeriod);
             emit RenewSubscription(subscriber, subs.tokenId, value, subs.expirationTimestamp, _data);
         }
         
@@ -246,9 +246,6 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         // Else Handle payment using Safe Allowance Module
         require(_allowanceModule != address(0), "GuildApp: Guild does not support Safe Allowances");
         IAllowanceModule safeModule = IAllowanceModule(_allowanceModule);
-        uint256[5] memory allowance = safeModule.getTokenAllowance(subscriber, address(this), tokenAddress);
-        // allowance.amout - allowance.spent
-        require(allowance[0] - allowance[1] >= value, "GuildApp: Not enough allowance");
 
         safeModule.executeAllowanceTransfer(
             subscriber, // MUST be a safe

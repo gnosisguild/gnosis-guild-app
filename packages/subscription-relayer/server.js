@@ -76,7 +76,9 @@ app.get('/', async (req, res) => {
     const date = (Date.now() / 1000).toFixed(0);
     console.log('Date', date);
     const rs = await fetchGuilds(date);
-    rs.forEach(async (guildSubscription) => {
+
+    for(i = 0; i < rs.length; i++) {
+        const guildSubscription = rs[i];
         const guildAddress = guildSubscription.guild.id;
         const guildContract = new ethers.Contract(
             guildAddress,
@@ -102,12 +104,10 @@ app.get('/', async (req, res) => {
                 lastResetMin: allowance[3].toString(),
                 nonce: allowance[4].toString(),
             });
-            console.log('Subs', guildAddress, args);
-            // const gas = await guildContract.estimateGas.subscribe(...args);
-            // console.log('\tEstimated gas:', gas.toString());
+            console.log('====> NEW Renewal Subscription to process', guildAddress, args);
             const rs = await guildContract.subscribe(...args);
             await rs.wait();
-            console.log('Processed subscription', {
+            console.log('====> PROCESSED SUBSCRIPTION', {
                 guild: guildContract.address,
                 subscriber: guildSubscription.owner,
                 keyId: guildSubscription.keyId,
@@ -124,7 +124,7 @@ app.get('/', async (req, res) => {
                 \n
             `);
         }
-    });
+    }
     
     res.send({
         relayer: await signer.getAddress(),

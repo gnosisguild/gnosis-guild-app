@@ -120,10 +120,9 @@ const setupCPK = async (signer, cpk, delegateContract, allowanceModuleAddr, toke
           tokenAddress,
           allowanceAmount,
           // SUBSCRIPTION_PERIOD_DEFAULT, // Get time in minutes
-          60 * 2, // TODO: Subscription period in minutes
+          2, // resetTimeMin - TODO: Subscription period in minutes
           // (currentPeriod.getTime() / 1000 / 60).toFixed(0), // TODO: First day of current Period. Get time in minutes
-          0
-
+          0, // resetBaseMin
         ]),
       },
     ].filter((t) => t);
@@ -147,13 +146,15 @@ const subscribe = async (signer, guildApp, allowanceModuleAddr, tokenAddress, de
 
     const minFunds = (5 * +deposit).toString(); // enough for 5 recurring subscriptions
 
-    if (+cpkBalance.toString() < +minFunds) {
+    if (+cpkBalance.toString() <= +deposit) {
         console.log('Sending funds to proxy...');
         const rs = await signer.sendTransaction({
             to: cpkInstance.address,
             value: ethers.BigNumber.from(minFunds)
         });
         await rs.wait();
+        const cpkBalanceAfter = await getProxyBalance(signer, cpkInstance, tokenAddress);
+        console.log('cpkBalance after', cpkBalanceAfter.toString());
     }
 
     const setupTxs = await setupCPK(
@@ -219,7 +220,7 @@ const main = async () => {
        
         const ALLOWANCE_MODULE = "0xCFbFaC74C26F8647cBDb8c5caf80BB5b32E43134";
         // Should run `scripts/generate-guilds.js` in order to create a guild
-        const GUILD = "0x1819f0A75177EC249f912a8213C7A1a1b1a738d6";
+        const GUILD = "0x566FDE442905aBd1ae0169eE8616c3D1322f720D";
 
 
         const json = fs.readFileSync(ADDRESSES_FILE);
