@@ -9,7 +9,8 @@ import {
     SubscriptionPriceChanged,
     UpdatedMetadata,
     Unsubscribed,
-    Withdraw } from "../generated/templates/GuildAppTemplate/GuildApp";
+    Withdraw,
+    Transfer } from "../generated/templates/GuildAppTemplate/GuildApp";
 
 export function handleCreatedGuild(event: InitializedGuild): void {
     let guildId = event.address.toHex();
@@ -184,6 +185,20 @@ export function handleUnsubscription(event: Unsubscribed): void {
             subscription.save();
         }
 
+    }
+}
+
+export function handleSubTransfer(event: Transfer): void {
+    let guild = Guild.load(event.address.toHex());
+    if (guild != null) {
+
+        let keyId = event.params.tokenId;
+        let subId = guild.id.concat("-").concat(keyId.toHexString());
+        let subscription = GuildSubscription.load(subId);
+        if (subscription != null) {
+            subscription.owner = event.params.to;
+            subscription.save();
+        }
     }
 }
 

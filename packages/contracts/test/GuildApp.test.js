@@ -4,6 +4,8 @@ const { ethers, network, waffle } = require("hardhat"); // explicit, however alr
 
 const GuildAppABI = require("../artifacts/contracts/guild/GuildApp.sol/GuildApp.json").abi;
 
+const testUtils = require("./utils");
+
 const SUBSCRIPTION_PRICE = ethers.utils.parseEther("5");
 const SUBSCRIPTION_PRICE_ETH = ethers.utils.parseEther("0.1");
 const SUBSCRIPTION_PERIOD_DEFAULT = 3600 * 24 * 30;
@@ -21,11 +23,15 @@ describe("GuildApp", () => {
     let bob;
     let carl;
     let diana;
+    let degen;
+    let regen;
 
+    let mintedSubs = 0;
+    let burnedSubs = 0;
     let activeSubId;
 
     before(async () => {
-        [admin, alice, bob, carl, diana] = await ethers.getSigners();
+        [admin, alice, bob, carl, diana, degen, regen] = await ethers.getSigners();
 
         const DAIMock = await ethers.getContractFactory("DAIMock");
         dai = await DAIMock.connect(admin).deploy();
@@ -36,6 +42,7 @@ describe("GuildApp", () => {
         await dai.connect(admin).mint(bob.address, ethers.utils.parseEther("100"));
         await dai.connect(admin).mint(carl.address, ethers.utils.parseEther("100"));
         await dai.connect(admin).mint(diana.address, ethers.utils.parseEther("100"));
+        await dai.connect(admin).mint(degen.address, ethers.utils.parseEther("100"));
 
         const GuildAppTemplate = await ethers.getContractFactory("GuildApp");
         guildAppTemplate = await GuildAppTemplate.deploy();
@@ -104,17 +111,18 @@ describe("GuildApp", () => {
         const tokenURI = '';
         await dai.connect(bob).approve(guildA.address, SUBSCRIPTION_PRICE); // This should be done by the SpendingLimit module on Safe accounts
         const rs = await guildA.connect(bob).subscribe(bob.address, tokenURI, SUBSCRIPTION_PRICE, "0x");
+        mintedSubs++;
         const receipt = await rs.wait();
         const block = await ethers.provider.getBlock(receipt.blockNumber);
 
         const [ subscriber, tokenId, value, expirationTimestamp ] = receipt.events.find(e => e.event === 'NewSubscription').args;
         expect(subscriber).to.equal(bob.address);
-        expect(+tokenId.toString()).to.equal(+lastTokenId.toString() + 1);
+        expect(+tokenId.toString()).to.equal(+lastTokenId.toString() + mintedSubs);
         expect(value.toString()).to.equal(SUBSCRIPTION_PRICE.toString());
         expect(+expirationTimestamp).to.equal(block.timestamp + SUBSCRIPTION_PERIOD_DEFAULT);
 
         const subscription = await guildA.subscriptionByOwner(bob.address);
-        expect(+subscription.tokenId.toString()).to.equal(+lastTokenId.toString() + 1);
+        expect(+subscription.tokenId.toString()).to.equal(+lastTokenId.toString() + mintedSubs);
 
         expect(await guildA.tokenURI(tokenId)).to.equal(`${NFT_BASE_URI}${tokenURI}#${tokenId}`);
 
@@ -142,6 +150,58 @@ describe("GuildApp", () => {
         const subscription = await guildA.subscriptionByOwner(bob.address);
         expect(+subscription.tokenId.toString()).to.equal(0);
         expect(+subscription.expirationTimestamp.toString()).to.equal(0);
+        burnedSubs++;
+    });
+
+    it("Should not allow to transfer burned subscriptions", async () => {
+        await expect(guildA.connect(bob)['safeTransferFrom(address,address,uint256,bytes)'](bob.address, degen.address, activeSubId, "0x"))
+            .to.be.revertedWith("revert ERC721: operator query for nonexistent token");
+    })
+
+    it("Should allow to subscribe & transfer", async () => {
+        const lastTokenId = await guildA.totalSupply() + burnedSubs;
+        const tokenURI = '';
+        await dai.connect(degen).approve(guildA.address, SUBSCRIPTION_PRICE); // This should be done by the SpendingLimit module on Safe accounts
+        let rs = await guildA.connect(degen).subscribe(degen.address, tokenURI, SUBSCRIPTION_PRICE, "0x");
+        let receipt = await rs.wait();
+        let block = await ethers.provider.getBlock(receipt.blockNumber);
+
+        const [ subscriber, tokenId, value, expirationTimestamp ] = receipt.events.find(e => e.event === 'NewSubscription').args;
+        expect(subscriber).to.equal(degen.address);
+        expect(+tokenId.toString()).to.equal(+lastTokenId.toString() + 1);
+        expect(value.toString()).to.equal(SUBSCRIPTION_PRICE.toString());
+        expect(+expirationTimestamp).to.equal(block.timestamp + SUBSCRIPTION_PERIOD_DEFAULT);
+
+        rs = await guildA.connect(degen)['safeTransferFrom(address,address,uint256,bytes)'](degen.address, regen.address, tokenId, "0x");
+        receipt = await rs.wait();
+        block = await ethers.provider.getBlock(receipt.blockNumber);
+
+        const [ _from, _to, _tokenId ] = receipt.events.find(e => e.event === 'Transfer').args;
+        expect(_from).to.equal(degen.address);
+        expect(_to).to.equal(regen.address);
+        expect(_tokenId.toString()).to.equal(tokenId.toString());
+
+        await testUtils.verifyNewOwnership(guildA, degen.address, regen.address, {
+            subId: tokenId,
+            expirationTimestamp,
+        });
+
+        rs = await guildA.connect(regen)['transferFrom(address,address,uint256)'](regen.address, degen.address, tokenId);
+        await rs.wait();
+        await testUtils.verifyNewOwnership(guildA, regen.address, degen.address, {
+            subId: tokenId,
+            expirationTimestamp,
+        });
+
+        activeSubId = tokenId;
+    });
+
+    it("Should not allow subscription transfers if not an owner", async () => {
+        await expect(guildA.connect(regen)['safeTransferFrom(address,address,uint256,bytes)'](regen.address, degen.address, activeSubId, "0x"))
+            .to.be.revertedWith("revert ERC721: transfer caller is not owner nor approved");
+
+        await expect(guildA.connect(regen)['transferFrom(address,address,uint256)'](regen.address, degen.address, activeSubId))
+            .to.be.revertedWith("revert ERC721: transfer caller is not owner nor approved");
     });
 
     it("Should allow to update Guild metadata to guild owner", async () => {
@@ -172,7 +232,6 @@ describe("GuildApp", () => {
     });
 
     it("Should not allow a new subscription with fDAI", async () => {
-        const lastTokenId = await guildA.totalSupply();
         const tokenURI = '';
         await dai.connect(carl).approve(guildA.address, SUBSCRIPTION_PRICE); // This should be done by the SpendingLimit module on Safe accounts
         const tx = guildA.connect(carl).subscribe(carl.address, tokenURI, SUBSCRIPTION_PRICE, "0x");
@@ -181,11 +240,12 @@ describe("GuildApp", () => {
 
     it("Should allow new subscriptions using ETH", async () => {
         const balanceBefore = await guildA.guildBalance(ethers.constants.AddressZero);
-        const lastTokenId = await guildA.totalSupply() + 1; // +1 due to one was burned
+        const lastTokenId = +(await guildA.totalSupply()).toString() + burnedSubs;
         const tokenURI = '';
         const rs = await guildA.connect(carl).subscribe(carl.address, tokenURI, SUBSCRIPTION_PRICE_ETH, "0x", {
             value: SUBSCRIPTION_PRICE_ETH
         });
+        mintedSubs++;
         const receipt = await rs.wait();
         const block = await ethers.provider.getBlock(receipt.blockNumber);
 
