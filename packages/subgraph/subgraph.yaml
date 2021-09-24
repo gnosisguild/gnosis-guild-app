@@ -60,3 +60,5 @@ templates:
           handler: handleUnsubscription
         - event: Withdraw(address,address,uint256)
           handler: handleWithdraw
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleSubTransfer

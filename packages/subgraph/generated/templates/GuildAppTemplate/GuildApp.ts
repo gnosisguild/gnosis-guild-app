@@ -1348,15 +1348,15 @@ export class SafeTransferFrom1Call__Inputs {
     this._call = call;
   }
 
-  get from(): Address {
+  get _from(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
 
-  get to(): Address {
+  get _to(): Address {
     return this._call.inputValues[1].value.toAddress();
   }
 
-  get tokenId(): BigInt {
+  get _tokenId(): BigInt {
     return this._call.inputValues[2].value.toBigInt();
   }
 
@@ -1496,15 +1496,15 @@ export class TransferFromCall__Inputs {
     this._call = call;
   }
 
-  get from(): Address {
+  get _from(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
 
-  get to(): Address {
+  get _to(): Address {
     return this._call.inputValues[1].value.toAddress();
   }
 
-  get tokenId(): BigInt {
+  get _tokenId(): BigInt {
     return this._call.inputValues[2].value.toBigInt();
   }
 }

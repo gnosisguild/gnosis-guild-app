@@ -20,7 +20,7 @@ import "../utils/SignatureDecoder.sol";
 /// @author RaidGuild
 /// @notice Guild app allows you to monetize content and receive recurring subscriptions
 /// @dev uses ERC721 standard to tokenize subscriptions
-contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecoder, IGuild {
+contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint256;
@@ -47,7 +47,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
     /// @dev subscriptions list
     mapping(address => Subscription) public subscriptionByOwner;
     /// @dev assets used for subscription payments
-    mapping(address => EnumerableSetUpgradeable.AddressSet) private _approvedTokens;
+    EnumerableSetUpgradeable.AddressSet private _approvedTokens;
     /// @dev Gnosis Safe AllowanceModule
     address private _allowanceModule;
     /// @dev next subscriptionID
@@ -92,7 +92,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         isActive = true;
         metadataCID = _metadataCID;
         tokenAddress = _tokenAddress;
-        _approvedTokens[address(this)].add(_tokenAddress);
+        _approvedTokens.add(_tokenAddress);
         subPrice = _subPrice;
         subscriptionPeriod =_subscriptionPeriod;
         _setBaseURI(baseURI);
@@ -148,7 +148,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         uint256 _amount,
         address _beneficiary
     ) public override onlyGuildAdmin {
-        require(_approvedTokens[address(this)].contains(_tokenAddress), "GuildApp: Token has not been approved");
+        require(_approvedTokens.contains(_tokenAddress), "GuildApp: Token has not been approved");
         uint256 outstandingBalance = guildBalance(_tokenAddress);
         require(_amount > 0 && outstandingBalance >= _amount, "GuildApp: Not enough balance to withdraw");
         address beneficiary = _beneficiary != address(0) ? _beneficiary : _msgSender();
@@ -170,34 +170,9 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         uint256 _newSubPrice
     ) public override onlyGuildAdmin onlyIfActive {
         tokenAddress = _tokenAddress;
-        _approvedTokens[address(this)].add(_tokenAddress);
+        _approvedTokens.add(_tokenAddress);
         subPrice = _newSubPrice;
         emit SubscriptionPriceChanged(tokenAddress, subPrice);
-    }
-
-    /// @notice Validate signature belongs to a Safe owner
-    /// @dev Currently disabled
-    /// @param _safeAddress Gnosis Safe contract
-    /// @param _transferhash Tx hash used for signing
-    /// @param _data owner signature
-    function _validateSignature(
-        address _safeAddress,
-        bytes32 _transferhash,
-        bytes memory _data
-    ) internal view {
-        // Validate signature belongs to a Safe owner
-        IGnosisSafe safe = IGnosisSafe(_safeAddress);
-        (uint8 v, bytes32 r, bytes32 s) = signatureSplit(_data, 0);
-        address safeOwner;
-
-        if (v > 30) {
-            // To support eth_sign and similar we adjust v and hash the messageHash with the Ethereum message prefix before applying ecrecover
-            safeOwner = ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _transferhash)), v - 4, r, s);
-        } else {
-            // Use ecrecover with the messageHash for EOA signatures
-            safeOwner = ecrecover(_transferhash, v, r, s);
-        }
-        require(safe.isOwner(safeOwner), "GuildApp: Signer is not a safe owner");
     }
 
     /// @notice New subscription to the Guild
@@ -212,11 +187,10 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         uint256 _value,
         bytes memory _data
     ) public payable override onlyIfActive {
-        address subscriber = _subscriber;
-        uint256 value = _value;
         if (_data.length == 0) {  // condition if not using a safe
+            require(_subscriber == _msgSender(), "GuildApp: msg.sender must be the subscriber");
             require((tokenAddress != address(0) && msg.value == 0) ||
-                    (tokenAddress == address(0) && msg.value == value),
+                    (tokenAddress == address(0) && msg.value == _value),
                     "GuildApp: incorrect msg.value");
         } else {
             // require(address(subscriber).isContract() &&
@@ -225,28 +199,25 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
             require(msg.value == 0,
                     "GuildApp: ETH should be transferred via AllowanceModule");
         }
-        require(value >= subPrice, "GuildApp: Insufficient value sent");
-        Subscription storage subs = subscriptionByOwner[subscriber];
-        
+        require(_value >= subPrice, "GuildApp: Insufficient value sent");
+        Subscription storage subs = subscriptionByOwner[_subscriber];
         if (subs.tokenId == 0) {
-            require(subscriber == _msgSender(), "GuildApp: msg.sender must be the subscriber");
             _nextId = _nextId.add(1);
             subs.tokenId = _nextId;
-            _safeMint(subscriber, subs.tokenId);
+            _safeMint(_subscriber, subs.tokenId);
             _setTokenURI(subs.tokenId, string(abi.encodePacked(_tokenURI, "#", subs.tokenId.toString())));
             subs.expirationTimestamp = subscriptionPeriod.add(block.timestamp);
-            emit NewSubscription(subscriber, subs.tokenId, value, subs.expirationTimestamp, _data);
+            emit NewSubscription(_subscriber, subs.tokenId, _value, subs.expirationTimestamp, _data);
         } else {
             require(subs.expirationTimestamp < block.timestamp, "GuildApp: sill an active subscription");
-            // renew or extend subscription
-            subs.expirationTimestamp = subs.expirationTimestamp.add(subscriptionPeriod);
-            emit RenewSubscription(subscriber, subs.tokenId, value, subs.expirationTimestamp, _data);
+            subs.expirationTimestamp = block.timestamp.add(subscriptionPeriod);
+            emit RenewSubscription(_subscriber, subs.tokenId, _value, subs.expirationTimestamp, _data);
         }
         
         if (_data.length == 0) {
             if (tokenAddress != address(0)) {
                 // Handle payment using EOA allowances
-                IERC20Upgradeable(tokenAddress).safeTransferFrom(subscriber, address(this), value);
+                IERC20Upgradeable(tokenAddress).safeTransferFrom(_subscriber, address(this), _value);
             }
             return;
         }
@@ -255,10 +226,10 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         IAllowanceModule safeModule = IAllowanceModule(_allowanceModule);
 
         safeModule.executeAllowanceTransfer(
-            subscriber, // MUST be a safe
+            _subscriber, // MUST be a safe
             tokenAddress,
             payable(this), // to
-            uint96(value),
+            uint96(_value),
             address(0), // payment token
             0, // payment
             address(this), // delegate
@@ -280,11 +251,44 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
         emit Unsubscribed(_tokenId);
     }
 
+    /// @notice Transfer subscription ownership internally
+    /// @dev subId is assigned to new owner
+    /// @param _from Current subscription owner
+    /// @param _to New subscription owner
+    function _transferSub(address _from, address _to) internal {
+        Subscription storage subsFrom = subscriptionByOwner[_from];
+        Subscription storage subsTo = subscriptionByOwner[_to];
+        subsTo.tokenId = subsFrom.tokenId;
+        subsTo.expirationTimestamp = subsFrom.expirationTimestamp;
+        subsFrom.tokenId = 0;
+        subsFrom.expirationTimestamp = 0;
+    }
+
+    /// @notice Transfer subscription ownership
+    /// @dev ERC721 token is transferred to the new owner
+    /// @param _from Current subscription owner
+    /// @param _to New subscription owner
+    /// @param _tokenId Subscription ID
+    function transferFrom(address _from, address _to, uint256 _tokenId) public override(ERC721Upgradeable, IERC721Upgradeable) {
+        ERC721Upgradeable.transferFrom(_from, _to, _tokenId);
+        _transferSub(_from, _to);
+    }
+
+    /// @notice Transfer subscription ownership
+    /// @dev ERC721 token is transferred to the new owner
+    /// @param _from Current subscription owner
+    /// @param _to New subscription owner
+    /// @param _tokenId Subscription ID
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes memory _data) public override(ERC721Upgradeable, IERC721Upgradeable) {
+        ERC721Upgradeable.safeTransferFrom(_from, _to, _tokenId, _data);
+        _transferSub(_from, _to);
+    }
+
     /// @notice Get the Guild balance of a specified token
     /// @param _tokenAddress asset address
     /// @return current guild balanceOf `_tokenAddres`
     function guildBalance(address _tokenAddress) public view override returns (uint256) {
-        if (_approvedTokens[address(this)].contains(_tokenAddress)) {
+        if (_approvedTokens.contains(_tokenAddress)) {
             if (_tokenAddress != address(0)) {
                 return IERC20Upgradeable(_tokenAddress).balanceOf(address(this));
             }
@@ -328,9 +332,9 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
     /// @notice Return list of approved tokens in the guild
     /// @return array of assets aproved to the Guild
     function approvedTokens() public view override returns (address[] memory) {
-        address[] memory tokens = new address[](_approvedTokens[address(this)].length());
-        for (uint256 i = 0; i < _approvedTokens[address(this)].length(); i++) {
-            tokens[i] = _approvedTokens[address(this)].at(i);
+        address[] memory tokens = new address[](_approvedTokens.length());
+        for (uint256 i = 0; i < _approvedTokens.length(); i++) {
+            tokens[i] = _approvedTokens.at(i);
         }
         return tokens;
     }
@@ -358,6 +362,6 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, SignatureDecod
 
     }
 
-    uint256[50] private __gap;
+    uint256[40] private __gap;
 
 }
