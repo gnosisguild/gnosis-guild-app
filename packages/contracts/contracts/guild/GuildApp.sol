@@ -209,7 +209,7 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
             subs.expirationTimestamp = subscriptionPeriod.add(block.timestamp);
             emit NewSubscription(_subscriber, subs.tokenId, _value, subs.expirationTimestamp, _data);
         } else {
-            require(subs.expirationTimestamp < block.timestamp, "GuildApp: sill an active subscription");
+            require(subs.expirationTimestamp < block.timestamp, "GuildApp: still an active subscription");
             subs.expirationTimestamp = block.timestamp.add(subscriptionPeriod);
             emit RenewSubscription(_subscriber, subs.tokenId, _value, subs.expirationTimestamp, _data);
         }
@@ -245,43 +245,29 @@ contract GuildApp is ERC721Upgradeable, AccessControlUpgradeable, IGuild {
         address subscriber = _msgSender();
         require(subscriber == ownerOf(_tokenId), "GuildApp: Caller is not the owner of the subscription");
         _burn(_tokenId);
-        Subscription storage subs = subscriptionByOwner[subscriber];
-        subs.tokenId = 0;
-        subs.expirationTimestamp = 0;
         emit Unsubscribed(_tokenId);
     }
 
-    /// @notice Transfer subscription ownership internally
-    /// @dev subId is assigned to new owner
+    /// @notice Manage subscription ownership internally
+    /// @dev Using hook for burning/transferring exising subscriptions
     /// @param _from Current subscription owner
     /// @param _to New subscription owner
-    function _transferSub(address _from, address _to) internal {
-        Subscription storage subsFrom = subscriptionByOwner[_from];
-        Subscription storage subsTo = subscriptionByOwner[_to];
-        subsTo.tokenId = subsFrom.tokenId;
-        subsTo.expirationTimestamp = subsFrom.expirationTimestamp;
-        subsFrom.tokenId = 0;
-        subsFrom.expirationTimestamp = 0;
-    }
-
-    /// @notice Transfer subscription ownership
-    /// @dev ERC721 token is transferred to the new owner
-    /// @param _from Current subscription owner
-    /// @param _to New subscription owner
-    /// @param _tokenId Subscription ID
-    function transferFrom(address _from, address _to, uint256 _tokenId) public override(ERC721Upgradeable, IERC721Upgradeable) {
-        ERC721Upgradeable.transferFrom(_from, _to, _tokenId);
-        _transferSub(_from, _to);
-    }
-
-    /// @notice Transfer subscription ownership
-    /// @dev ERC721 token is transferred to the new owner
-    /// @param _from Current subscription owner
-    /// @param _to New subscription owner
-    /// @param _tokenId Subscription ID
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes memory _data) public override(ERC721Upgradeable, IERC721Upgradeable) {
-        ERC721Upgradeable.safeTransferFrom(_from, _to, _tokenId, _data);
-        _transferSub(_from, _to);
+    // /// @param _tokenId Subscription Id
+    function _beforeTokenTransfer(address _from, address _to, uint256 /*_tokenId*/) internal override {
+        if (_from != address(0) && _to != address(0)) { // transfer existing subscription
+            Subscription storage subsTo = subscriptionByOwner[_to];
+            require(subsTo.expirationTimestamp == 0, "GuildApp: Recipient already has an active subscription");
+            Subscription storage subsFrom = subscriptionByOwner[_from];
+            subsTo.tokenId = subsFrom.tokenId;
+            subsTo.expirationTimestamp = subsFrom.expirationTimestamp;
+            subsFrom.tokenId = 0;
+            subsFrom.expirationTimestamp = 0;
+        }
+        if (_to == address(0)) { // burn/unsubscribe
+            Subscription storage subs = subscriptionByOwner[_from];
+            subs.tokenId = 0;
+            subs.expirationTimestamp = 0;
+        }
     }
 
     /// @notice Get the Guild balance of a specified token
