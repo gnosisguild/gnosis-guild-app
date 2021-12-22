@@ -220,7 +220,7 @@ const main = async () => {
        
         const ALLOWANCE_MODULE = "0xCFbFaC74C26F8647cBDb8c5caf80BB5b32E43134";
         // Should run `scripts/generate-guilds.js` in order to create a guild
-        const GUILD = "0x566FDE442905aBd1ae0169eE8616c3D1322f720D";
+        const GUILD = "0x55f046c905DC4471C7E0E46214Beb19b73B24F4B";
 
 
         const json = fs.readFileSync(ADDRESSES_FILE);
