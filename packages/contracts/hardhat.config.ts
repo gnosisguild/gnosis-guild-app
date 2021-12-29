@@ -1,10 +1,15 @@
-require("dotenv").config();
-require("@nomiclabs/hardhat-etherscan");
-require("@openzeppelin/hardhat-upgrades");
-require("@nomiclabs/hardhat-waffle");
-require("hardhat-gas-reporter");
+import dotenv from "dotenv";
+import { task, HardhatUserConfig } from "hardhat/config";
+import { HDAccountsUserConfig } from "hardhat/types/config"
+import "@nomiclabs/hardhat-etherscan";
+import "@openzeppelin/hardhat-upgrades";
+import "@nomiclabs/hardhat-waffle";
+import "hardhat-gas-reporter";
+import "hardhat-typechain";
 
-task("accounts", "Prints the list of accounts", async () => {
+dotenv.config();
+
+task("accounts", "Prints the list of accounts", async (_, { ethers }) => {
   const accounts = await ethers.getSigners();
 
   for (const account of accounts) {
@@ -15,7 +20,7 @@ task("accounts", "Prints the list of accounts", async () => {
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
-module.exports = {
+const config: HardhatUserConfig = {
   // defaultNetwork: "rinkeby",
   defaultNetwork: "hardhat",
   networks: {
@@ -33,7 +38,7 @@ module.exports = {
       gasPrice: 10e9,
       accounts: process.env.MNEMONIC ? {
         mnemonic: process.env.MNEMONIC,
-      } : [process.env.ACCOUNT_PK],
+      } as HDAccountsUserConfig : [process.env.ACCOUNT_PK!],
     },
     mumbai: {
       chainId: 80001,
@@ -42,7 +47,7 @@ module.exports = {
       gasPrice: 1e9,
       accounts: process.env.MNEMONIC ? {
         mnemonic: process.env.MNEMONIC,
-      } : [process.env.ACCOUNT_PK],
+      } as HDAccountsUserConfig : [process.env.ACCOUNT_PK!],
     },
     xdai: {
       chainId: 0x64,
@@ -51,7 +56,7 @@ module.exports = {
       gasPrice: 1e9,
       accounts: process.env.MNEMONIC ? {
         mnemonic: process.env.MNEMONIC,
-      } : [process.env.ACCOUNT_PK],
+      } as HDAccountsUserConfig : [process.env.ACCOUNT_PK!],
     },
     matic: {
       chainId: 0x89,
@@ -60,7 +65,7 @@ module.exports = {
       gasPrice: 1e9,
       accounts: process.env.MNEMONIC ? {
         mnemonic: process.env.MNEMONIC,
-      } : [process.env.ACCOUNT_PK],
+      } as HDAccountsUserConfig : [process.env.ACCOUNT_PK!],
     },
   },
   etherscan: {
@@ -87,5 +92,11 @@ module.exports = {
       },
     ],
   },
+  typechain: {
+    outDir: "src/types",
+    target: "ethers-v5",
+  },
 };
+
+export default config;
 

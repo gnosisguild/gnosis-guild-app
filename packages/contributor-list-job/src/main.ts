@@ -9,6 +9,7 @@ import { IDX } from "@ceramicstudio/idx";
 import { ethers } from "ethers";
 
 import { parse } from "json2csv";
+import fetch from "node-fetch";
 
 import CeramicClient from "@ceramicnetwork/http-client";
 
@@ -30,6 +31,18 @@ type Contributor = {
 type LastRun = {
   lastGuildID: string;
   lastContributorID: string;
+};
+
+type SafeDetails = {
+  address: string;
+  none: number;
+  threshold: number;
+  owners: string[];
+  masterCopy: string;
+  modules: string[];
+  fallbackHandler: string;
+  guard: string;
+  version: string;
 };
 
 const BATCH_SIZE = 100;
@@ -114,7 +127,8 @@ const setupCeramic = async () => {
 const ethAddressToDID = async (address: string, ceramic: CeramicClient) => {
   const link = await Caip10Link.fromAccount(
     ceramic,
-    ethers.utils.getAddress(address) + `@eip155:${process.env.NETWORK_ID}`
+    ethers.utils.getAddress(address.toLowerCase()) +
+      `@eip155:${process.env.NETWORK_ID}`
   );
   return link.did;
 };
@@ -136,6 +150,24 @@ const updateLastRun = async (
       fileHandler
     );
   });
+};
+
+export const getApiGnosis = async (
+  networkName: string,
+  endpoint: string
+): Promise<SafeDetails | undefined> => {
+  const apiGnosisUrl = `https://safe-transaction.${networkName}.gnosis.io/api/v1/safes/${endpoint}`;
+  try {
+    const response = await fetch(apiGnosisUrl);
+    if (response.status >= 400) {
+      throw new Error(
+        `Failed to fetch Gnosis Safe contract wallet - ${response.statusText}`
+      );
+    }
+    return response.json() as Promise<SafeDetails>;
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const main = async () => {
@@ -172,7 +204,15 @@ const main = async () => {
     // get contributors from subgraph
     const activeContributors = await fetchContributors(guild.id);
     for (const contributor of activeContributors) {
-      const did = await ethAddressToDID(contributor.owner, ceramic);
+      const safeDetails = await getApiGnosis(
+        "rinkeby",
+        `${ethers.utils.getAddress(contributor.owner)}`
+      );
+      if (!safeDetails) {
+        continue;
+      }
+      const [subscriptionOwner] = safeDetails.owners;
+      const did = await ethAddressToDID(subscriptionOwner, ceramic);
       // Ignore and work with working cid
       if (!did) {
         console.error(`Missing did for contributor ${contributor.owner}`);
